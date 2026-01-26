@@ -1,18 +1,33 @@
 package DataBase;
 
-import java.sql.*;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.Properties;
 
 public class DBConnection {
-    private static final String URL =
-            "jdbc:mysql://localhost:3306/quanlykhongk?useSSL=false&serverTimezone=UTC";
-    private static final String USER = "root";
-    private static final String PASSWORD = "vanlap6@2";
+//    private static final String URL =
+//            "jdbc:mysql://localhost:3306/quanlykhongk?useSSL=false&serverTimezone=UTC";
+//    private static final String USER = "root";
+//    private static final String PASSWORD = "vanlap6@2";
 
     public static Connection getConnection() {
         // Hàm tạo kết nối tới MySQL
         // static: gọi trực tiếp không cần tạo object
         // Trả về đối tượng Connection
         try{
+            Properties props = new Properties();
+
+            InputStream is = DBConnection.class
+                    .getClassLoader()
+                    .getResourceAsStream("db.properties");
+
+            props.load(is);
+
+            String URL = props.getProperty("db.url");
+            String USER = props.getProperty("db.user");
+            String PASSWORD = props.getProperty("db.password");
+
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection conn =
                     DriverManager.getConnection(URL, USER, PASSWORD);
