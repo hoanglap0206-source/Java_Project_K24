@@ -23,6 +23,7 @@ public class KhachHangDAO {
                 kh.setHoTenKH(rs.getString("ten_kh"));
                 kh.setDiaChi(rs.getString("dia_chi"));
                 kh.setSdt(rs.getString("sdt"));
+                list.add(kh);
             }
         } catch (Exception e) {
             e.printStackTrace();
