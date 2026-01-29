@@ -1,7 +1,7 @@
 +++++++++++++ Các bước pull + push (trong terminal)+++++++++++++++++++++
 Điều kiện:Đã kết nối repo trên github
 1. Luôn luôn pull trước khi code
-    git pull --rebase origin main
+    git pull origin main
         {Lấy code mới nhất (phòng trường hợp người khác push)}
 2. Code bình thường
 3. Check trạng thái
