@@ -8,6 +8,7 @@ import Model.PhieuNhap;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 public class PhieuNhap_DAO {
@@ -37,5 +38,53 @@ public class PhieuNhap_DAO {
             e.printStackTrace();
         }
         return list;
+    }
+    public boolean insert(PhieuNhap pn){
+        String sql ="INSERT INTO PHIEU_NHAP(ma_pn,ngay_ct,ma_ncc,ma_nhan_vien) VALUES (?, ?, ?,?)";
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1,pn.getMaPN());
+            ps.setTimestamp(2, Timestamp.valueOf(pn.getNgay_ct()));
+            ps.setString(3,pn.getNhaCC().getMaNCC());
+            ps.setString(4,pn.getNhanVien().getMaNV());
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public boolean update(PhieuNhap pn){
+        String sql =
+                "UPDATE PHIEU_NHAP SET ngay_ct=?,ma_ncc=?,ma_nhan_vien=? WHERE ma_pn=?";
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setTimestamp(1, Timestamp.valueOf(pn.getNgay_ct()));
+            ps.setString(2,pn.getNhaCC().getMaNCC());
+            ps.setString(3,pn.getNhanVien().getMaNV());
+            ps.setString(4,pn.getMaPN());
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public boolean delete(String maPN){
+        String sql = "DELETE FROM PHIEU_NHAP WHERE ma_pn=?";
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, maPN);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
