@@ -74,4 +74,18 @@ public class ChiTietPN_DAO {
             return false;
         }
     }
+    public boolean delete(String maPN,String maSP) {
+        String sql = "DELETE FROM CHITIET_PHIEU_NHAP WHERE ma_pn=? AND ma_sku=?";
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, maPN);
+            ps.setString(2, maSP);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
