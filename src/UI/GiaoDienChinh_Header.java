@@ -5,9 +5,15 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class GiaoDienChinh_Header extends JPanel {
+    private JLabel title;
     private String titleCN = "";
-    public String getTitleCN() {return titleCN;}
-    public void setTitleCN(String titleCN) {this.titleCN = titleCN;}
+    public String getTitleCN() {
+        return titleCN;
+    }
+    public void setTitleCN(String titleCN) {
+        this.titleCN = titleCN;
+        updateTitle();
+    }
 
     public GiaoDienChinh_Header() {
         setLayout(new BorderLayout());
@@ -15,7 +21,8 @@ public class GiaoDienChinh_Header extends JPanel {
         setPreferredSize(new Dimension(0, 35)); // Chiều cao cố định 35px
         setBorder(new EmptyBorder(0, 15, 0, 15)); // Padding 2 bên
 
-        JLabel title = new JLabel("QUẢN LÝ KHO NƯỚC GIẢI KHÁT  |  " + this.getTitleCN());
+        title = new JLabel();
+        updateTitle();
         title.setFont(new Font("Arial", Font.BOLD, 12));
         title.setForeground(Color.BLACK);
 
@@ -26,4 +33,9 @@ public class GiaoDienChinh_Header extends JPanel {
         add(title, BorderLayout.WEST);
         add(greet, BorderLayout.EAST);
     }
+
+    private void updateTitle(){
+        title.setText("QUẢN LÝ KHO NƯỚC GIẢI KHÁT  |  " + titleCN);
+    }
 }
+
