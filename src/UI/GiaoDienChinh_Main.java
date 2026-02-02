@@ -23,9 +23,6 @@ public class GiaoDienChinh_Main extends JFrame {
         pnl.add(new GiaoDienChinh_Content(),BorderLayout.CENTER);
         add(pnl,BorderLayout.CENTER);
         add(new GiaoDienChinh_Menu(),BorderLayout.WEST);
-
-
-
     }
 
     public static void main(String[] args) {

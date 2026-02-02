@@ -6,6 +6,8 @@ import java.awt.*;
 import java.io.File;
 
 public class GiaoDienChinh_Menu extends JPanel {
+    private JButton[] btnList;
+
     public GiaoDienChinh_Menu(){
         setPreferredSize(new Dimension(220,0));
         setBackground(new Color(66,160,203));
@@ -16,8 +18,8 @@ public class GiaoDienChinh_Menu extends JPanel {
         JPanel listMenu=new JPanel(new GridLayout(0,1,5,5));
         listMenu.setBackground(new Color(188, 204, 209));
 
-        String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho"};
-        JButton[] btnList = new JButton[menuItem.length];
+        String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho", "Haha"};
+        btnList = new JButton[menuItem.length];
 
         for (int i=0; i<menuItem.length; i++){
 //            JButton btn=new JButton(item);
