@@ -1,0 +1,92 @@
+package UI;
+
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import java.awt.*;
+import java.io.File;
+
+public class GiaoDienChinh_Menu extends JPanel {
+    public GiaoDienChinh_Menu(){
+        setPreferredSize(new Dimension(220,0));
+        setBackground(new Color(66,160,203));
+        setLayout(new BorderLayout());
+
+
+        initAvatar();
+
+
+
+        JPanel listMenu=new JPanel(new GridLayout(0,1,5,5));
+        listMenu.setBackground(new Color(188, 204, 209));
+        String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho"};
+        for (String item: menuItem){
+            JButton btn=new JButton(item);
+            styleMenuButton(btn);
+            listMenu.add(btn);
+        }
+        JPanel pnlCenterWrap=new JPanel(new BorderLayout());
+        pnlCenterWrap.setBackground(new Color(66,160,203));
+        pnlCenterWrap.add(listMenu,BorderLayout.NORTH);
+        add(pnlCenterWrap,BorderLayout.CENTER);
+
+        JScrollPane scrollPane=new JScrollPane(pnlCenterWrap);
+
+
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        add(scrollPane,BorderLayout.CENTER);
+
+        JButton btnlogout=new JButton("Đăng xuất");
+        styleMenuButton(btnlogout);
+        JPanel pnlLogout=new JPanel(new FlowLayout());
+        pnlLogout.setBackground(new Color(66,160,203));
+        pnlLogout.add(btnlogout);
+        add(pnlLogout,BorderLayout.SOUTH);
+    }
+    public void styleMenuButton(JButton btn){
+        btn.setPreferredSize(new Dimension(200, 40));
+        btn.setBackground(new Color(179, 213, 226));
+        btn.setBorder(BorderFactory.createEmptyBorder());
+        btn.setFocusPainted(false);
+    }
+    public void initAvatar(){
+        JPanel pnlAvatar =new JPanel(new GridBagLayout());
+        pnlAvatar.setPreferredSize(new Dimension(0,150));
+        pnlAvatar.setBackground(new Color(135,206,235));
+        JLabel lblAvatar=new JLabel();
+        lblAvatar.setPreferredSize(new Dimension(100,100));
+        lblAvatar.setBorder(new LineBorder(Color.BLACK,2));
+        lblAvatar.setHorizontalAlignment(JLabel.CENTER);
+
+        String path= "chole.jpg";
+        File imgfile=new File(path);
+        if(imgfile.exists()){
+            ImageIcon icon=new ImageIcon(path);
+            Image img=icon.getImage();
+            Image newImg=img.getScaledInstance(100,100,Image.SCALE_SMOOTH);
+            lblAvatar.setIcon(new ImageIcon(newImg));
+        }
+        else{
+            lblAvatar.setText("No Image");
+            lblAvatar.setForeground(Color.RED); // Chữ màu đỏ cho dễ thấy
+            lblAvatar.setBackground(Color.WHITE);
+            lblAvatar.setOpaque(true);
+            System.out.println("Không tìm thấy file ảnh: " + imgfile.getAbsolutePath());
+        }
+
+        pnlAvatar.add(lblAvatar);
+        this.add(pnlAvatar,BorderLayout.NORTH);
+    }
+    public static void main(String[] args){
+        JFrame frame = new JFrame("Test Menu Layout");
+        frame.setSize(300, 700); // Kích thước cửa sổ test
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Thêm MenuPanel vào frame
+        frame.add(new GiaoDienChinh_Menu());
+
+        frame.setVisible(true);
+    }
+
+}
+
