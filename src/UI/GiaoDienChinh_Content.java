@@ -1,29 +1,32 @@
 package UI;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class GiaoDienChinh_Content extends JPanel {
-    private String titleCN = "";
-    public String getTitleCN() {return titleCN;}
-    public void setTitleCN(String titleCN) {this.titleCN = titleCN;}
+    private CardLayout cardLayout;
+    public GiaoDienChinh_Content(){
+        cardLayout=new CardLayout();
+        setLayout(cardLayout);
+        setBackground(Color.WHITE);
+        JPanel pnlHome = new JPanel(new GridBagLayout());
+        pnlHome.setBackground(Color.WHITE);
+        pnlHome.add(new JLabel("GIAO DIỆN TRANG CHỦ "));
+        add(pnlHome, "home"); // Đặt tên thẻ là "home"
+        // Card 2: Sản phẩm
+        JPanel pnlProduct = new JPanel(new GridBagLayout());
+        pnlProduct.setBackground(new Color(255, 240, 240, 255));
+        pnlProduct.add(new JLabel("GIAO DIỆN QUẢN LÝ SẢN PHẨM"));
+        add(pnlProduct, "product"); // Đặt tên thẻ là "product"
 
-    public GiaoDienChinh_Content() {
-        setLayout(new BorderLayout());
-        setBackground(new Color(230, 230, 230)); // Màu nền xá m
-        setPreferredSize(new Dimension(0, 35)); // Chiều cao cố định 35px
-        setBorder(new EmptyBorder(0, 15, 0, 15)); // Padding 2 bên
-
-        JLabel title = new JLabel("QUẢN LÝ KHO NƯỚC GIẢI KHÁT  |  " + this.getTitleCN());
-        title.setFont(new Font("Arial", Font.BOLD, 12));
-        title.setForeground(Color.BLACK);
-
-        JLabel greet = new JLabel("Chào: Admin"); // Sau này có thể truyền tên vào đây
-        greet.setFont(new Font("Arial", Font.BOLD, 12));
-        greet.setForeground(Color.BLACK);
-
-        add(title, BorderLayout.WEST);
-        add(greet, BorderLayout.EAST);
+        // Card 3: Nhà cung cấp
+        JPanel pnlSupplier = new JPanel(new GridBagLayout());
+        pnlSupplier.setBackground(new Color(255, 240, 240)); // Màu đỏ nhạt test
+        pnlSupplier.add(new JLabel("GIAO DIỆN NHÀ CUNG CẤP"));
+        add(pnlSupplier, "supplier");
+    }
+    public void showPanel(String cardName) {
+        cardLayout.show(this, cardName);
     }
 }
+

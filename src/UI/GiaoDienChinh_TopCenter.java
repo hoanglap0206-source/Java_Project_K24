@@ -5,8 +5,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 
-public class GiaoDienChinh_Head extends JPanel {
-    public GiaoDienChinh_Head() {
+public class GiaoDienChinh_TopCenter extends JPanel {
+    public GiaoDienChinh_TopCenter() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
