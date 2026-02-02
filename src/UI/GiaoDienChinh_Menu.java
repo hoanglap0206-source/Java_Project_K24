@@ -11,27 +11,26 @@ public class GiaoDienChinh_Menu extends JPanel {
         setBackground(new Color(66,160,203));
         setLayout(new BorderLayout());
 
-
         initAvatar();
-
-
 
         JPanel listMenu=new JPanel(new GridLayout(0,1,5,5));
         listMenu.setBackground(new Color(188, 204, 209));
         String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho"};
-        for (String item: menuItem){
-            JButton btn=new JButton(item);
-            styleMenuButton(btn);
-            listMenu.add(btn);
+        JButton[] btnList = new JButton[menuItem.length];
+        for (int i=0; i<menuItem.length; i++){
+//            JButton btn=new JButton(item);
+            String text = menuItem[i];
+            btnList[i] = new JButton(text);
+            styleMenuButton(btnList[i]);
+            listMenu.add(btnList[i]);
         }
+
         JPanel pnlCenterWrap=new JPanel(new BorderLayout());
         pnlCenterWrap.setBackground(new Color(66,160,203));
         pnlCenterWrap.add(listMenu,BorderLayout.NORTH);
         add(pnlCenterWrap,BorderLayout.CENTER);
 
         JScrollPane scrollPane=new JScrollPane(pnlCenterWrap);
-
-
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane,BorderLayout.CENTER);
 

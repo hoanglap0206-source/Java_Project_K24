@@ -16,8 +16,10 @@ public class GiaoDienChinh_Main extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+
         add(new GiaoDienChinh_Content(),BorderLayout.NORTH);
         JPanel pnl=new JPanel();
+
         pnl.setLayout(new BorderLayout());
         pnl.add(new GiaoDienChinh_Head(),BorderLayout.NORTH);
         pnl.add(new GiaoDienChinh_Center(),BorderLayout.CENTER);
