@@ -15,8 +15,10 @@ public class GiaoDienChinh_Menu extends JPanel {
 
         JPanel listMenu=new JPanel(new GridLayout(0,1,5,5));
         listMenu.setBackground(new Color(188, 204, 209));
+
         String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho"};
         JButton[] btnList = new JButton[menuItem.length];
+
         for (int i=0; i<menuItem.length; i++){
 //            JButton btn=new JButton(item);
             String text = menuItem[i];
