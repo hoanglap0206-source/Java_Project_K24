@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class GiaoDienChinh_Main extends JFrame {
-    private GiaoDienChinh_Content main;
+    private GiaoDienChinh_Content content;
 
     public GiaoDienChinh_Main() {
         setTitle("Giao diện chính");
@@ -12,7 +12,11 @@ public class GiaoDienChinh_Main extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+
         GiaoDienChinh_Header header =new GiaoDienChinh_Header();
+        //Dùng để sử dùng các panel từ các Button
+        content = new GiaoDienChinh_Content();
+
         add(header,BorderLayout.NORTH);
         JPanel pnl=new JPanel();
         ImageIcon img = new ImageIcon(getClass().getResource("/Img/shopee.jpg"));//create an ImageIcon
@@ -20,9 +24,11 @@ public class GiaoDienChinh_Main extends JFrame {
 
         pnl.setLayout(new BorderLayout());
         pnl.add(new GiaoDienChinh_TopCenter(),BorderLayout.NORTH);
-        pnl.add(new GiaoDienChinh_Content(),BorderLayout.CENTER);
+        pnl.add(content,BorderLayout.CENTER);
+
         add(pnl,BorderLayout.CENTER);
-        add(new GiaoDienChinh_Menu(header),BorderLayout.WEST);// Lập đã sửa
+
+        add(new GiaoDienChinh_Menu(header, content),BorderLayout.WEST);// Lập - Lê đã sửa
 
     }
 

@@ -2,31 +2,45 @@ package UI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class GiaoDienChinh_Content extends JPanel {
     private CardLayout cardLayout;
     public GiaoDienChinh_Content(){
-        cardLayout=new CardLayout();
+        cardLayout =new CardLayout();
         setLayout(cardLayout);
         setBackground(Color.WHITE);
-        JPanel pnlHome = new JPanel(new GridBagLayout());
-        pnlHome.setBackground(Color.WHITE);
-        pnlHome.add(new JLabel("GIAO DIỆN TRANG CHỦ "));
-        add(pnlHome, "home"); // Đặt tên thẻ là "home"
-        // Card 2: Sản phẩm
-        JPanel pnlProduct = new JPanel(new GridBagLayout());
-        pnlProduct.setBackground(new Color(255, 240, 240, 255));
-        pnlProduct.add(new JLabel("GIAO DIỆN QUẢN LÝ SẢN PHẨM"));
-        add(pnlProduct, "product"); // Đặt tên thẻ là "product"
 
-        // Card 3: Nhà cung cấp
-        JPanel pnlSupplier = new JPanel(new GridBagLayout());
-        pnlSupplier.setBackground(new Color(255, 240, 240)); // Màu đỏ nhạt test
-        pnlSupplier.add(new JLabel("GIAO DIỆN NHÀ CUNG CẤP"));
-        add(pnlSupplier, "supplier");
+        this.change_Panel_after_Click_Button();
+
     }
+
     public void showPanel(String cardName) {
         cardLayout.show(this, cardName);
+    }
+
+    public void change_Panel_after_Click_Button(){
+        //Dùng mảng "map" theo cấu trúc: mapPages.put("Tên nút", new Tên lớp);
+        // !!!! "mapPages" là tên đã được khởi tạo trước khi dùng !!!!
+        // !!!! Các lớp muốn dùng được như bên dưới thì phải EXTENDS với JPanel trước
+        // map này sẽ liên kết các nút có tên như bên dưới, link với các class đã được gán
+        Map<String, JPanel> mapPages = new LinkedHashMap<>();
+        mapPages.put("Quản lý tài khoản", new QLyTaiKhoan_GUI());
+        mapPages.put("Quản lý nhà cung cấp", new QLyNhaCungCap_GUI());
+        mapPages.put("Thông tin khách hàng", new ThongTinKH_GUI());
+        mapPages.put("Quản lý sản phẩm", new QLySanPham_GUI());
+        mapPages.put("Nhập kho", new NhapKho_GUI());
+        mapPages.put("Phiếu nhập", new PhieuNhap_GUI());
+        mapPages.put("Xuất kho", new XuatKho_GUI());
+        mapPages.put("Phiếu xuất", new PhieuNhap_GUI());
+        mapPages.put("Báo cáo", new BaoCao_GUI());
+        mapPages.put("Kệ kho", new KeKho_GUI());
+
+        // Dùng vòng lặp để add vào CardLayout
+        mapPages.forEach((name, panel) ->{
+            add(panel, name);
+        });
     }
 }
 
