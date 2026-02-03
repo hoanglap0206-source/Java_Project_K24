@@ -1,4 +1,7 @@
 package UI;
 
-public class QLyTaiKhoan_GUI {
+import javax.swing.*;
+
+public class QLyTaiKhoan_GUI extends JButton {
+
 }

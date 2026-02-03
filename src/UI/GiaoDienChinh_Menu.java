@@ -3,12 +3,17 @@ package UI;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 
 public class GiaoDienChinh_Menu extends JPanel {
-    private JButton[] btnList;
+    String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho", "Haha"};
 
-    public GiaoDienChinh_Menu(){
+    private JButton[] btnList = new JButton[menuItem.length];
+    private GiaoDienChinh_Header hd ;
+    public GiaoDienChinh_Menu(GiaoDienChinh_Header hd){ // Truyền hd vào để lưu title
+        this.hd=hd;
         setPreferredSize(new Dimension(220,0));
         setBackground(new Color(66,160,203));
         setLayout(new BorderLayout());
@@ -18,17 +23,14 @@ public class GiaoDienChinh_Menu extends JPanel {
         JPanel listMenu=new JPanel(new GridLayout(0,1,5,5));
         listMenu.setBackground(new Color(188, 204, 209));
 
-        String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho", "Haha"};
-        btnList = new JButton[menuItem.length];
-
         for (int i=0; i<menuItem.length; i++){
-//            JButton btn=new JButton(item);
             String text = menuItem[i];
             btnList[i] = new JButton(text);
             styleMenuButton(btnList[i]);
             listMenu.add(btnList[i]);
         }
-
+        //gọi hàm
+        clickButton();
         JPanel pnlCenterWrap=new JPanel(new BorderLayout());
         pnlCenterWrap.setBackground(new Color(66,160,203));
         pnlCenterWrap.add(listMenu,BorderLayout.NORTH);
@@ -79,14 +81,25 @@ public class GiaoDienChinh_Menu extends JPanel {
         pnlAvatar.add(lblAvatar);
         this.add(pnlAvatar,BorderLayout.NORTH);
     }
+    //Hàm đổi title
+    public void clickButton(){
+        // Ví dụ đổi title
+        for (int i=0;i<menuItem.length;i++){
+            String txt = menuItem[i];
+            btnList[i].addActionListener(e -> {
+                hd.setTitleCN(txt);
+            });
+        }
+    }
     public static void main(String[] args){
         JFrame frame = new JFrame("Test Menu Layout");
         frame.setSize(300, 700); // Kích thước cửa sổ test
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        GiaoDienChinh_Header header = new GiaoDienChinh_Header();
         // Thêm MenuPanel vào frame
-        frame.add(new GiaoDienChinh_Menu());
+        frame.add(new GiaoDienChinh_Menu(header)); //Đã sửa
 
         frame.setVisible(true);
     }
