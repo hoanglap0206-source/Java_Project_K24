@@ -1,5 +1,4 @@
 package BUS;
-<<<<<<< HEAD
 
 import DAO.BaoCaoTonKho_DAO;
 import Model.BaoCaoTonKho;
@@ -8,147 +7,81 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class BaoCaoTonKho_BUS {
-    // Danh sách lưu trữ trong RAM để xuất báo cáo nhanh theo ý giảng viên
+
     private ArrayList<BaoCaoTonKho> listBaoCao;
     private BaoCaoTonKho_DAO baoCaoDAO;
 
     public BaoCaoTonKho_BUS() {
         baoCaoDAO = new BaoCaoTonKho_DAO();
-        // Bước 1: Lấy dữ liệu từ DAO để đưa lên BUS ngay khi khởi tạo
+        // 2. Vừa mở app là gọi DAO lấy hết dữ liệu từ SQL nạp vào listBaoCao
         this.listBaoCao = baoCaoDAO.getAllBaoCao();
     }
 
-    // Lấy toàn bộ danh sách (Phục vụ hiển thị GUI)
+    // Lấy toàn bộ danh sách hiện có trong RAM (không cần gọi SQL)
     public ArrayList<BaoCaoTonKho> getAll() {
         return listBaoCao;
     }
 
-    // Làm mới dữ liệu từ Database (nếu cần đồng bộ lại)
-    public void refresh() {
-        this.listBaoCao = baoCaoDAO.getAllBaoCao();
-    }
+    // --- CÁC HÀM BÁO CÁO NHANH (Xử lý trực tiếp trên RAM) ---
 
-    // --- CHỨC NĂNG BÁO CÁO NHANH (Lấy trực tiếp từ RAM) ---
-
-    // Tìm kiếm báo cáo theo mã sản phẩm (ma_sku)
-    public List<BaoCaoTonKho> filterBySanPham(String maSKU) {
+    // Tìm kiếm báo cáo theo mã sản phẩm (SKU)
+    public List<BaoCaoTonKho> findBySku(String maSKU) {
         return listBaoCao.stream()
                 .filter(bc -> bc.getSanPham().getMaSP().equalsIgnoreCase(maSKU))
                 .collect(Collectors.toList());
     }
 
-    // Báo cáo các sản phẩm dưới mức cảnh báo (Hàng sắp hết)
+    // Xuất báo cáo các sản phẩm đang dưới mức cảnh báo (Sắp hết hàng)
     public List<BaoCaoTonKho> getCanhBaoHangSapHet() {
         return listBaoCao.stream()
                 .filter(bc -> bc.getsLTon() <= bc.getCanhBaoHH())
                 .collect(Collectors.toList());
     }
 
-    // --- CHỨC NĂNG CẬP NHẬT (Giao tiếp ngược lại với DAO) ---
 
-    public String addBaoCao(BaoCaoTonKho bc) {
-        // Kiểm tra logic: Số lượng tồn không được nhỏ hơn 0
-        if (bc.getsLTon() < 0) return "Số lượng tồn không hợp lệ!";
-
-        // Gọi DAO để thực hiện insert vào SQL
-        if (baoCaoDAO.insert(bc)) {
-            listBaoCao.add(bc); // Cập nhật RAM
-=======
-import DAO.BaoCaoTonKho_DAO;
-import Model.BaoCaoTonKho;
-import java.util.*;
-import java.util.stream.Collectors;
-
-public class BaoCaoTonKho_BUS {
-    private ArrayList<BaoCaoTonKho> listBaoCao;
-    private BaoCaoTonKho_DAO baocaoDao;
-
-    public BaoCaoTonKho_BUS(){
-        this.baocaoDao=new BaoCaoTonKho_DAO();
-        listBaoCao=baocaoDao.getAllBaoCao();
-    }
-
-    public ArrayList<BaoCaoTonKho> getAll(){
-        return listBaoCao;
-    }
-
-    public List<BaoCaoTonKho> findtoSKU(String sku){
-        return listBaoCao.stream()
-                .filter(bc->bc.getSanPham().getMaSP().equalsIgnoreCase(sku))
-                .collect(Collectors.toList());
-    }
-
-    public List<BaoCaoTonKho> getimport(){
-        return listBaoCao.stream()
-                .filter(bc->bc.getsLTon() <= bc.getCanhBaoHH())
-                .collect(Collectors.toList());
-
-    }
-    public int tinhtongTonKho(){
+    public int tinhTongHangTon() {
         return listBaoCao.stream().mapToInt(BaoCaoTonKho::getsLTon).sum();
     }
-    //----Các hàm làm mới(DAO và GUI)
-    public String addBaoCao(BaoCaoTonKho bc){
-        if(bc.getMaBC().isEmpty()) return "Mã báo cáo không được để trống!";
-        if(baocaoDao.insert(bc)){
-            listBaoCao.add(bc);
->>>>>>> 2218a2e (FIX BUS)
+
+    // --- CÁC HÀM CẬP NHẬT (Giao tiếp ngược lại với DAO và SQL) ---
+
+    public String addBaoCao(BaoCaoTonKho bc) {
+        // Kiểm tra nghiệp vụ (Check logic)
+        if (bc.getMaBC().isEmpty()) return "Mã báo cáo không được để trống!";
+
+        // Gọi DAO ghi xuống SQL
+        if (baoCaoDAO.insert(bc)) {
+            listBaoCao.add(bc); // Ghi thành công thì cập nhật RAM luôn
             return "Thêm báo cáo thành công!";
         }
-        return "Thêm báo cáo thất bại!";
+        return "Thêm thất bại!";
     }
 
-<<<<<<< HEAD
     public String updateBaoCao(BaoCaoTonKho bc) {
-        // Gọi DAO để thực hiện update trong SQL
         if (baoCaoDAO.update(bc)) {
-            // Cập nhật lại đối tượng trong danh sách RAM
+            // Cập nhật lại đối tượng tương ứng trong RAM
             for (int i = 0; i < listBaoCao.size(); i++) {
                 if (listBaoCao.get(i).getMaBC().equals(bc.getMaBC())) {
                     listBaoCao.set(i, bc);
                     break;
                 }
             }
-            return "Cập nhật thành công!";
+            return "Sửa thành công!";
         }
-        return "Cập nhật thất bại!";
+        return "Sửa thất bại!";
     }
 
     public String deleteBaoCao(String maBC) {
-        // Gọi DAO để xóa trong SQL
         if (baoCaoDAO.delete(maBC)) {
-            // Xóa khỏi danh sách RAM
+            // Xóa khỏi RAM
             listBaoCao.removeIf(bc -> bc.getMaBC().equals(maBC));
             return "Xóa thành công!";
         }
         return "Xóa thất bại!";
     }
-}
-=======
-    public String updateBaocao(BaoCaoTonKho bc){
-       if(baocaoDao.update(bc))
-       {
-           for(int i=0;i<listBaoCao.size();i++){
-               if(listBaoCao.get(i).getMaBC().equals(bc.getMaBC())){
-                   listBaoCao.set(i,bc);
-                   break;
-               }
-           }
-           return "Sửa thành công!";
-       }
-       return "Sửa thất bại!";
-    }
 
-    public String deleteBaoCao(String maBC){
-        if(baocaoDao.delete(maBC))
-        {
-            listBaoCao.removeIf(bc->bc.getMaBC().equals(maBC));
-            return "Xoá Thành công!";
-        }
-        return "Xoá Thất Bại!";
-    }
-    public void refeshData(){
-        this.listBaoCao=baocaoDao.getAllBaoCao();
+    // Hàm làm mới dữ liệu từ SQL (Refresh)
+    public void refreshData() {
+        this.listBaoCao = baoCaoDAO.getAllBaoCao();
     }
 }
->>>>>>> 2218a2e (FIX BUS)
