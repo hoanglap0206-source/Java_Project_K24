@@ -1,4 +1,5 @@
 package BUS;
+<<<<<<< HEAD
 
 import DAO.BaoCaoTonKho_DAO;
 import Model.BaoCaoTonKho;
@@ -52,11 +53,52 @@ public class BaoCaoTonKho_BUS {
         // Gọi DAO để thực hiện insert vào SQL
         if (baoCaoDAO.insert(bc)) {
             listBaoCao.add(bc); // Cập nhật RAM
+=======
+import DAO.BaoCaoTonKho_DAO;
+import Model.BaoCaoTonKho;
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class BaoCaoTonKho_BUS {
+    private ArrayList<BaoCaoTonKho> listBaoCao;
+    private BaoCaoTonKho_DAO baocaoDao;
+
+    public BaoCaoTonKho_BUS(){
+        this.baocaoDao=new BaoCaoTonKho_DAO();
+        listBaoCao=baocaoDao.getAllBaoCao();
+    }
+
+    public ArrayList<BaoCaoTonKho> getAll(){
+        return listBaoCao;
+    }
+
+    public List<BaoCaoTonKho> findtoSKU(String sku){
+        return listBaoCao.stream()
+                .filter(bc->bc.getSanPham().getMaSP().equalsIgnoreCase(sku))
+                .collect(Collectors.toList());
+    }
+
+    public List<BaoCaoTonKho> getimport(){
+        return listBaoCao.stream()
+                .filter(bc->bc.getsLTon() <= bc.getCanhBaoHH())
+                .collect(Collectors.toList());
+
+    }
+    public int tinhtongTonKho(){
+        return listBaoCao.stream().mapToInt(BaoCaoTonKho::getsLTon).sum();
+    }
+    //----Các hàm làm mới(DAO và GUI)
+    public String addBaoCao(BaoCaoTonKho bc){
+        if(bc.getMaBC().isEmpty()) return "Mã báo cáo không được để trống!";
+        if(baocaoDao.insert(bc)){
+            listBaoCao.add(bc);
+>>>>>>> 2218a2e (FIX BUS)
             return "Thêm báo cáo thành công!";
         }
         return "Thêm báo cáo thất bại!";
     }
 
+<<<<<<< HEAD
     public String updateBaoCao(BaoCaoTonKho bc) {
         // Gọi DAO để thực hiện update trong SQL
         if (baoCaoDAO.update(bc)) {
@@ -82,3 +124,31 @@ public class BaoCaoTonKho_BUS {
         return "Xóa thất bại!";
     }
 }
+=======
+    public String updateBaocao(BaoCaoTonKho bc){
+       if(baocaoDao.update(bc))
+       {
+           for(int i=0;i<listBaoCao.size();i++){
+               if(listBaoCao.get(i).getMaBC().equals(bc.getMaBC())){
+                   listBaoCao.set(i,bc);
+                   break;
+               }
+           }
+           return "Sửa thành công!";
+       }
+       return "Sửa thất bại!";
+    }
+
+    public String deleteBaoCao(String maBC){
+        if(baocaoDao.delete(maBC))
+        {
+            listBaoCao.removeIf(bc->bc.getMaBC().equals(maBC));
+            return "Xoá Thành công!";
+        }
+        return "Xoá Thất Bại!";
+    }
+    public void refeshData(){
+        this.listBaoCao=baocaoDao.getAllBaoCao();
+    }
+}
+>>>>>>> 2218a2e (FIX BUS)
