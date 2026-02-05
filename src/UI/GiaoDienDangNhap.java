@@ -1,11 +1,12 @@
 package UI;
 
+import BUS.NV_BUS;
 import BUS.UserBUS;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class GiaoDienDangNhap extends JFrame {
+public class  GiaoDienDangNhap extends JFrame {
 
     private JTextField txtUsername;
     private JPasswordField txtPassword;
@@ -121,13 +122,30 @@ public class GiaoDienDangNhap extends JFrame {
     }
 
     private void handleLogin() {
-        String user = txtUsername.getText();
-        String pass = String.valueOf(txtPassword.getPassword());
-
-        if (new UserBUS().login(user, pass)) {
-            JOptionPane.showMessageDialog(this, "Đăng nhập thành công!");
-        } else {
-            JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu!");
+        String txtAcc = txtUsername.getText().trim();
+        char[] pass = txtPassword.getPassword();
+        String txtPass = new String(pass);
+        if(txtAcc.isEmpty() || txtPass.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Không được để trống dữ liệu");
+            return;
+        }
+        NV_BUS nv = new NV_BUS();
+        boolean login_Success = nv.login(txtAcc,txtPass);
+        if (login_Success){
+            JOptionPane.showMessageDialog(this, "Đăng nhập thành công");
+            new Greetings_GUI(() -> {
+                SwingUtilities.invokeLater(() -> {
+                    new GiaoDienChinh_Main().setVisible(true);
+                });
+            });
+            txtUsername.setText("");
+            txtPassword.setText("");
+//            GiaoDienChinh_Main gd = new GiaoDienChinh_Main();
+            dispose();
+        }else {
+            JOptionPane.showMessageDialog(this, "Đăng nhập thất bại,sai tài khoản hoặc mật khẩu");
+            txtUsername.setText("");
+            txtPassword.setText("");
         }
     }
 

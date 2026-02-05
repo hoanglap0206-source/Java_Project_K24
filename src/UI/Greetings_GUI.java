@@ -6,12 +6,12 @@ import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 
 public class Greetings_GUI extends JFrame {
-    public Greetings_GUI (){
+    public Greetings_GUI (Runnable onClose){
         setTitle("Chào mừng");
 
         setSize(800,600);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE); //tự tắt sau 3s
         JPanel pnlMain=new JPanel();
         pnlMain.setBackground(new Color(100,100,100));
         pnlMain.setLayout(new GridBagLayout());
@@ -25,7 +25,7 @@ public class Greetings_GUI extends JFrame {
         JPanel pnlIcon=new JPanel(){
             @Override
                     protected void paintComponent(Graphics g){
-                super.paintComponents(g);
+                super.paintComponent(g);
                 Graphics2D g2=(Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
                 int w=getWidth();
@@ -63,10 +63,26 @@ public class Greetings_GUI extends JFrame {
         pnlCard.add(Box.createVerticalGlue());
         pnlMain.add(pnlCard);
         setContentPane(pnlMain);
+        new Thread(() -> {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            SwingUtilities.invokeLater(() -> {
+                dispose();              // đóng Greeting
+                if (onClose != null) {
+                    onClose.run();      // 🚀 MỞ MAIN Ở ĐÂY
+                }
+            });
+        }).start();
+
+        setVisible(true);
     }
-    public static void main(String[] args){
-        SwingUtilities.invokeLater(()->{
-            new Greetings_GUI().setVisible(true);
-        });
-    }
+//    public static void main(String[] args){
+//        SwingUtilities.invokeLater(()->{
+//            new Greetings_GUI().setVisible(true);
+//        });
+//    }
 }
