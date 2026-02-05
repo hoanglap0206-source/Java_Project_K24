@@ -1,6 +1,6 @@
 package DAO;
 
-import DataBase.DBConnection;
+import DataBase.DBConnection_BC;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,7 +11,7 @@ public class UserDAO {
     public boolean checkLogin(String username, String password) {
         String sql = "SELECT * FROM users WHERE username=? AND password=?";
 
-        try (Connection c = DBConnection.getConnection();
+        try (Connection c = DBConnection_BC.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
 
             ps.setString(1, username);

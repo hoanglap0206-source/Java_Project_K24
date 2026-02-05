@@ -105,7 +105,7 @@ public class GiaoDienChinh_TopContent extends JPanel {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
             // Thêm panel vào frame
-            frame.add(new GiaoDienChinh_TopCenter());
+            frame.add(new GiaoDienChinh_TopContent());
 
             frame.setSize(1000, 200); // Set kích thước demo
             frame.setLocationRelativeTo(null); // Ra giữa màn hình
