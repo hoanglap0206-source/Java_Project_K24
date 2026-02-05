@@ -1,5 +1,7 @@
 package UI;
 
+import BUS.NV_BUS;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.MatteBorder;
@@ -81,10 +83,28 @@ public class GiaoDienDK_Right extends JPanel {
         gbc.insets = new Insets(30, 10, 10, 10);
         add(confrim,gbc);
 
-
-
-
-
+//        Lập  sửa
+        confrim.addActionListener(e->{
+            String txtAcc = username.getText().trim();
+            char[] pass = password.getPassword();
+            String txtPass = new String(pass);
+            if(txtAcc.isEmpty() || txtPass.isEmpty()){
+                JOptionPane.showMessageDialog(this, "Không được để trống dữ liệu");
+                return;
+            }
+            NV_BUS nv = new NV_BUS();
+            boolean login_Success = nv.login(txtAcc,txtPass);
+            if (login_Success){
+                JOptionPane.showMessageDialog(this, "Đăng nhập thành công");
+                username.setText("");
+                password.setText("");
+                GiaoDienChinh_Main gd = new GiaoDienChinh_Main();
+            }else {
+                JOptionPane.showMessageDialog(this, "Đăng nhập thất bại,sai tài khoản hoặc mật khẩu");
+                username.setText("");
+                password.setText("");
+            }
+        });
     }
 }
 
