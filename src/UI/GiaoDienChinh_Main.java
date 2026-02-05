@@ -7,6 +7,12 @@ public class GiaoDienChinh_Main extends JFrame {
     private GiaoDienChinh_Content content;
 
     public GiaoDienChinh_Main() {
+//        try {
+//            Thread.sleep(3000); // delay 3 giay
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
         setTitle("Giao diện chính");
         setSize(1200, 700);
         setLocationRelativeTo(null);
