@@ -87,4 +87,14 @@ public class NV_BUS {
         this.listNV=nvDAO.getAllNV();
     }
 
+    public boolean login(String acc,String pass){
+        ArrayList<NhanVien> list = new ArrayList<>();
+        NV_DAO nv = new NV_DAO();
+        list = nv.getAccoount();
+        for(NhanVien account : list){
+            if(account.getMaNV().equalsIgnoreCase(acc) && account.getMatKhau().equalsIgnoreCase(pass)){
+                return true;
+            }
+        }return false;
+    }
 }

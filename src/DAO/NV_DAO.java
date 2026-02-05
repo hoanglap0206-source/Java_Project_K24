@@ -85,4 +85,23 @@ public class NV_DAO {
         }
         //Hello GITHUB
     }
+    public ArrayList<NhanVien> getAccoount(){
+        String sql =" SELECT ma_nhan_vien,mat_khau FROM NHAN_VIEN";
+        ArrayList<NhanVien> list = new ArrayList<>();
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+        ) {
+            while(rs.next()){
+                NhanVien nv = new NhanVien();
+                nv.setMaNV(rs.getString("ma_nhan_vien"));
+                nv.setMatKhau(rs.getString("mat_khau"));
+                list.add(nv);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
