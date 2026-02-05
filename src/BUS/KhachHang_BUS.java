@@ -1,0 +1,42 @@
+package BUS;
+
+import DAO.KhachHangDAO;
+import Model.KhachHang;
+import java.util.*;
+public class KhachHang_BUS {
+    private ArrayList<KhachHang> listKH;
+    private KhachHangDAO khDAO;
+
+    public KhachHang_BUS(){
+        khDAO=new KhachHangDAO();
+        this.listKH=khDAO.getAllKhachHang();
+    }
+    public ArrayList<KhachHang>getListKH(){
+        return listKH;
+    }
+    public String addKhachHang(KhachHang kh){
+        if(kh.getMaKH().trim().isEmpty() || kh.getHoTenKH().trim().isEmpty()) return"Mã khách hàng và Họ tên không được để trống!";
+        if(khDAO.insert(kh)) {
+            listKH.add(kh);
+            return"Thêm khách hàng thành công!";
+        }
+        return"Thêm khách hàng thất bại!";
+
+    }
+    public String updateKH(KhachHang kh){
+        if(khDAO.update(kh)) return "Cập nhật thành công!";
+        return "Cập nhật thất bại!";
+    }
+    public String deleteKH(String maKH){
+        if(maKH==null||maKH.trim().isEmpty())
+            return "Mã Khách hàng không hợp lệ!";
+        if(khDAO.delete(maKH))
+        {
+            listKH.removeIf(bc->bc.getMaKH().equalsIgnoreCase(maKH));
+            return"Xoá khách hàng thành công!";
+        }
+
+        return"Xoá Khách hàng thất bại!";
+    }
+    public void refeshData(){this.listKH=khDAO.getAllKhachHang();}
+}

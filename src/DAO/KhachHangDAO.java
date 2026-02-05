@@ -9,7 +9,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 
 public class KhachHangDAO {
-    public ArrayList<KhachHang> gettAllKhachHang(){
+    public ArrayList<KhachHang> getAllKhachHang(){
         ArrayList<KhachHang> list = new ArrayList<>();
         String sql = "SELECT * FROM KHACH_HANG";
         try (
