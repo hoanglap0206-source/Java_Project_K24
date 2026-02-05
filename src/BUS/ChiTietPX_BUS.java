@@ -47,7 +47,7 @@ public class ChiTietPX_BUS {
         }
 
         // Tính toán trước khi lưu (ThanhTien = SL * DonGia + VAT)
-        // Lưu ý: Tùy vào cách bạn tính VAT (số tiền hay %) mà điều chỉnh công thức này
+        // Lưu ý: Tùy vào cách tính VAT (số tiền hay %) mà điều chỉnh công thức này
 
         if (ctDAO.insert(ct)) {
             listCTPX.add(ct);
