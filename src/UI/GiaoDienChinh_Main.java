@@ -12,9 +12,11 @@ public class GiaoDienChinh_Main extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+        setUndecorated(true);
 
         GiaoDienChinh_Header header =new GiaoDienChinh_Header();
-        //Dùng để sử dùng các panel từ các Button
+
+        //Dùng để sử dùng các panel từ các Button Menu
         content = new GiaoDienChinh_Content();
 
         add(header,BorderLayout.NORTH);
@@ -29,8 +31,10 @@ public class GiaoDienChinh_Main extends JFrame {
         add(pnl,BorderLayout.CENTER);
 
         add(new GiaoDienChinh_Menu(header, content),BorderLayout.WEST);// Lập - Lê đã sửa
-
     }
+
+
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GiaoDienChinh_Main().setVisible(true));

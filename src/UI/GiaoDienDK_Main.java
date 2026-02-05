@@ -13,6 +13,7 @@ public class GiaoDienDK_Main extends JFrame {
         setLayout(new GridLayout(1,2));
         add(new GiaoDienDK_Left());
         add(new GiaoDienDK_Right());
+
     }
     public static void main(String[] args) {
         // Chạy trên luồng giao diện (EDT) để an toàn
