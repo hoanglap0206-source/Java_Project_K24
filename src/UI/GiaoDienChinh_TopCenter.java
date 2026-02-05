@@ -98,4 +98,18 @@ public class GiaoDienChinh_TopCenter extends JPanel {
 
         return btn;
     }
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            // Cần tạo JFrame để chứa JPanel
+            JFrame frame = new JFrame("Giao Diện Chính");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+            // Thêm panel vào frame
+            frame.add(new GiaoDienChinh_TopCenter());
+
+            frame.setSize(1000, 200); // Set kích thước demo
+            frame.setLocationRelativeTo(null); // Ra giữa màn hình
+            frame.setVisible(true);
+        });
+    }
 }
