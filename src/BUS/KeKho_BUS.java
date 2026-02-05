@@ -32,7 +32,7 @@ public class KeKho_BUS {
             for(int i=0;i<listKK.size();i++){
                 if(listKK.get(i).getMaKe().equals(kk.getMaKe()))
                 {
-                    listKK.add(i,kk);
+                    listKK.set(i,kk);
                     break;
                 }
             }

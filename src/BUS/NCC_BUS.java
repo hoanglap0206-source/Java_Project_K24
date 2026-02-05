@@ -25,9 +25,9 @@ public class NCC_BUS {
     }
 
     public String updateNCC(NhaCungCap NCC){
-        if(nccDAO.insert(NCC))
+        if(nccDAO.update(NCC))
         {
-            listNCC.add(NCC);
+
             return "Cập nhật thành công!";
         }
         return "Cập nhật thất bại!";

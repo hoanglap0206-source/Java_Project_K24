@@ -2,14 +2,18 @@ package BUS;
 
 import DAO.ChiTietPX_DAO;
 import Model.ChiTiet_PhieuXuat;
+import Model.SanPham;
+
 import java.util.ArrayList;
 
 public class ChiTietPX_BUS {
     private ArrayList<ChiTiet_PhieuXuat> listCTPX;
     private ChiTietPX_DAO ctDAO;
+    private  SanPham_BUS spBUS;
 
     public ChiTietPX_BUS() {
         ctDAO = new ChiTietPX_DAO();
+        spBUS = new SanPham_BUS();
         this.listCTPX = ctDAO.getAllCtPX();
     }
 
@@ -31,7 +35,9 @@ public class ChiTietPX_BUS {
 
     public String addCTPX(ChiTiet_PhieuXuat ct) {
         if (ct.getSoLuong() <= 0) return "Số lượng xuất phải lớn hơn 0!";
-
+        int tonkho = spBUS.getSoLuongTon(ct.getSanPham().getMaSP());
+        if(ct.getSoLuong() > tonkho)
+            return "Không đủ hàng! Trong kho chỉ còn"+tonkho;
         // Kiểm tra trùng sản phẩm trong cùng 1 phiếu
         for (ChiTiet_PhieuXuat item : listCTPX) {
             if (item.getPhieuXuat().getMaPX().equals(ct.getPhieuXuat().getMaPX())
@@ -75,6 +81,7 @@ public class ChiTietPX_BUS {
         }
         return "Xóa thất bại!";
     }
+
 
     public void refeshData(){listCTPX=ctDAO.getAllCtPX();}
 }

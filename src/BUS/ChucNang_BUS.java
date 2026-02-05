@@ -34,8 +34,8 @@ public class ChucNang_BUS {
     public String updateChucNang(ChucNang cn){
         if(cnDAO.update(cn)){
             for(int i=0;i<listCN.size();i++){
-                if(listCN.get(i).equals(cn.getMaCN())){
-                    listCN.add(i,cn);
+                if(listCN.get(i).getMaCN().equals(cn.getMaCN())){
+                    listCN.set(i,cn);
                     break;
                 }
             }

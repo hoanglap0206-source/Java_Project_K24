@@ -36,7 +36,7 @@ public class ChiTietPN_BUS {
     }
 
     public String updateCTPN(ChiTiet_PhieuNhap ct){
-        if(CTPNDAO.insert(ct))
+        if(CTPNDAO.update(ct))
         {
             for(int i=0;i<listPN.size();i++){
                 ChiTiet_PhieuNhap item= listPN.get(i);
