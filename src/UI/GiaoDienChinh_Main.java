@@ -23,7 +23,7 @@ public class GiaoDienChinh_Main extends JFrame {
         setIconImage(img.getImage()); // change icon of frame
 
         pnl.setLayout(new BorderLayout());
-        pnl.add(new GiaoDienChinh_TopCenter(),BorderLayout.NORTH);
+        pnl.add(new GiaoDienChinh_TopContent(),BorderLayout.NORTH);
         pnl.add(content,BorderLayout.CENTER);
 
         add(pnl,BorderLayout.CENTER);
