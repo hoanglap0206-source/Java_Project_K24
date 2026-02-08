@@ -8,6 +8,7 @@ public class QLySanPham_GUI extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
         setBackground(new Color(224,224,224));
+        add(new GiaoDienChinh_TopContent(), BorderLayout.NORTH);
         add(new JLabel("GIAO DIỆN QUẢN LÝ SẢN PHẨM", SwingConstants.CENTER));
     }
 }

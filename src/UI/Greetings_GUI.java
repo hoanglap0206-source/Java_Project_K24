@@ -6,6 +6,9 @@ import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 
 public class Greetings_GUI extends JFrame {
+
+    public String nameUser = "";
+
     public Greetings_GUI (Runnable onClose){
         setTitle("Chào mừng");
 
@@ -51,7 +54,7 @@ public class Greetings_GUI extends JFrame {
         pnlIcon.setMaximumSize(new Dimension(100,100));
         pnlIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel lblWelcome=new JLabel("Chào mừng   ");
+        JLabel lblWelcome=new JLabel("Chào mừng " + this.nameUser);
         lblWelcome.setFont(new Font("Arial",Font.BOLD,24));
         lblWelcome.setForeground(Color.BLACK);
         lblWelcome.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -73,7 +76,7 @@ public class Greetings_GUI extends JFrame {
             SwingUtilities.invokeLater(() -> {
                 dispose();              // đóng Greeting
                 if (onClose != null) {
-                    onClose.run();      // 🚀 MỞ MAIN Ở ĐÂY
+                    onClose.run();      // MỞ MAIN Ở ĐÂY
                 }
             });
         }).start();

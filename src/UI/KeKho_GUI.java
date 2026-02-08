@@ -8,6 +8,7 @@ public class KeKho_GUI extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
         setBackground(new Color(204,255,153));
+        add(new GiaoDienChinh_TopContent(), BorderLayout.NORTH);
         add(new JLabel("GIAO DIỆN KỆ KHO", SwingConstants.CENTER));
     }
 }
