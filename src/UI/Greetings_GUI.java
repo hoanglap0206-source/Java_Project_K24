@@ -4,30 +4,51 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 
-public class Greetings_GUI extends JFrame {
 
-    public String nameUser = "";
+//Tạo ra giao diện mờ và đè lên giao diện chính
+public class Greetings_GUI extends JDialog {
+    public Greetings_GUI(JFrame main, String nameUser) {
+        super(main, true);
+        setUndecorated(true);
+        setBackground(new Color(0, 0, 0, 0)); // Để JDialog hoàn toàn trong suốt
 
-    public Greetings_GUI (Runnable onClose){
-        setTitle("Chào mừng");
+        // Set kích thước Dialog
+        Dimension mainSize = main.getSize();
+        int dialogWidth = mainSize.width;
+        int dialogHeigh = mainSize.height;
+        setSize(dialogWidth, dialogHeigh);
+        setLocationRelativeTo(main);
 
-        setSize(800,600);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE); //tự tắt sau 3s
-        JPanel pnlMain=new JPanel();
-        pnlMain.setBackground(new Color(100,100,100));
-        pnlMain.setLayout(new GridBagLayout());
-
-        JPanel pnlCard=new JPanel();
-        pnlCard.setBackground(new Color(210,210,210));
-        pnlCard.setLayout(new GridBagLayout());
-        pnlCard.setPreferredSize(new Dimension(400,250));
-        pnlCard.setBorder(new EmptyBorder(20,20,20,20));
-
-        JPanel pnlIcon=new JPanel(){
+        // Lớp nền mờ đen
+        // Sử dụng GridBagLayout để pnlCard tự động vào giữa
+        JPanel pnlGreeting = new JPanel(new GridBagLayout()) {
             @Override
-                    protected void paintComponent(Graphics g){
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(new Color(0, 0, 0, 150)); // Màu đen mờ
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        pnlGreeting.setOpaque(false);
+
+        //pnlCard
+        JPanel pnlCard = new JPanel();
+        pnlCard.setLayout(new BoxLayout(pnlCard, BoxLayout.Y_AXIS));
+        pnlCard.setBackground(new Color(210, 210, 210));
+        pnlCard.setPreferredSize(new Dimension(400, 250));
+        pnlCard.setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        pnlCard.add(Box.createVerticalGlue());
+
+        //Cho pnlCard bằng 1/2 kích thước của Dialog
+        pnlCard.setPreferredSize(new Dimension(dialogWidth / 2, dialogHeigh / 2));
+
+        // Panel hiện Icon
+        JPanel pnlIcon = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g){
                 super.paintComponent(g);
                 Graphics2D g2=(Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
@@ -50,42 +71,39 @@ public class Greetings_GUI extends JFrame {
             }
         };
         pnlIcon.setOpaque(false);
-        pnlIcon.setPreferredSize(new Dimension(100,100));
-        pnlIcon.setMaximumSize(new Dimension(100,100));
+        pnlIcon.setPreferredSize(new Dimension(100, 100));
+        pnlIcon.setMaximumSize(new Dimension(100, 100));
         pnlIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel lblWelcome=new JLabel("Chào mừng " + this.nameUser);
-        lblWelcome.setFont(new Font("Arial",Font.BOLD,24));
-        lblWelcome.setForeground(Color.BLACK);
+        JLabel lblWelcome = new JLabel("Chào mừng " + nameUser);
+        lblWelcome.setFont(new Font("Arial", Font.BOLD, 20));
         lblWelcome.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        pnlCard.add(Box.createVerticalBox());
-        pnlCard.add(pnlIcon);
-        pnlCard.add(Box.createVerticalStrut(20));
-        pnlCard.add(lblWelcome);
+        pnlCard.add(Box.createVerticalStrut(10)); // Tạo một khoảng trống nhỏ ở trên cùng (nếu muốn)
+        pnlCard.add(pnlIcon);                     // Icon nằm trên
+        pnlCard.add(Box.createVerticalStrut(20)); // Khoảng cách giữa Icon và Chữ
+        pnlCard.add(lblWelcome);                  // Chữ nằm dưới
         pnlCard.add(Box.createVerticalGlue());
-        pnlMain.add(pnlCard);
-        setContentPane(pnlMain);
-        new Thread(() -> {
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
 
-            SwingUtilities.invokeLater(() -> {
-                dispose();              // đóng Greeting
-                if (onClose != null) {
-                    onClose.run();      // MỞ MAIN Ở ĐÂY
-                }
-            });
+        pnlGreeting.add(pnlCard);
+
+        // Sửa lỗi MouseEvent
+        pnlGreeting.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                dispose();
+            }
+        });
+
+        setContentPane(pnlGreeting);
+
+        // Sẽ tự đóng sau 4s
+        new Thread(() -> {
+            try { Thread.sleep(4000); } catch (InterruptedException e) {}
+            dispose();
         }).start();
 
         setVisible(true);
     }
-//    public static void main(String[] args){
-//        SwingUtilities.invokeLater(()->{
-//            new Greetings_GUI().setVisible(true);
-//        });
-//    }
 }
+

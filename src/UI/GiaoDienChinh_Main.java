@@ -37,10 +37,6 @@ public class GiaoDienChinh_Main extends JFrame {
 
         add(new GiaoDienChinh_Menu(header, content),BorderLayout.WEST);// Lập - Lê đã sửa
     }
-
-
-
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GiaoDienChinh_Main().setVisible(true));
     }

@@ -123,29 +123,37 @@ public class  GiaoDienDangNhap extends JFrame {
 
     private void handleLogin() {
         String txtAcc = txtUsername.getText().trim();
-        char[] pass = txtPassword.getPassword();
-        String txtPass = new String(pass);
-        if(txtAcc.isEmpty() || txtPass.isEmpty()){
-            JOptionPane.showMessageDialog(this, "Không được để trống dữ liệu");
+        String txtPass = new String(txtPassword.getPassword());
+
+        if(txtAcc.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập mã người dùng");
+            txtUsername.requestFocusInWindow();
             return;
         }
-        NV_BUS nv = new NV_BUS();
-        boolean login_Success = nv.login(txtAcc,txtPass);
-        if (login_Success){
-            JOptionPane.showMessageDialog(this, "Đăng nhập thành công");
-            new Greetings_GUI(() -> {
-                SwingUtilities.invokeLater(() -> {
-                    new GiaoDienChinh_Main().setVisible(true);
-                });
+        if(txtPass.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập mật khẩu");
+            txtPassword.requestFocusInWindow();
+            return;
+        }
+
+        NV_BUS nvBus = new NV_BUS();
+        if(nvBus.login(txtAcc, txtPass)){
+            //Mở giao diện chính
+            GiaoDienChinh_Main mainFrame = new GiaoDienChinh_Main();
+            mainFrame.setVisible(true);
+
+            //Frame chào mừng hiện lên + Tên người dùng
+            SwingUtilities.invokeLater(() ->{
+                new Greetings_GUI(mainFrame, txtAcc);
             });
+            this.dispose();//Thoát cái giao diện đăng nhập
+        }else{
+            JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu");
+
             txtUsername.setText("");
             txtPassword.setText("");
-//            GiaoDienChinh_Main gd = new GiaoDienChinh_Main();
-            dispose();
-        }else {
-            JOptionPane.showMessageDialog(this, "Đăng nhập thất bại,sai tài khoản hoặc mật khẩu");
-            txtUsername.setText("");
-            txtPassword.setText("");
+
+            txtUsername.requestFocusInWindow();
         }
     }
 

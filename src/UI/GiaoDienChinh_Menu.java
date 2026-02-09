@@ -10,6 +10,7 @@ import java.io.File;
 public class GiaoDienChinh_Menu extends JPanel {
     String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho"};
 
+
     private JButton[] btnList = new JButton[menuItem.length];
     private GiaoDienChinh_Header hd ;
     private GiaoDienChinh_Content ct;
@@ -46,10 +47,23 @@ public class GiaoDienChinh_Menu extends JPanel {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane,BorderLayout.CENTER);
 
-        JButton btnlogout=new JButton("Đăng xuất");
+        JButton btnlogout = new JButton("Đăng xuất");
         styleMenuButton(btnlogout);
         JPanel pnlLogout=new JPanel(new FlowLayout());
         pnlLogout.setBackground(new Color(66,160,203));
+
+        btnlogout.addActionListener(e->{
+            Window window = SwingUtilities.getWindowAncestor(this);
+
+            if (window != null) {
+                window.dispose(); // Đóng cửa sổ GiaoDienChinh_Main
+            }
+
+            // Khởi tạo và hiển thị lại màn hình Đăng nhập
+            GiaoDienDangNhap login = new GiaoDienDangNhap();
+            login.setVisible(true);
+        });
+
         pnlLogout.add(btnlogout);
         add(pnlLogout,BorderLayout.SOUTH);
     }
