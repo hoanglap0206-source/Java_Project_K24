@@ -42,7 +42,7 @@ public class GiaoDienChinh_Header extends JPanel {
 
         //Button thoát
         Image iconExit = new ImageIcon(getClass().getResource("/Img/exit.jpg")).getImage();
-        Image scaleExit = iconExit.getScaledInstance(30,30,Image.SCALE_SMOOTH);
+        Image scaleExit = iconExit.getScaledInstance(22,22,Image.SCALE_SMOOTH);
         this.closeBtn = new JButton(new ImageIcon(scaleExit));
         this.styleBtn(closeBtn);
         this.closeBtn.addActionListener(e ->System.exit(0));
@@ -50,11 +50,11 @@ public class GiaoDienChinh_Header extends JPanel {
         //Button phóng lớn/nhỏ
         //Nút phóng to
         Image iconBig = new ImageIcon(getClass().getResource("/Img/square.jpg")).getImage();
-        Image scaleBig = iconBig.getScaledInstance(29,29,Image.SCALE_SMOOTH);
+        Image scaleBig = iconBig.getScaledInstance(17,17,Image.SCALE_SMOOTH);
 
         //Nút thu nhỏ
         Image iconRestore = new ImageIcon(getClass().getResource("/Img/zoomout.jpg")).getImage();
-        Image scaleZoom = iconRestore.getScaledInstance(29,29, Image.SCALE_SMOOTH);
+        Image scaleZoom = iconRestore.getScaledInstance(20,20, Image.SCALE_SMOOTH);
         this.bigBtn = new JButton(new ImageIcon(scaleBig));
 
         this.styleBtn(bigBtn);
@@ -77,7 +77,7 @@ public class GiaoDienChinh_Header extends JPanel {
 
         //Button ẩn
         Image iconZoomOut = new ImageIcon(getClass().getResource("/Img/Hide.jpg")).getImage();
-        Image scaleHide = iconZoomOut.getScaledInstance(30,30,Image.SCALE_SMOOTH);
+        Image scaleHide = iconZoomOut.getScaledInstance(20,20,Image.SCALE_SMOOTH);
         this.hideBtn = new JButton(new ImageIcon(scaleHide));
         this.styleBtn(hideBtn);
         this.hideBtn.addActionListener(e->{
