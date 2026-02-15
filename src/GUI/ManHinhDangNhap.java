@@ -1,17 +1,19 @@
-package UI;
+package GUI;
 
 import BUS.NV_BUS;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class  GiaoDienDangNhap extends JFrame {
+public class  ManHinhDangNhap extends JFrame {
 
     private JTextField txtUsername;
     private JPasswordField txtPassword;
 
-    public GiaoDienDangNhap() {
+    public ManHinhDangNhap() {
         setTitle("Đăng nhập hệ thống");
+        ImageIcon icon = new ImageIcon(getClass().getResource("/Img/ConRua.jpg")); // !!
+        setIconImage(icon.getImage());
         setSize(800, 450);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -28,7 +30,7 @@ public class  GiaoDienDangNhap extends JFrame {
 
         left.add(Box.createVerticalGlue());
 
-        CirclePanel logo = new CirclePanel("src/Img/ConRua.jpg");
+        CirclePanel logo = new CirclePanel("/Img/ConRua.jpg", 120);
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
         left.add(logo);
 
@@ -138,12 +140,12 @@ public class  GiaoDienDangNhap extends JFrame {
         NV_BUS nvBus = new NV_BUS();
         if(nvBus.login(txtAcc, txtPass)){
             //Mở giao diện chính
-            GiaoDienChinh_Main mainFrame = new GiaoDienChinh_Main();
+            ManHinhChinh mainFrame = new ManHinhChinh();
             mainFrame.setVisible(true);
 
             //Frame chào mừng hiện lên + Tên người dùng
             SwingUtilities.invokeLater(() ->{
-                new Greetings_GUI(mainFrame, txtAcc);
+                new PopupChaoMung(mainFrame, txtAcc);
             });
             this.dispose();//Thoát cái giao diện đăng nhập
         }else{
@@ -157,6 +159,6 @@ public class  GiaoDienDangNhap extends JFrame {
     }
 
     public static void main(String[] args) {
-        new GiaoDienDangNhap().setVisible(true);
+        new ManHinhDangNhap().setVisible(true);
     }
 }
