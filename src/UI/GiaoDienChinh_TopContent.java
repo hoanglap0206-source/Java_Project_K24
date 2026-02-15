@@ -6,6 +6,7 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 
 public class GiaoDienChinh_TopContent extends JPanel {
+    private JPanel pnlCenterContainer;
     public GiaoDienChinh_TopContent() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -28,7 +29,12 @@ public class GiaoDienChinh_TopContent extends JPanel {
         pnlButtons.add(createToolButton("Sửa", new Color(255, 255, 0)));
         pnlButtons.add(createToolButton("Xuất Excel", new Color(33, 115, 70)));
 
-        pnlToolBar.add(pnlButtons, BorderLayout.CENTER);
+        pnlToolBar.add(pnlButtons, BorderLayout.WEST);
+
+
+        pnlCenterContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
+        pnlCenterContainer.setBackground(Color.WHITE);
+        pnlToolBar.add(pnlCenterContainer, BorderLayout.CENTER);
 
 
         JPanel pnlSearchArea = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
@@ -38,7 +44,7 @@ public class GiaoDienChinh_TopContent extends JPanel {
         JPanel pnlSearchInput = new JPanel(new BorderLayout());
         pnlSearchInput.setBackground(Color.WHITE);
         pnlSearchInput.setBorder(new LineBorder(Color.GRAY, 1, true));
-        pnlSearchInput.setPreferredSize(new Dimension(300, 35));
+        pnlSearchInput.setPreferredSize(new Dimension(220, 35));
 
         JTextField txtSearch = new JTextField("Tìm kiếm");
         txtSearch.setBorder(new EmptyBorder(0, 10, 0, 0));
@@ -65,6 +71,16 @@ public class GiaoDienChinh_TopContent extends JPanel {
 
         pnlToolBar.add(pnlSearchArea, BorderLayout.EAST);
         add(pnlToolBar, BorderLayout.CENTER);
+    }
+    public void setCustomCenterPanel(JPanel customPanel) {
+        pnlCenterContainer.removeAll(); // Xóa cái cũ đi (nếu có)
+        if (customPanel != null) {
+            // Chỉnh lại màu nền cho đồng bộ
+            customPanel.setBackground(Color.WHITE);
+            pnlCenterContainer.add(customPanel);
+        }
+        pnlCenterContainer.revalidate();
+        pnlCenterContainer.repaint();
     }
 
 
