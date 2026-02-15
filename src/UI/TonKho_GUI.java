@@ -44,6 +44,7 @@ public class TonKho_GUI extends JPanel {
                 {"SP004", "Trà xanh", "Chai", "5", "9.000", "05/01/2024", "05/04/2024", "K03"}
         };
 
+
         DefaultTableModel model = new DefaultTableModel(data, columnNames);
         JTable table = new JTable(model);
         table.setRowHeight(30);

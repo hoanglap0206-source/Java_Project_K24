@@ -46,7 +46,13 @@ public class BaoCao_GUI extends JPanel {
 
 
         String[] columns = {"Mã SP", "Tên SP", "Đơn vị tính", "Số lượng (đã nhập/xuất)", "Đơn giá"};
-        DefaultTableModel model = new DefaultTableModel(columns, 0);
+        Object[][] data = {
+                {"SP001", "Pepsi", "Lon", "100", "10.000"},
+                {"SP002", "Coca", "Chai", "50", "12.000"},
+                {"SP003", "Sting", "Chai", "200", "11.000"},
+                {"SP004", "Trà xanh", "Chai", "5", "9.000"}
+        };
+        DefaultTableModel model = new DefaultTableModel(data, columns);
         JTable table = new JTable(model);
         table.setRowHeight(30);
 
