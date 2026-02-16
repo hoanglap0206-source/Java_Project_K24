@@ -11,7 +11,6 @@ public class GiaoDienChinh_Header extends JPanel {
     private JLabel title;
     private String titleCN = "";
     private JButton closeBtn, hideBtn, bigBtn;
-    private String nameUser = "";
     public String getTitleCN() {
         return titleCN;
     }
@@ -20,7 +19,11 @@ public class GiaoDienChinh_Header extends JPanel {
         updateTitle();
     }
 
-    public GiaoDienChinh_Header() {
+    public GiaoDienChinh_Header(){
+        this("");
+    }
+
+    public GiaoDienChinh_Header(String nameUser) {
         setLayout(new BorderLayout());
         setBackground(new Color(230, 230, 230)); // Màu nền xám
         setPreferredSize(new Dimension(0, 35)); // Chiều cao cố định 35px
@@ -36,10 +39,13 @@ public class GiaoDienChinh_Header extends JPanel {
        JPanel pnlRight = new JPanel(new GridLayout(1, 4, 10, 0));
         pnlRight.setBackground(new Color(230,230,230));
 
-        JLabel greet = new JLabel("Chào" + this.nameUser); // Sau này có thể truyền tên vào đây
+        JLabel greet = new JLabel("Chào bạn " + nameUser); // Sau này có thể truyền tên vào đây
         greet.setFont(new Font("Arial", Font.BOLD, 12));
         greet.setForeground(Color.BLACK);
 
+
+        JPanel pnlBtn_Out_Zoom_Hide = new JPanel(new GridLayout(0, 3, 10, 0));
+        pnlBtn_Out_Zoom_Hide.setBackground(new Color(230,230,230));
         //Button thoát
         Image iconExit = new ImageIcon(getClass().getResource("/Img/exit.jpg")).getImage();
         Image scaleExit = iconExit.getScaledInstance(22,22,Image.SCALE_SMOOTH);
@@ -88,10 +94,12 @@ public class GiaoDienChinh_Header extends JPanel {
             }
         });
 
+        pnlBtn_Out_Zoom_Hide.add(this.hideBtn);
+        pnlBtn_Out_Zoom_Hide.add(this.bigBtn);
+        pnlBtn_Out_Zoom_Hide.add(this.closeBtn);
+
         pnlRight.add(greet);
-        pnlRight.add(this.hideBtn);
-        pnlRight.add(bigBtn);
-        pnlRight.add(closeBtn);
+        pnlRight.add(pnlBtn_Out_Zoom_Hide);
 
         add(pnlRight, BorderLayout.EAST);
     }

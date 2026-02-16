@@ -137,16 +137,16 @@ public class  GiaoDienDangNhap extends JFrame {
 
         NV_BUS nvBus = new NV_BUS();
         if(nvBus.login(txtAcc, txtPass)){
-            //Mở giao diện chính
-            GiaoDienChinh_Main mainFrame = new GiaoDienChinh_Main();
+            GiaoDienChinh_Main mainFrame = new GiaoDienChinh_Main(txtAcc);
             mainFrame.setVisible(true);
 
             //Frame chào mừng hiện lên + Tên người dùng
             SwingUtilities.invokeLater(() ->{
-                new Greetings_GUI(mainFrame, txtAcc);
+                new Greetings_GUI(mainFrame, nvBus.getTenNV_BUS(txtAcc));
             });
             this.dispose();//Thoát cái giao diện đăng nhập
-        }else{
+        }
+        else{
             JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu");
 
             txtUsername.setText("");

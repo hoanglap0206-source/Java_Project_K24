@@ -1,44 +1,70 @@
 package UI;
 
+import BUS.PhanQuyen_BUS;
+
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GiaoDienChinh_Menu extends JPanel {
-    String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho"};
 
+    private Map<String, JButton> mapCNToButton = new HashMap<>();
+
+    private String[] menuItem={"Quản lý tài khoản", "Quản lý nhà cung cấp", "Thông tin khách hàng", "Quản lý sản phẩm", "Nhập kho","Phiếu nhập", "Xuất kho","Phiếu xuất","Tồn kho","Báo cáo","Áp thuế" ,"Kệ kho"};
+    private String[] maCNs = {"CN01","CN02","CN03","CN04","CN05","CN06","CN07","CN08","CN09","CN10", "CN11", "CN12"};
 
     private JButton[] btnList = new JButton[menuItem.length];
     private GiaoDienChinh_Header hd ;
     private GiaoDienChinh_Content ct;
+    private String maNV = null;
 
-    public GiaoDienChinh_Menu(GiaoDienChinh_Header hd, GiaoDienChinh_Content ct){ // Truyền hd vào để lưu title
+    public GiaoDienChinh_Menu(GiaoDienChinh_Header hd, GiaoDienChinh_Content ct) {
+        this(hd, ct, null); // gọi constructor chính
+    }
+
+    public GiaoDienChinh_Menu(GiaoDienChinh_Header hd, GiaoDienChinh_Content ct, String maNV){ // Truyền hd vào để lưu title
         this.hd=hd;
         this.ct = ct;
+        this.maNV = maNV;
 
         setPreferredSize(new Dimension(220,0));
         setBackground(new Color(66,160,203));
         setLayout(new BorderLayout());
 
-        initAvatar();
+        this.intComponents();
+        this.buildMapComponents();
+        //gọi hàm thay đổi title và PANEL content
+        this.clickButton();
 
-        JPanel listMenu=new JPanel(new GridLayout(0,1,5,5));
+        if(maNV != null && !maNV.isEmpty())
+            this.applyPhanQuyen(maNV);
+        else
+            this.hideAllBtn();
+    }
+
+    public void intComponents(){
+        this.initAvatar();
+
+        JPanel listMenu = new JPanel(new GridLayout(0,1,5,5));
         listMenu.setBackground(new Color(188, 204, 209));
+        listMenu.setBorder(BorderFactory.createEmptyBorder(8,0,8,0));
 
-        for (int i=0; i<menuItem.length; i++){
-            String text = menuItem[i];
-            btnList[i] = new JButton(text);
-            styleMenuButton(btnList[i]);
-            listMenu.add(btnList[i]);
+        for(int i = 0; i < menuItem.length; i++){
+            JButton btn = new JButton(menuItem[i]);
+            styleMenuButton(btn);
+            btnList[i] = btn;
+            if(i< maCNs.length)
+                btn.setName(maCNs[i]);
+            listMenu.add(btn);
         }
 
-        //gọi hàm thay đổi title và PANEL content
-        clickButton();
-
-        JPanel pnlCenterWrap=new JPanel(new BorderLayout());
+        JPanel pnlCenterWrap = new JPanel(new BorderLayout());
         pnlCenterWrap.setBackground(new Color(66,160,203));
         pnlCenterWrap.add(listMenu,BorderLayout.NORTH);
         add(pnlCenterWrap,BorderLayout.CENTER);
@@ -115,19 +141,74 @@ public class GiaoDienChinh_Menu extends JPanel {
             });
         }
     }
+
+    private void buildMapComponents(){
+        mapCNToButton.clear();
+        int len = Math.min(maCNs.length, btnList.length);
+        for(int i = 0; i < len; i++)
+            if(btnList[i] != null && maCNs[i] != null && !maCNs[i].isEmpty())
+                mapCNToButton.put(maCNs[i], btnList[i]);
+    }
+
+    public void hideAllBtn(){
+        for(JButton btn : btnList)
+            if(btn != null){
+                btn.setVisible(false);
+                btn.setEnabled(false);
+            }
+    }
+
+    public void applyPhanQuyen(String maNV){
+        this.maNV = maNV;
+
+        this.hideAllBtn();
+
+        ArrayList<String> dsCNCaNhan;
+
+        //Nếu như người đó không có chức năng nào
+        try{
+            PhanQuyen_BUS pqBUS = new PhanQuyen_BUS();
+            dsCNCaNhan = pqBUS.getDSQuyenCaNhan(maNV);
+            if(dsCNCaNhan == null)
+                dsCNCaNhan = new ArrayList<>();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            dsCNCaNhan = new ArrayList<>();
+        }
+
+        for(String cn : dsCNCaNhan){
+            JButton btn = (JButton) mapCNToButton.get(cn);
+            if(btn != null){
+                btn.setVisible(true);
+                btn.setEnabled(true);
+            }
+            else
+                System.out.println("[PhanQuyen] Chưa map component cho: " + cn);
+        }
+        this.revalidate();
+        this.repaint();
+    }
+
+    public void reloadForUser(String newMaNV) {
+        applyPhanQuyen(newMaNV);
+    }
+
     public static void main(String[] args){
-        JFrame frame = new JFrame("Test Menu Layout");
+        JFrame frame = new JFrame("Menu Layout");
         frame.setSize(300, 700); // Kích thước cửa sổ test
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         GiaoDienChinh_Header header = new GiaoDienChinh_Header();
         GiaoDienChinh_Content content = new GiaoDienChinh_Content();
-        // Thêm MenuPanel vào frame
-        frame.add(new GiaoDienChinh_Menu(header, content)); //Đã sửa
+
+        GiaoDienChinh_Menu menu = new GiaoDienChinh_Menu(header, content);
+        frame.add(menu, BorderLayout.WEST);
+
+        menu.applyPhanQuyen("NV01");
 
         frame.setVisible(true);
     }
-
 }
 

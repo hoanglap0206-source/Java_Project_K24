@@ -104,4 +104,20 @@ public class NV_DAO {
         }
         return list;
     }
+
+    public String getTenNV_DAO(String maNV){
+        String sql = "SELECT ho_ten FROM NHAN_VIEN Where ma_nhan_vien = ?";
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ){
+            ps.setString(1, maNV);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                return rs.getString("ho_ten");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

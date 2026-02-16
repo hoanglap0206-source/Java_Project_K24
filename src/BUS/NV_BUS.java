@@ -101,4 +101,10 @@ public class NV_BUS {
             }
         }return false;
     }
+
+    public String getTenNV_BUS(String maNV){
+        NV_DAO nv = new NV_DAO();
+        String ten = nv.getTenNV_DAO(maNV);
+        return ten;
+    }
 }

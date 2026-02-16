@@ -8,6 +8,7 @@ import Model.PhanQuyen;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class PhanQuyen_DAO{
@@ -95,4 +96,28 @@ public class PhanQuyen_DAO{
             return false;
         }
     }
+
+    //Lấy các chức năng (Quyền) của 1 người dùng
+    public ArrayList<String> getListQuyenCaNhan (String maQuyen){
+        ArrayList<String> listQuyen = new ArrayList<>();
+        String sqlQuyen = "SELECT ma_chuc_nang FROM PHAN_QUYEN WHERE ma_nhan_vien = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlQuyen)
+        ) {
+            ps.setString(1, maQuyen);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    // đọc đúng tên cột từ SELECT
+                    String maCN = rs.getString("ma_chuc_nang");
+                    if (maCN != null) {
+                        listQuyen.add(maCN.trim()); // trim để chuẩn hoá
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return listQuyen;
+    } //Trả về danh sách ["CN01", "CN02", "CN05"...]
 }

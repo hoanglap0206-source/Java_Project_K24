@@ -98,7 +98,7 @@ public class GiaoDienDK_Right extends JPanel {
                 JOptionPane.showMessageDialog(this, "Đăng nhập thành công");
                 username.setText("");
                 password.setText("");
-                GiaoDienChinh_Main gd = new GiaoDienChinh_Main();
+//                GiaoDienChinh_Main gd = new GiaoDienChinh_Main();
             }else {
                 JOptionPane.showMessageDialog(this, "Đăng nhập thất bại,sai tài khoản hoặc mật khẩu");
                 username.setText("");

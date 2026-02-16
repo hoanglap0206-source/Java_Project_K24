@@ -17,7 +17,6 @@ public class PhanQuyen_BUS {
         return listPQ;
     }
 
-
     public ArrayList<PhanQuyen> getListByNV(String maNV) {
         ArrayList<PhanQuyen> result = new ArrayList<>();
         for (PhanQuyen pq : listPQ) {
@@ -27,7 +26,6 @@ public class PhanQuyen_BUS {
         }
         return result;
     }
-
 
     public String addPhanQuyen(PhanQuyen pq) {
         // Kiểm tra xem đã tồn tại quyền này cho nhân viên này chưa
@@ -86,4 +84,12 @@ public class PhanQuyen_BUS {
     }
 
     public void refeshData(){this.listPQ=pqDAO.getAllPhanQuyen();}
+
+    public ArrayList<String> getDSQuyenCaNhan(String maQuyen){
+        pqDAO = new PhanQuyen_DAO();
+        if(maQuyen == null || maQuyen.isEmpty())
+            return new ArrayList<>();
+        ArrayList<String> ds = pqDAO.getListQuyenCaNhan(maQuyen);
+        return ds == null ? new ArrayList<>() : ds;
+    }
 }
