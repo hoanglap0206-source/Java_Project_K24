@@ -15,39 +15,66 @@ public class NhapKho_GUI extends JPanel {
 
         main.add(uiLeft);
         main.add(uiRight);
+//================= Left =========================================
+        uiLeft.add(createSearchBar(),BorderLayout.NORTH);
+        uiLeft.add(createTableLeft(), BorderLayout.CENTER);
+        uiLeft.add(createTailLeft(), BorderLayout.SOUTH);
+//=================== Right ========================================
+        uiRight.add(createFormRight(),BorderLayout.NORTH);
+        uiRight.add(createTableRight(),BorderLayout.CENTER);
+        uiRight.add(createTailRight(),BorderLayout.SOUTH);
+
+        setLayout(new BorderLayout());
+        add(main, BorderLayout.CENTER);
+
+    }
+    public JPanel createSearchBar() {
+
         JPanel outerPanel = new JPanel();
-        outerPanel.setBorder(new EmptyBorder(5,5,5,5));
+        outerPanel.setBorder(new EmptyBorder(5, 5, 5, 15));
+
         JPanel outPanel = new JPanel();
         outPanel.setBorder(new CompoundBorder(
                 new LineBorder(Color.BLACK, 2, true),
-                new EmptyBorder(20, 30, 20, 30)
+                new EmptyBorder(15, 20, 15, 20)   // ↓ GIẢM padding
         ));
-        JPanel innerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 6));
+
+        JPanel innerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 4)); // ↓ giảm vertical gap
         innerPanel.setBackground(new Color(230, 230, 230));
         innerPanel.setBorder(
                 new CompoundBorder(
                         new LineBorder(Color.GRAY, 2, true),
-                        new EmptyBorder(8, 8, 8, 8)
+                        new EmptyBorder(6, 6, 6, 6)   // ↓ gọn hơn
                 )
         );
-        JTextField txtSearch = new JTextField("Tìm kiếm", 18);
+
+        // ===== TEXT SEARCH =====
+        JTextField txtSearch = new JTextField(22); // ↑ dài hơn
+        txtSearch.setText("Tìm kiếm");
         txtSearch.setForeground(Color.GRAY);
+        txtSearch.setPreferredSize(new Dimension(255, 28)); // chiều cao chuẩn
         txtSearch.setBorder(
                 new CompoundBorder(
                         new LineBorder(Color.GRAY, 1, true),
-                        new EmptyBorder(5, 10, 5, 30)
+                        new EmptyBorder(5, 10, 5, 10)
                 )
         );
-        // ===== Nút làm mới =====
+
+        // ===== NÚT LÀM MỚI =====
         JButton btnRefresh = new JButton("Làm mới");
         btnRefresh.setFocusPainted(false);
         btnRefresh.setBackground(Color.WHITE);
+        btnRefresh.setPreferredSize(new Dimension(115, 28)); // bằng chiều cao txtSearch
+
         innerPanel.add(txtSearch);
         innerPanel.add(btnRefresh);
+
         outPanel.add(innerPanel);
         outerPanel.add(outPanel);
-        uiLeft.add(outerPanel,BorderLayout.NORTH);
-//===================================================================================
+
+        return outerPanel;
+    }
+    public JScrollPane createTableLeft(){
         String[] cols = {"Mã SP", "Tên sản phẩm", "Số lượng", "Đơn giá"};
 
         DefaultTableModel tableModel = new DefaultTableModel(cols, 100);
@@ -59,11 +86,9 @@ public class NhapKho_GUI extends JPanel {
         table.getColumnModel().getColumn(3).setPreferredWidth(100); // Đơn giá
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(new EmptyBorder(15, 20, 20, 20));
-
-        uiLeft.add(scroll, BorderLayout.CENTER);
-
-        // ================= TAIL (BOTTOM) =================
-
+        return scroll;
+    }
+    public JPanel createTailLeft(){
         JPanel tailWrapper = new JPanel(new GridBagLayout());
         tailWrapper.setBorder(new EmptyBorder(10, 0, 60, 0));
 
@@ -81,9 +106,9 @@ public class NhapKho_GUI extends JPanel {
         tailLeft.add(btnThem);
 
         tailWrapper.add(tailLeft);
-
-        uiLeft.add(tailWrapper, BorderLayout.SOUTH);
-
+        return tailWrapper;
+    }
+    public JPanel createFormRight(){
         JPanel headRightWrap = new JPanel(new GridLayout(3,2,0,20));
         headRightWrap.setBorder(new EmptyBorder(40,5,15,20));
         JLabel lblID = new JLabel("Mã phiếu nhập");
@@ -100,55 +125,73 @@ public class NhapKho_GUI extends JPanel {
         headRightWrap.add(txtNCC);
         headRightWrap.add(lblNTP);
         headRightWrap.add(txtNTP);
-        uiRight.add(headRightWrap,BorderLayout.NORTH);
-//==========================================================================================
-        JPanel TableRightWrap = new JPanel(new GridLayout(2,1,10,20));
-        String[] colsRight = {"STT","Mã SP", "Tên sản phẩm", "Số lượng", "NN","Đơn giá"};
+        return headRightWrap;
+    }
+    public JPanel createTableRight(){
+            // ===== WRAP TỔNG (FIX: KHÔNG DÙNG GRIDLAYOUT) =====
+            JPanel TableRightWrap = new JPanel(new BorderLayout(0, 20));
 
-        DefaultTableModel tableModelRight = new DefaultTableModel(colsRight, 100);
-        JTable tableRight = new JTable(tableModelRight);
-        tableRight.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        tableRight.getColumnModel().getColumn(0).setPreferredWidth(40); // STT
-        tableRight.getColumnModel().getColumn(1).setPreferredWidth(60); // Mã SP
-        tableRight.getColumnModel().getColumn(2).setPreferredWidth(150); // Tên SP
-        tableRight.getColumnModel().getColumn(3).setPreferredWidth(60); // Số lượng
-        tableRight.getColumnModel().getColumn(4).setPreferredWidth(70); // NN
-        tableRight.getColumnModel().getColumn(5).setPreferredWidth(70); // Đơn giá
-        JScrollPane scrollRight = new JScrollPane(tableRight);
-        scrollRight.setBorder(new EmptyBorder(25, 10, 10, 10));
-        TableRightWrap.add(scrollRight);
+            // ===== TABLE =====
+            String[] colsRight = {"STT", "Mã SP", "Tên sản phẩm", "Số lượng", "NN", "Đơn giá"};
+            DefaultTableModel tableModelRight = new DefaultTableModel(colsRight, 100);
 
-        JPanel btnWrap = new JPanel(new GridLayout(1,3,15,0));
-        JButton btnXuat,btnSua,btnXoa;
-        btnXuat = new JButton("Xuất Excel");
-        btnSua = new JButton("Sửa số lượng");
-        btnXoa = new JButton("Xóa sản phẩm");
+            JTable tableRight = new JTable(tableModelRight);
 
-        btnSua.setFocusPainted(false);
-        btnXoa.setFocusPainted(false);
-        btnXuat.setFocusPainted(false);
+            // cho phép bảng cao hơn
+            tableRight.setPreferredScrollableViewportSize(
+                    new Dimension(520, 600)
+            );
 
-        btnSua.setBackground(Color.WHITE);
-        btnXuat.setBackground(Color.WHITE);
-        btnXoa.setBackground(Color.WHITE);
+            tableRight.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            tableRight.getColumnModel().getColumn(0).setPreferredWidth(40);
+            tableRight.getColumnModel().getColumn(1).setPreferredWidth(60);
+            tableRight.getColumnModel().getColumn(2).setPreferredWidth(150);
+            tableRight.getColumnModel().getColumn(3).setPreferredWidth(60);
+            tableRight.getColumnModel().getColumn(4).setPreferredWidth(70);
+            tableRight.getColumnModel().getColumn(5).setPreferredWidth(70);
 
-        btnWrap.add(btnXuat);
-        btnWrap.add(btnSua);
-        btnWrap.add(btnXoa);
-        JPanel btnContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        btnContainer.add(btnWrap);
-        TableRightWrap.add(btnContainer);
-        uiRight.add(TableRightWrap,BorderLayout.CENTER);
-//        =============================================================================
+            JScrollPane scrollRight = new JScrollPane(tableRight);
+            scrollRight.setBorder(new EmptyBorder(25, 10, 0, 10));
+            // add bảng vào CENTER
+            TableRightWrap.add(scrollRight, BorderLayout.CENTER);
 
+            // ===== BUTTON =====
+            JPanel btnWrap = new JPanel(new GridLayout(1, 3, 15, 0));
+
+            JButton btnXuat = new JButton("Xuất Excel");
+            JButton btnSua = new JButton("Sửa số lượng");
+            JButton btnXoa = new JButton("Xóa sản phẩm");
+
+            btnXuat.setFocusPainted(false);
+            btnSua.setFocusPainted(false);
+            btnXoa.setFocusPainted(false);
+
+            btnXuat.setBackground(Color.WHITE);
+            btnSua.setBackground(Color.WHITE);
+            btnXoa.setBackground(Color.WHITE);
+
+            btnWrap.add(btnXuat);
+            btnWrap.add(btnSua);
+            btnWrap.add(btnXoa);
+
+            JPanel btnContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+            btnContainer.add(btnWrap);
+
+            // add nút xuống SOUTH
+            TableRightWrap.add(btnContainer, BorderLayout.SOUTH);
+
+            return TableRightWrap;
+        }
+
+    public JPanel createTailRight(){
         JPanel tailRightWrapper = new JPanel(new GridBagLayout());
         tailRightWrapper.setBorder(new EmptyBorder(10, 0, 60, 0));
 
         JPanel tailRight = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
 
         JLabel lblTongTien = new JLabel("TỔNG TIỀN NHẬP");
-        JTextField txtTongTien = new JTextField("", 8);
-
+        JTextField txtTongTien = new JTextField("", 10);
+        txtTongTien.setEditable(false);
         JButton btnNhap = new JButton("Nhập hàng");
         btnNhap.setBackground(new Color(102, 255, 102));
         btnNhap.setFocusPainted(false);
@@ -158,11 +201,7 @@ public class NhapKho_GUI extends JPanel {
         tailRight.add(btnNhap);
 
         tailRightWrapper.add(tailRight);
-        uiRight.add(tailRightWrapper,BorderLayout.SOUTH);
-
-        setLayout(new BorderLayout());
-        add(main, BorderLayout.CENTER);
-
+        return tailRightWrapper;
     }
     public static void main(String[] arg){
         new NhapKho_GUI();
