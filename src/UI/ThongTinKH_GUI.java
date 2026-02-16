@@ -22,7 +22,7 @@ public class ThongTinKH_GUI extends JPanel {
         String[] columns={"Mã khách hàng","Tên khách hàng","Số điện thoại","Địa chỉ"};
         model = new DefaultTableModel(columns,0);
 
-        TableKH= new JTable();
+        TableKH= new JTable(model);
         TableKH.setRowHeight(30);
         TableKH.getTableHeader().setFont(new Font("Arial",Font.BOLD,13));
         TableKH.getTableHeader().setReorderingAllowed(false);
