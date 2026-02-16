@@ -16,17 +16,22 @@ public class PhieuNhap_BUS {
     }
 
     public String addPN(PhieuNhap pn){
-        if(pn.getMaPN().trim().isEmpty()) return "Mã phiếu nhập không được để trống!";
+        //Kiểm tra thêm phiếu nhập có đúng định dạng không
+        if(!Check.isValidPN(pn.getMaPN()))
+            return "Mã phiểu nhập phải đúng định dạng (Phải là PNxx ví dụ PN01)";
+
         if(pnDAO.insert(pn))
         {
             listPN.add(pn);
             return"Thêm phiếu nhập thành công!";
         }
+
         return "Thêm phiếu nhập thất bại!";
     }
 
     public String updatePN(PhieuNhap pn){
-        if(pnDAO.update(pn)) return "Cập nhật thành công!";
+        if(pnDAO.update(pn))
+            return "Cập nhật thành công!";
         return "Cập nhật thất bại!";
     }
 
@@ -37,10 +42,8 @@ public class PhieuNhap_BUS {
         {
             listPN.removeIf(bc->bc.getMaPN().equalsIgnoreCase(maPN));
             return "Xoá phiếu nhập thành công!";
-
         }
         return "Xoá phiếu nhập thất bại!";
-
     }
     public void refeshData(){this.listPN=pnDAO.getAllPhieuNhap();}
 }

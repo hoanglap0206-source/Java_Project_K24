@@ -15,27 +15,35 @@ public class KhachHang_BUS {
         return listKH;
     }
     public String addKhachHang(KhachHang kh){
-        if(kh.getMaKH().trim().isEmpty() || kh.getHoTenKH().trim().isEmpty()) return"Mã khách hàng và Họ tên không được để trống!";
+        //Kiểm tra thêm khách hàng có đúng định dạng không
+        if (!Check.isValidKH(kh.getMaKH()))
+            return "Thêm mã khách hàng không đúng định dạng (Phải là KHxx ví dụ KH01)";
+
+        if(kh.getHoTenKH().trim().isEmpty())
+            return"Họ tên không được để trống!";
+
         if(khDAO.insert(kh)) {
             listKH.add(kh);
             return"Thêm khách hàng thành công!";
         }
-        return"Thêm khách hàng thất bại!";
 
+        return"Thêm khách hàng thất bại!";
     }
+
     public String updateKH(KhachHang kh){
         if(khDAO.update(kh)) return "Cập nhật thành công!";
         return "Cập nhật thất bại!";
     }
+
     public String deleteKH(String maKH){
-        if(maKH==null||maKH.trim().isEmpty())
+        if(maKH == null|| maKH.trim().isEmpty())
             return "Mã Khách hàng không hợp lệ!";
+
         if(khDAO.delete(maKH))
         {
             listKH.removeIf(bc->bc.getMaKH().equalsIgnoreCase(maKH));
             return"Xoá khách hàng thành công!";
         }
-
         return"Xoá Khách hàng thất bại!";
     }
     public void refeshData(){this.listKH=khDAO.getAllKhachHang();}

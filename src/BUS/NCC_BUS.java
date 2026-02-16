@@ -7,17 +7,25 @@ import java.util.*;
 public class NCC_BUS {
     private ArrayList<NhaCungCap> listNCC;
     private NCC_DAO nccDAO;
+
     public NCC_BUS(){
         nccDAO=new NCC_DAO();
         this.listNCC=nccDAO.getAllNCC();
     }
-    public ArrayList<NhaCungCap>getListNCC(){
+
+    public ArrayList<NhaCungCap> getListNCC(){
         return this.listNCC;
     }
-    public String addNCC(NhaCungCap NCC){
-        if(NCC.getMaNCC().isEmpty()||NCC.getTenNCC().isEmpty()) return "Mã nhà cung cấp và tên nhà cung cấp không được để trống!";
-        if(nccDAO.insert(NCC)){
 
+    public String addNCC(NhaCungCap NCC){
+        //Kiểm tra thêm nhà cung cấp có đúng định dạng không
+        if(!Check.isValidNCC(NCC.getMaNCC()))
+            return "Mã nhà cung cấp không đúng định dạng (Phải là NCCxx ví dụ NCC01)";
+
+        if(NCC.getTenNCC().isEmpty())
+            return "Tên nhà cung cấp không được để trống!";
+
+        if(nccDAO.insert(NCC)){
             listNCC.add(NCC);
             return "Thêm Nhà Cung Cấp thành công!";
         }
@@ -26,15 +34,13 @@ public class NCC_BUS {
 
     public String updateNCC(NhaCungCap NCC){
         if(nccDAO.update(NCC))
-        {
-
             return "Cập nhật thành công!";
-        }
         return "Cập nhật thất bại!";
     }
 
     public String deleteNCC(String maNCC){
-        if(maNCC==null||maNCC.trim().isEmpty()) return"Mã NCC không hợp lệ!";
+        if(maNCC==null||maNCC.trim().isEmpty())
+            return"Mã NCC không hợp lệ!";
         if(nccDAO.delete(maNCC)){
             listNCC.removeIf(bc->bc.getTenNCC().equalsIgnoreCase(maNCC));
             return "Xoá Nhà Cung Cấp Thành Công!";
@@ -42,5 +48,4 @@ public class NCC_BUS {
         return "Xoá Thất bại!";
     }
     public void refeshData(){this.listNCC=nccDAO.getAllNCC();}
-
 }

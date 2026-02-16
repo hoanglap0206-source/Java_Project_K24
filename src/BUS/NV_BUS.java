@@ -47,15 +47,19 @@ public class NV_BUS {
 
     //Thao tác dữ liệu
     public String addNV(NhanVien nv){
+        //Hàm kiểm tra thêm nhân viên có đúng định dạng không
+        if(!Check.isValidManv(nv.getMaNV()))
+            return "Mã nhân viên không đúng định dạng (Phải là NVxx, ví dụ NV01)";
+
        for(NhanVien existing: listNV) {
            if (existing.getMaNV().equalsIgnoreCase(nv.getMaNV())) {
                return "Mã nhân viên đã tồn tại!!";
            }
        }
-
        //kiểm tra các trường ràng buộc
         if(nv.getHoTen().isEmpty() || nv.getMatKhau().isEmpty())
-            return "Họ tên vaf mật khẩu không đuợc đê trống";
+            return "Họ tên và mật khẩu không đuợc đê trống";
+
         if(nvDAO.insert(nv)){
             listNV.add(nv);//Cập nhật RAM
             return "Thêm nhân viên thanhf công!";

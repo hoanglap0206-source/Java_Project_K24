@@ -45,15 +45,14 @@ public class SanPham_BUS {
         return false;
     }
 
-
     public String addSanPham(SanPham sp) {
-        if (sp.getMaSP().trim().isEmpty()) return "Mã sản phẩm không được trống!";
+        //Kiểm tra thêm sản phẩm có đúng đinh dạng không
+        if(!Check.isValidSP(sp.getMaSP()))
+            return "Thêm mã sản phẩm không đúng định dạng (Phải là SPxx ví dụ SP01)";
 
-        for (SanPham item : listSP) {
-            if (item.getMaSP().equalsIgnoreCase(sp.getMaSP())) {
+        for (SanPham item : listSP)
+            if (item.getMaSP().equalsIgnoreCase(sp.getMaSP()))
                 return "Mã sản phẩm đã tồn tại!";
-            }
-        }
 
         if (spDAO.insert(sp)) {
             listSP.add(sp);
