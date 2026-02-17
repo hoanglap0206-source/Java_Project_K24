@@ -24,7 +24,12 @@ public class QLyNhaCungCap_GUI extends JPanel {
 //        add(pnlCode_QlyNCC, BorderLayout.CENTER);
 
         String[] columns={"Mã nhà cung cấp","Tên nhà cung cấp","Số điện thoại","Địa chỉ"};
-        model = new DefaultTableModel(columns,0);
+        model = new DefaultTableModel(columns,0){
+            @Override
+            public boolean isCellEditable(int row,int column){
+                return false;
+            }
+        };
 
         tableNCC= new JTable(model);
         tableNCC.setRowHeight(30);
