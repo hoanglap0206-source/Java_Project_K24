@@ -44,8 +44,14 @@ public class TonKho_GUI extends JPanel {
                 {"SP004", "Trà xanh", "Chai", "5", "9.000", "05/01/2024", "05/04/2024", "K03"}
         };
 
+        //hàm không cho thay đổi data//
+       DefaultTableModel model=new DefaultTableModel(data,columnNames){
+           @Override
+           public boolean isCellEditable(int row,int column){
+               return false;
+           }
+       };
 
-        DefaultTableModel model = new DefaultTableModel(data, columnNames);
         JTable table = new JTable(model);
         table.setRowHeight(30);
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));

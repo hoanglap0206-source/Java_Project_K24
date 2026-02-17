@@ -52,7 +52,12 @@ public class BaoCao_GUI extends JPanel {
                 {"SP003", "Sting", "Chai", "200", "11.000"},
                 {"SP004", "Trà xanh", "Chai", "5", "9.000"}
         };
-        DefaultTableModel model = new DefaultTableModel(data, columns);
+        DefaultTableModel model = new DefaultTableModel(data, columns){
+            @Override
+            public boolean isCellEditable(int row,int column){
+             return false;
+            }
+        };
         JTable table = new JTable(model);
         table.setRowHeight(30);
 

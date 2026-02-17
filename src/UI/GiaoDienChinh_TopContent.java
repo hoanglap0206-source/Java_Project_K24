@@ -48,7 +48,27 @@ public class GiaoDienChinh_TopContent extends JPanel {
 
         JTextField txtSearch = new JTextField("Tìm kiếm");
         txtSearch.setBorder(new EmptyBorder(0, 10, 0, 0));
+        txtSearch.setForeground(Color.GRAY);
 
+        txtSearch.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                // Khi người dùng click vào ô
+                if (txtSearch.getText().equals("Tìm kiếm")) {
+                    txtSearch.setText("");           // Xóa chữ "Tìm kiếm"
+                    txtSearch.setForeground(Color.BLACK); // Đổi màu chữ sang đen để người dùng nhập
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                // Khi người dùng click ra chỗ khác mà không nhập gì
+                if (txtSearch.getText().isEmpty()) {
+                    txtSearch.setForeground(Color.GRAY);
+                    txtSearch.setText("Tìm kiếm");    // Hiện lại chữ gợi ý
+                }
+            }
+        });
 
 
         JButton btnSearchIcon = new JButton("🔍");
