@@ -97,27 +97,43 @@ public class PhanQuyen_DAO{
         }
     }
 
-    //Lấy các chức năng (Quyền) của 1 người dùng
-    public ArrayList<String> getListQuyenCaNhan (String maQuyen){
-        ArrayList<String> listQuyen = new ArrayList<>();
-        String sqlQuyen = "SELECT ma_chuc_nang FROM PHAN_QUYEN WHERE ma_nhan_vien = ?";
+    public ArrayList<PhanQuyen> getListQuyenCaNhan(String maNhanVien){
+        ArrayList<PhanQuyen> ListPhanQuyen = new ArrayList<>();
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sqlQuyen)
-        ) {
-            ps.setString(1, maQuyen);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    // đọc đúng tên cột từ SELECT
-                    String maCN = rs.getString("ma_chuc_nang");
-                    if (maCN != null) {
-                        listQuyen.add(maCN.trim()); // trim để chuẩn hoá
-                    }
+        //Lệnh này sẽ kết bảng PHAN_QUYEN và bảng DM_CHUC_NANG lại và add vào danh sach PhanQuyen
+        String sql = "SELECT pq.ma_nhan_vien, pq.ma_chuc_nang, cn.ten_chuc_nang, pq.duoc_xem, pq.duoc_xoa, pq.duoc_sua, pq.duoc_them " +
+                     "FROM PHAN_QUYEN pq " +
+                     "JOIN DM_CHUC_NANG cn ON pq.ma_chuc_nang = cn.ma_chuc_nang " +
+                     "WHERE pq.ma_nhan_vien = ? "+
+                     "ORDER BY pq.ma_chuc_nang ASC";
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)){
+
+            ps.setString(1, maNhanVien);
+
+            try(ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    NhanVien nv = new NhanVien();
+                    nv.setMaNV(rs.getString("ma_nhan_vien")); //Lấy mã nhân viên
+
+                    ChucNang cn = new ChucNang();
+                    cn.setMaCN(rs.getString("ma_chuc_nang")); //Lấy mã chức năng
+                    cn.setTenCN(rs.getString("ten_chuc_nang"));//Lấy tên chức năng
+
+                    boolean xem = rs.getBoolean("duoc_xem");
+                    boolean xoa = rs.getBoolean("duoc_xoa");
+                    boolean sua = rs.getBoolean("duoc_sua");
+                    boolean them = rs.getBoolean("duoc_them");
+
+                    PhanQuyen pq = new PhanQuyen(nv, cn, xem, xoa, sua, them);
+
+                    ListPhanQuyen.add(pq);
                 }
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
-        return listQuyen;
-    } //Trả về danh sách ["CN01", "CN02", "CN05"...]
+        return ListPhanQuyen;
+    }
 }

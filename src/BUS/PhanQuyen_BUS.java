@@ -85,11 +85,12 @@ public class PhanQuyen_BUS {
 
     public void refeshData(){this.listPQ=pqDAO.getAllPhanQuyen();}
 
-    public ArrayList<String> getDSQuyenCaNhan(String maQuyen){
+
+    public ArrayList<PhanQuyen> getDSQuyenCaNhan(String maNhanVien){
         pqDAO = new PhanQuyen_DAO();
-        if(maQuyen == null || maQuyen.isEmpty())
+        if(maNhanVien == null || maNhanVien.isEmpty())
             return new ArrayList<>();
-        ArrayList<String> ds = pqDAO.getListQuyenCaNhan(maQuyen);
+        ArrayList<PhanQuyen> ds = pqDAO.getListQuyenCaNhan(maNhanVien);
         return ds == null ? new ArrayList<>() : ds;
     }
 }
