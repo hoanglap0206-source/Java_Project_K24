@@ -1,13 +1,24 @@
 package UI;
 
+import BUS.SanPham_BUS;
+import Model.SanPham;
+
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class NhapKho_GUI extends JPanel {
+    private SanPham_BUS spBus = new SanPham_BUS();
+    private DefaultTableModel tableModel;
+    private JTable table;
+    JTextField txtSoLuong;
+    private DefaultTableModel tableModelRight;
+    private JTable tableRight;
     public NhapKho_GUI() {
         JPanel main = new JPanel(new GridLayout(1, 2));
         JPanel uiLeft = new JPanel(new BorderLayout());
@@ -18,6 +29,7 @@ public class NhapKho_GUI extends JPanel {
 //================= Left =========================================
         uiLeft.add(createSearchBar(),BorderLayout.NORTH);
         uiLeft.add(createTableLeft(), BorderLayout.CENTER);
+        loadTableData();
         uiLeft.add(createTailLeft(), BorderLayout.SOUTH);
 //=================== Right ========================================
         uiRight.add(createFormRight(),BorderLayout.NORTH);
@@ -77,8 +89,8 @@ public class NhapKho_GUI extends JPanel {
     public JScrollPane createTableLeft(){
         String[] cols = {"Mã SP", "Tên sản phẩm", "Số lượng", "Đơn giá"};
 
-        DefaultTableModel tableModel = new DefaultTableModel(cols, 100);
-        JTable table = new JTable(tableModel);
+        tableModel = new DefaultTableModel(cols, 100);
+        table = new JTable(tableModel);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.getColumnModel().getColumn(0).setPreferredWidth(60); // Mã SP
         table.getColumnModel().getColumn(1).setPreferredWidth(200); // Tên SP
@@ -86,6 +98,16 @@ public class NhapKho_GUI extends JPanel {
         table.getColumnModel().getColumn(3).setPreferredWidth(100); // Đơn giá
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(new EmptyBorder(15, 20, 20, 20));
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                int row = table.getSelectedRow();
+                if (row == -1) return;
+                // UX: cho con trỏ nhảy sang ô nhập số lượng
+                txtSoLuong.requestFocus();
+            }
+        });
         return scroll;
     }
     public JPanel createTailLeft(){
@@ -95,12 +117,59 @@ public class NhapKho_GUI extends JPanel {
         JPanel tailLeft = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
 
         JLabel lblSoLuong = new JLabel("SỐ LƯỢNG");
-        JTextField txtSoLuong = new JTextField("3", 5);
+        txtSoLuong = new JTextField("3", 5);
 
         JButton btnThem = new JButton("Thêm");
         btnThem.setBackground(new Color(102, 255, 102));
         btnThem.setFocusPainted(false);
+        btnThem.addActionListener(e -> {
 
+            // 1. kiểm tra đã chọn dòng bên trái chưa
+            int rowLeft = table.getSelectedRow();
+            if (rowLeft == -1) {
+                JOptionPane.showMessageDialog(this, "Chưa chọn sản phẩm");
+                return;
+            }
+
+            // 2. kiểm tra số lượng nhập
+            int soLuongNhap;
+            if (txtSoLuong.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Không được để trống dữ liệu");
+                return;
+            }
+            try {
+                soLuongNhap = Integer.parseInt(txtSoLuong.getText());
+                if (soLuongNhap <= 0) throw new Exception();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+                return;
+            }
+
+            // 3. lấy dữ liệu từ bảng trái
+            String maSP  = tableModel.getValueAt(rowLeft, 0).toString();
+            String tenSP = tableModel.getValueAt(rowLeft, 1).toString();
+            double donGia = Double.parseDouble(
+                    tableModel.getValueAt(rowLeft, 3).toString()
+            );
+
+            // 4. nếu SP đã tồn tại ở bảng phải → cộng số lượng
+            for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+                if (tableModelRight.getValueAt(i, 1).equals(maSP)) {
+                    int slCu = (int) tableModelRight.getValueAt(i, 3);
+                    tableModelRight.setValueAt(slCu + soLuongNhap, i, 3);
+                    txtSoLuong.setText("");
+                    return;
+                }
+            }
+
+            // 5. nếu chưa có → thêm dòng mới
+            int stt = tableModelRight.getRowCount() + 1;
+            tableModelRight.addRow(new Object[]{
+                    stt, maSP, tenSP, soLuongNhap, donGia
+            });
+
+            txtSoLuong.setText("");
+        });
         tailLeft.add(lblSoLuong);
         tailLeft.add(txtSoLuong);
         tailLeft.add(btnThem);
@@ -128,14 +197,13 @@ public class NhapKho_GUI extends JPanel {
         return headRightWrap;
     }
     public JPanel createTableRight(){
-            // ===== WRAP TỔNG (FIX: KHÔNG DÙNG GRIDLAYOUT) =====
             JPanel TableRightWrap = new JPanel(new BorderLayout(0, 20));
 
             // ===== TABLE =====
             String[] colsRight = {"STT", "Mã SP", "Tên sản phẩm", "Số lượng", "NN", "Đơn giá"};
-            DefaultTableModel tableModelRight = new DefaultTableModel(colsRight, 100);
+            tableModelRight = new DefaultTableModel(colsRight, 100);
 
-            JTable tableRight = new JTable(tableModelRight);
+            tableRight = new JTable(tableModelRight);
 
             // cho phép bảng cao hơn
             tableRight.setPreferredScrollableViewportSize(
@@ -182,7 +250,6 @@ public class NhapKho_GUI extends JPanel {
 
             return TableRightWrap;
         }
-
     public JPanel createTailRight(){
         JPanel tailRightWrapper = new JPanel(new GridBagLayout());
         tailRightWrapper.setBorder(new EmptyBorder(10, 0, 60, 0));
@@ -203,6 +270,19 @@ public class NhapKho_GUI extends JPanel {
         tailRightWrapper.add(tailRight);
         return tailRightWrapper;
     }
+
+    public void loadTableData() {
+        tableModel.setRowCount(0); // xóa dữ liệu cũ
+        for( SanPham sp : spBus.getAll()){
+            tableModel.addRow(new Object[]{
+                    sp.getMaSP(),
+                    sp.getTenSP(),
+                    sp.getSoLuong(),
+                    sp.getGiaTien()
+            });
+        }
+    }
+
     public static void main(String[] arg){
         new NhapKho_GUI();
     }

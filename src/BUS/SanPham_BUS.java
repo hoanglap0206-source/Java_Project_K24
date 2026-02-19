@@ -9,12 +9,12 @@ public class SanPham_BUS {
     private SanPham_DAO spDAO;
 
     public SanPham_BUS() {
-        spDAO = new SanPham_DAO();
-        this.listSP = spDAO.getAllSanPham();
+
     }
 
     public ArrayList<SanPham> getAll() {
-        return listSP;
+        spDAO = new SanPham_DAO();
+        return spDAO.getAllSanPham();
     }
 
 
