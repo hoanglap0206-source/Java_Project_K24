@@ -3,15 +3,17 @@ package UI;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class GiaoDienChinh_TopContent extends JPanel {
     private JPanel pnlCenterContainer;
     public GiaoDienChinh_TopContent() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
-
-        // --- 1. THANH TIÊU ĐỀ XÁM ---
+        setBackground(new Color(198,226,255));
 
         // --- 2. THANH CÔNG CỤ (TOOLBAR) ---
         JPanel pnlToolBar = new JPanel(new BorderLayout());
@@ -19,25 +21,13 @@ public class GiaoDienChinh_TopContent extends JPanel {
         pnlToolBar.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.LIGHT_GRAY)); // Kẻ dưới
         pnlToolBar.setPreferredSize(new Dimension(0, 70)); // Chiều cao thanh công cụ
 
-        // 2a. Các nút chức năng (Trái)
-        JPanel pnlButtons = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
-        pnlButtons.setBackground(Color.WHITE);
-
-        // Tạo nút với icon tự vẽ (Hình tròn màu)
-        pnlButtons.add(createToolButton("Thêm", new Color(146, 208, 80)));
-        pnlButtons.add(createToolButton("Xoá", new Color(255, 0, 0)));
-        pnlButtons.add(createToolButton("Sửa", new Color(255, 255, 0)));
-        pnlButtons.add(createToolButton("Xuất Excel", new Color(33, 115, 70)));
-
-        pnlToolBar.add(pnlButtons, BorderLayout.WEST);
-
-
-        pnlCenterContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
+        pnlCenterContainer = new JPanel(new BorderLayout());
         pnlCenterContainer.setBackground(Color.WHITE);
-        pnlToolBar.add(pnlCenterContainer, BorderLayout.CENTER);
+
+        add(pnlCenterContainer, BorderLayout.CENTER);
 
 
-        JPanel pnlSearchArea = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
+        JPanel pnlSearchArea = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 15));
         pnlSearchArea.setBackground(Color.WHITE);
 
         // Ô tìm kiếm + Icon kính lúp
@@ -72,26 +62,70 @@ public class GiaoDienChinh_TopContent extends JPanel {
 
 
         JButton btnSearchIcon = new JButton("🔍");
-        btnSearchIcon.setContentAreaFilled(false);
+        btnSearchIcon.setBackground(new Color(214,238,253));
+//        btnSearchIcon.setContentAreaFilled(false);
         btnSearchIcon.setBorderPainted(false);
         btnSearchIcon.setFocusPainted(false);
 
         pnlSearchInput.add(txtSearch, BorderLayout.CENTER);
-        pnlSearchInput.add(btnSearchIcon, BorderLayout.WEST);
+        pnlSearchInput.add(btnSearchIcon, BorderLayout.EAST);
 
         // Nút làm mới
-        JButton btnRefresh = new JButton("Làm mới");
-        btnRefresh.setBackground(new Color(146, 208, 80)); // Màu xanh
+        JButton btnRefresh = new JButton("\uD83D\uDD04 Làm mới");
+        btnRefresh.setBackground(Color.WHITE); // Màu xanh
         btnRefresh.setForeground(Color.BLACK);
         btnRefresh.setPreferredSize(new Dimension(100, 35));
         btnRefresh.setFocusPainted(false);
 
+        //ComboBox để lọc trong thanh TopContent
+        String[] itemLoc = {"Lọc", "1", "2", "3", "4", "5"};
+        JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
+
+        comboBoxLoc.setBackground(new Color(204,227,253));
+        comboBoxLoc.setPreferredSize(new Dimension(55,35));
+        ((JLabel) comboBoxLoc.getRenderer()).setHorizontalAlignment(SwingConstants.CENTER);
+        comboBoxLoc.setSelectedItem(0);
+        comboBoxLoc.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                comboBoxLoc.removeItem("Lọc");
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                if (comboBoxLoc.getItemCount() == 1) {
+                    comboBoxLoc.insertItemAt("Lọc", 0); // thêm lại
+                    comboBoxLoc.setSelectedIndex(0);
+                }
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+
+            }
+        });
+
+        //Tạo icon EXCEL
+        Image iconExcel = new ImageIcon(getClass().getResource("/Img/Excel.png")).getImage();
+        iconExcel.getScaledInstance(25,25, Image.SCALE_SMOOTH);
+        JButton btnExcel = new JButton("Xuất Excel", new ImageIcon(iconExcel));
+        btnExcel.setFont(new Font("Arial", Font.PLAIN, 14));
+        btnExcel.setFocusPainted(false);
+
         pnlSearchArea.add(pnlSearchInput);
         pnlSearchArea.add(btnRefresh);
+        pnlSearchArea.add(comboBoxLoc);
+        //Add các button thêm xóa sửa
+        pnlSearchArea.add(this.createToolButton("+ Thêm", Color.WHITE));
+        pnlSearchArea.add(this.createToolButton("Xóa",Color.WHITE));
+        pnlSearchArea.add(this.createToolButton("Sửa",Color.WHITE));
+        //Add button Xuất excel
+        pnlSearchArea.add(btnExcel);
 
-        pnlToolBar.add(pnlSearchArea, BorderLayout.EAST);
+        pnlToolBar.add(pnlSearchArea, BorderLayout.CENTER);
         add(pnlToolBar, BorderLayout.CENTER);
     }
+
     public void setCustomCenterPanel(JPanel customPanel) {
         pnlCenterContainer.removeAll(); // Xóa cái cũ đi (nếu có)
         if (customPanel != null) {
@@ -103,37 +137,19 @@ public class GiaoDienChinh_TopContent extends JPanel {
         pnlCenterContainer.repaint();
     }
 
-
+    //Tạo cơ bản các Button
     private JButton createToolButton(String text, Color color) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Arial", Font.PLAIN, 12));
 
-
-        btn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        btn.setHorizontalTextPosition(SwingConstants.CENTER);
-
-        btn.setBackground(Color.WHITE);
+        btn.setBackground(color);
         btn.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         btn.setFocusPainted(false);
-        btn.setPreferredSize(new Dimension(70, 60));
-
-
-        btn.setIcon(new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(color);
-                g2.fillOval(x, y, 24, 24); // Vẽ hình tròn 24x24
-            }
-            @Override
-            public int getIconWidth() { return 24; }
-            @Override
-            public int getIconHeight() { return 24; }
-        });
-
+        btn.setPreferredSize(new Dimension(btn.getPreferredSize().width + 20,35));
+        btn.setForeground(Color.BLACK);
         return btn;
     }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             // Cần tạo JFrame để chứa JPanel
