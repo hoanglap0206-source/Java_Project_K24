@@ -25,7 +25,7 @@ public class GiaoDienChinh_Header extends JPanel {
 
     public GiaoDienChinh_Header(String nameUser) {
         setLayout(new BorderLayout());
-        setBackground(new Color(230, 230, 230)); // Màu nền xám
+        setBackground(new Color(170, 211, 255)); // Màu nền xám
         setPreferredSize(new Dimension(0, 35)); // Chiều cao cố định 35px
         setBorder(new EmptyBorder(0, 15, 0, 15)); // Padding 2 bên
 
@@ -37,7 +37,7 @@ public class GiaoDienChinh_Header extends JPanel {
 
 
        JPanel pnlRight = new JPanel(new GridLayout(1, 4, 10, 0));
-        pnlRight.setBackground(new Color(230,230,230));
+        pnlRight.setBackground(new Color(170, 211, 255));
 
         JLabel greet = new JLabel("Chào bạn " + nameUser); // Sau này có thể truyền tên vào đây
         greet.setFont(new Font("Arial", Font.BOLD, 12));
@@ -45,7 +45,7 @@ public class GiaoDienChinh_Header extends JPanel {
 
 
         JPanel pnlBtn_Out_Zoom_Hide = new JPanel(new GridLayout(0, 3, 10, 0));
-        pnlBtn_Out_Zoom_Hide.setBackground(new Color(230,230,230));
+        pnlBtn_Out_Zoom_Hide.setBackground(new Color(170, 211, 255));
         //Button thoát
         Image iconExit = new ImageIcon(getClass().getResource("/Img/exit.jpg")).getImage();
         Image scaleExit = iconExit.getScaledInstance(22,22,Image.SCALE_SMOOTH);
@@ -106,7 +106,7 @@ public class GiaoDienChinh_Header extends JPanel {
 
     //Hàm khởi tạo cơ bản của các BUTTON
     private void styleBtn(JButton btn){
-        Color colorDef = new Color(230,230,230);
+        Color colorDef = new Color(170, 211, 255);
         Color colorHover = new Color(255,200,200);
 
         setPreferredSize(new Dimension(30, 30));

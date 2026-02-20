@@ -30,7 +30,7 @@ public class GiaoDienChinh_Menu extends JPanel {
         this.maNV = maNV;
 
         setPreferredSize(new Dimension(220,0));
-        setBackground(new Color(66,160,203));
+        setBackground(new Color(196,225,255));
         setLayout(new BorderLayout());
 
         this.iniBaseGui();
@@ -44,14 +44,14 @@ public class GiaoDienChinh_Menu extends JPanel {
     }
 
     public void iniBaseGui(){
-        this.initAvatar();
+        //this.initAvatar();
 
         listMenu = new JPanel(new GridLayout(0,1,5,5));
-        listMenu.setBackground(new Color(188, 204, 209));
+        listMenu.setBackground(new Color(196, 225, 255));
         listMenu.setBorder(BorderFactory.createEmptyBorder(8,0,8,0));
 
         JPanel pnlCenterWrap = new JPanel(new BorderLayout());
-        pnlCenterWrap.setBackground(new Color(66,160,203));
+        pnlCenterWrap.setBackground(new Color(196, 225, 255));
         pnlCenterWrap.add(listMenu,BorderLayout.NORTH);
         add(pnlCenterWrap,BorderLayout.CENTER);
 
@@ -62,7 +62,7 @@ public class GiaoDienChinh_Menu extends JPanel {
         JButton btnlogout = new JButton("Đăng xuất");
         styleMenuButton(btnlogout);
         JPanel pnlLogout=new JPanel(new FlowLayout());
-        pnlLogout.setBackground(new Color(66,160,203));
+        pnlLogout.setBackground(new Color(196, 225, 255));
 
         btnlogout.addActionListener(e->{
             Window window = SwingUtilities.getWindowAncestor(this);
@@ -134,7 +134,7 @@ public class GiaoDienChinh_Menu extends JPanel {
     public void initAvatar(){
         JPanel pnlAvatar =new JPanel(new GridBagLayout());
         pnlAvatar.setPreferredSize(new Dimension(0,150));
-        pnlAvatar.setBackground(new Color(135,206,235));
+        pnlAvatar.setBackground(new Color(196, 225, 255));
         JLabel lblAvatar=new JLabel();
         lblAvatar.setPreferredSize(new Dimension(100,100));
         lblAvatar.setBorder(new LineBorder(Color.BLACK,2));
@@ -194,38 +194,6 @@ public class GiaoDienChinh_Menu extends JPanel {
                 btn.setEnabled(false);
             }
     }
-
-//    public void applyPhanQuyen(String maNV){
-//        this.maNV = maNV;
-//
-//        this.hideAllBtn();
-//
-//        ArrayList<String> dsCNCaNhan;
-//
-//        //Nếu như người đó không có chức năng nào
-//        try{
-//            PhanQuyen_BUS pqBUS = new PhanQuyen_BUS();
-//            dsCNCaNhan = pqBUS.getDSQuyenCaNhan(maNV);
-//            if(dsCNCaNhan == null)
-//                dsCNCaNhan = new ArrayList<>();
-//        }
-//        catch (Exception e){
-//            e.printStackTrace();
-//            dsCNCaNhan = new ArrayList<>();
-//        }
-//
-//        for(String cn : dsCNCaNhan){
-//            JButton btn = (JButton) mapCNToButton.get(cn);
-//            if(btn != null){
-//                btn.setVisible(true);
-//                btn.setEnabled(true);
-//            }
-//            else
-//                System.out.println("[PhanQuyen] Chưa map component cho: " + cn);
-//        }
-//        this.revalidate();
-//        this.repaint();
-//    }
 
     public static void main(String[] args){
         JFrame frame = new JFrame("Menu Layout");

@@ -106,11 +106,29 @@ public class GiaoDienChinh_TopContent extends JPanel {
         });
 
         //Tạo icon EXCEL
-        Image iconExcel = new ImageIcon(getClass().getResource("/Img/Excel.png")).getImage();
-        iconExcel.getScaledInstance(25,25, Image.SCALE_SMOOTH);
-        JButton btnExcel = new JButton("Xuất Excel", new ImageIcon(iconExcel));
+        // Load icon
+        ImageIcon excelIcon = new ImageIcon(getClass().getResource("/Img/Excel.png"));
+        // Scale icon về 30x30
+        Image scaledImage = excelIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+        // Button Excel
+        JButton btnExcel = new JButton("Xuất Excel", scaledIcon);
         btnExcel.setFont(new Font("Arial", Font.PLAIN, 14));
         btnExcel.setFocusPainted(false);
+        btnExcel.setPreferredSize(new Dimension(
+                btnExcel.getPreferredSize().width + 10, 35
+        ));
+
+        // Icon trái text phải
+        btnExcel.setHorizontalAlignment(SwingConstants.CENTER);
+        btnExcel.setHorizontalTextPosition(SwingConstants.RIGHT);
+        btnExcel.setVerticalTextPosition(SwingConstants.CENTER);
+        // Chỉnh màu
+        btnExcel.setBackground(Color.WHITE);
+        btnExcel.setFocusPainted(false);
+
+        // Khoảng cách icon text
+        btnExcel.setIconTextGap(3);
 
         pnlSearchArea.add(pnlSearchInput);
         pnlSearchArea.add(btnRefresh);
@@ -122,8 +140,13 @@ public class GiaoDienChinh_TopContent extends JPanel {
         //Add button Xuất excel
         pnlSearchArea.add(btnExcel);
 
+        pnlToolBar.setOpaque(false);
+        pnlCenterContainer.setOpaque(false);
+        pnlSearchArea.setOpaque(false);
+
         pnlToolBar.add(pnlSearchArea, BorderLayout.CENTER);
         add(pnlToolBar, BorderLayout.CENTER);
+        setOpaque(true);
     }
 
     public void setCustomCenterPanel(JPanel customPanel) {
