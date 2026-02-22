@@ -15,17 +15,16 @@ public class ManHinhChinh extends JFrame {
         ImageIcon icon = new ImageIcon(getClass().getResource("/Img/ConRua.jpg")); // !!
         setIconImage(icon.getImage());
 
-        setSize(1100, 700);
+        setSize(1200, 720);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(5, 3));
 
         add(new ThanhTieuDe(), BorderLayout.NORTH);
 
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
 
-        // Thêm đầy đủ trang
         contentPanel.add(new TrangTongQuan(), "Tổng quan");
         contentPanel.add(new TrangSanPham(), "Sản phẩm");
         contentPanel.add(new TrangNhaCungCap(), "Nhà cung cấp");
@@ -42,6 +41,7 @@ public class ManHinhChinh extends JFrame {
         add(contentPanel, BorderLayout.CENTER);
 
         add(new ThanhBen(this), BorderLayout.WEST);
+
 
         setVisible(true);
     }
