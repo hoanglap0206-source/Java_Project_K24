@@ -12,7 +12,7 @@ public class ManHinhChinh extends JFrame {
 
         setTitle("QUẢN LÝ KHO NƯỚC GIẢI KHÁT");
 
-        ImageIcon icon = new ImageIcon(getClass().getResource("/Img/ConRua.jpg")); // !!
+        ImageIcon icon = new ImageIcon(getClass().getResource("/Img/ConRua.jpg"));
         setIconImage(icon.getImage());
 
         setSize(1200, 720);

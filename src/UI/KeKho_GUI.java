@@ -159,6 +159,8 @@ public class KeKho_GUI extends JPanel {
         model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
         model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
         model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
+        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
+        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
 
         return panel;
     }
