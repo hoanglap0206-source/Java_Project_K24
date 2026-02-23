@@ -107,4 +107,12 @@ public class NV_BUS {
         String ten = nv.getTenNV_DAO(maNV);
         return ten;
     }
+
+    public ArrayList<NhanVien> getInfo_NV_BUS(String maNV){
+        NV_DAO nv = new NV_DAO();
+        if(maNV == null || maNV.isEmpty())
+            return new ArrayList<>();
+        ArrayList<NhanVien> list = nv.getInfo_NV_DAO(maNV);
+        return list == null ? new ArrayList<>() : list;
+    }
 }

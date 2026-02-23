@@ -86,6 +86,25 @@ public class GiaoDienChinh_Menu extends JPanel {
         //Clear sạch các nút cũ
         listMenu.removeAll();
 
+        //Button cố định của mỗi người dùng
+        JButton btnInFo = new JButton("Thông tin cá nhân");
+        this.styleMenuButton(btnInFo);
+        // Gắn sự kiện chuyển trang cho nút Thông tin cá nhân
+        btnInFo.addActionListener(e -> {
+            if(this.hd != null)
+                hd.setTitleCN("THÔNG TIN CÁ NHÂN");
+
+            if(this.ct != null) {
+                // Chuyển CardLayout sang panel Thông tin cá nhân
+                ct.showPanel("Thông tin cá nhân");
+
+                // Lấy panel ThongTinCN_GUI hiện tại ra và đổ dữ liệu mới vào
+                ct.showPanel(maNV);
+            }
+        });
+
+        listMenu.add(btnInFo);
+
         //Lấy danh sách các chức năng từ BUS của người dùng
         PhanQuyen_BUS PQbus = new PhanQuyen_BUS();
         ArrayList<PhanQuyen> dsQuyenCaNhan = PQbus.getDSQuyenCaNhan(maNV);

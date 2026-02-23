@@ -37,6 +37,7 @@ public class GiaoDienChinh_Content extends JPanel {
         mapPages.put("Báo cáo", new BaoCao_GUI());
         mapPages.put("Kệ kho", new KeKho_GUI());
         mapPages.put("Tồn kho",new TonKho_GUI());
+        mapPages.put("Thông tin cá nhân", new ThongTinCN_GUI());
 
         // Dùng vòng lặp để add vào CardLayout
         mapPages.forEach((name, panel) ->{

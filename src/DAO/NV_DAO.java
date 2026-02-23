@@ -6,6 +6,7 @@ import Model.NhanVien;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class NV_DAO {
@@ -119,5 +120,35 @@ public class NV_DAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    //Lấy thông tin nhân viên từ mã
+    public ArrayList<NhanVien> getInfo_NV_DAO(String maNV){
+        String sql = "SELECT ma_nhan_vien, ho_ten, sdt, chuc_vu FROM NHAN_VIEN WHERE ma_nhan_vien = ?";
+        ArrayList<NhanVien> list = new ArrayList<>();
+
+        try( Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql))
+        {
+            ps.setString(1, maNV);
+
+            try(ResultSet rs = ps.executeQuery()){
+                while(rs.next()){
+                    NhanVien nv = new NhanVien();
+                    nv.setMaNV(rs.getString("ma_nhan_vien"));
+                    nv.setHoTen(rs.getString("ho_ten"));
+                    nv.setSDT(rs.getString("sdt"));
+                    nv.setChucVu(rs.getString("chuc_vu"));
+
+                    list.add(nv);
+                }
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

@@ -7,13 +7,11 @@ import java.awt.*;
 
 public class GiaoDienChinh_Main extends JFrame {
     private GiaoDienChinh_Content content;
+    public static String currentMaNV;
 
     public GiaoDienChinh_Main(String maNV) {
-//        try {
-//            Thread.sleep(3000); // delay 3 giay
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        //Dùng để lấy thông tin cá nhân sau này
+        GiaoDienChinh_Main.currentMaNV = maNV;
 
         setTitle("Giao diện chính");
         setSize(1200, 700);

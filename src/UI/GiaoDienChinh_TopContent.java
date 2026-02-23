@@ -116,8 +116,7 @@ public class GiaoDienChinh_TopContent extends JPanel {
         btnExcel.setFont(new Font("Arial", Font.PLAIN, 14));
         btnExcel.setFocusPainted(false);
         btnExcel.setPreferredSize(new Dimension(
-                btnExcel.getPreferredSize().width + 10, 35
-        ));
+                btnExcel.getPreferredSize().width + 10, 35));
 
         // Icon trái text phải
         btnExcel.setHorizontalAlignment(SwingConstants.CENTER);
