@@ -53,7 +53,7 @@ public class QLyTaiKhoan_GUI extends JPanel {
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getViewport().setBackground(Color.WHITE);
 
-        add(pnlToolbar, BorderLayout.NORTH);
+        add(new GiaoDienChinh_TopContent(), BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
     }
 

@@ -15,16 +15,11 @@ public class ThongTinKH_GUI extends JPanel {
         setLayout(new BorderLayout());
         add(new GiaoDienChinh_TopContent(), BorderLayout.NORTH);
 
-        //Code ở pnlCode_QLKh
-//        JPanel pnlCode_QLKh = new JPanel();
-//        pnlCode_QLKh.setBackground(new Color(200,201,111));//Xóa trước khi code
-//        pnlCode_QLKh.add(new JLabel("GIAO DIỆN THÔNG TIN KHÁCH HÀNG", SwingConstants.CENTER));//Xóa trước khi code
         String[] columns={"Mã khách hàng","Tên khách hàng","Số điện thoại","Địa chỉ"};
         model = new DefaultTableModel(columns,0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
-
             }
         };
 

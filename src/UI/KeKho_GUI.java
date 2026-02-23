@@ -14,42 +14,8 @@ public class KeKho_GUI extends JPanel {
         setLayout(new BorderLayout());
         setBackground(new Color(255,255,255));
 
-        add(taoThanhCongCu(), BorderLayout.NORTH);
+        add(new GiaoDienChinh_TopContent(), BorderLayout.NORTH);
         add(taoBody(), BorderLayout.CENTER);
-    }
-
-    private JPanel taoThanhCongCu() {
-
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setBackground(new Color(240,242,245));
-        wrapper.setBorder(new EmptyBorder(20,20,10,20));
-        // khoảng cách ngoài: trên 20, trái phải 20, dưới 10
-
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,12,8));
-        panel.setBackground(new Color(220,230,245));
-        panel.setBorder(new EmptyBorder(8,12,8,12));
-        // khoảng cách trong nền xanh nhạt
-
-        JTextField txtSearch = new JTextField("Tìm kiếm");
-        txtSearch.setPreferredSize(new Dimension(220,30));
-
-        JButton btnRefresh = new JButton("Làm mới");
-        JButton btnFilter = new JButton("Lọc");
-        JButton btnEdit = new JButton("Chỉnh sửa");
-        JButton btnDelete = new JButton("Xóa");
-        JButton btnAdd = new JButton("+ Thêm");
-        JButton btnExcel = new JButton("Xuất excel");
-
-        panel.add(txtSearch);
-        panel.add(btnRefresh);
-        panel.add(btnFilter);
-        panel.add(btnEdit);
-        panel.add(btnDelete);
-        panel.add(btnAdd);
-        panel.add(btnExcel);
-
-        wrapper.add(panel, BorderLayout.CENTER);
-        return wrapper;
     }
 
     private JPanel taoBody() {
