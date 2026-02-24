@@ -10,7 +10,6 @@ public class CirclePanel extends JPanel {
     private Image image;
 
     public CirclePanel(String resourcePath, int size) {
-
         URL url = getClass().getResource(resourcePath);
 
         if (url != null) {

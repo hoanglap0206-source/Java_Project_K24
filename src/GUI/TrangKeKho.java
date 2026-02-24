@@ -4,7 +4,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.awt.*;
 
 public class TrangKeKho extends JPanel {
@@ -150,7 +150,7 @@ public class TrangKeKho extends JPanel {
 
         // Panel chứa grid + bảng
         JPanel content = new JPanel(new BorderLayout(0,20));
-        content.setBackground(new Color(240,242,245));
+        content.setBackground(Color.WHITE);
 
         content.add(taoSoDoKe(), BorderLayout.NORTH);
         content.add(taoBang(), BorderLayout.CENTER);
@@ -163,7 +163,7 @@ public class TrangKeKho extends JPanel {
 
     private JPanel taoSoDoKe() {
         JPanel grid = new JPanel(new GridLayout(3,5,15,15));
-        grid.setBorder(new EmptyBorder(10,0,10,0));
+        grid.setBorder(new EmptyBorder(10,10,10,10));
 
         for(int i=1;i<=15;i++){
             grid.add(taoTheKe("A"+i, i*4));
