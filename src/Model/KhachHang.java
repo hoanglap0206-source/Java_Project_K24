@@ -5,14 +5,16 @@ public class KhachHang {
     private String hoTenKH;
     private String diaChi;
     private String sdt;
+    private String Chitieu;
 
     public KhachHang() {}
 
-    public KhachHang(String maKH, String hoTenKH, String diaChi, String sdt) {
+    public KhachHang(String maKH, String hoTenKH, String diaChi, String sdt,String CT) {
         this.maKH = maKH;
         this.hoTenKH = hoTenKH;
         this.diaChi = diaChi;
         this.sdt = sdt;
+        this.Chitieu=CT;
     }
 
     public String getMaKH() {
@@ -46,4 +48,8 @@ public class KhachHang {
     public void setSdt(String sdt) {
         this.sdt = sdt;
     }
+
+    public String getCT(){return Chitieu;}
+
+    public void setCT(String CT){this.Chitieu=CT;}
 }

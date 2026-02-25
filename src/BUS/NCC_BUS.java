@@ -2,6 +2,8 @@ package BUS;
 
 import DAO.NCC_DAO;
 import Model.NhaCungCap;
+import Model.ThongKeNCCDTO;
+
 import java.util.*;
 
 public class NCC_BUS {
@@ -46,6 +48,15 @@ public class NCC_BUS {
             return "Xoá Nhà Cung Cấp Thành Công!";
         }
         return "Xoá Thất bại!";
+    }
+    public ThongKeNCCDTO getThongKe(String maNCC){
+        return nccDAO.getThongKeTuSQL(maNCC);
+    }
+    public ThongKeNCCDTO getSoDon(String maNCC){
+        return nccDAO.getThongKeTuSQL(maNCC);
+    }
+    public ArrayList<Object[]>getLichSuPhieu(String maNCC){
+        return nccDAO.getLichSuPhieu(maNCC);
     }
     public void refeshData(){this.listNCC=nccDAO.getAllNCC();}
 }

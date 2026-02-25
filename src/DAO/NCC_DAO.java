@@ -2,7 +2,8 @@ package DAO;
 
 import DataBase.DBConnection;
 import Model.NhaCungCap;
-
+import Model.PhieuNhap;
+import Model.ThongKeNCCDTO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -77,5 +78,43 @@ public class NCC_DAO {
             e.printStackTrace();
             return false;
         }
+    }
+    public ThongKeNCCDTO getThongKeTuSQL(String maNCC) {
+        String sql = "SELECT COUNT(DISTINCT pn.ma_pn) AS so_don, SUM(ct.thanh_tien) AS tong_tien " +
+                "FROM phieu_nhap pn " +
+                "JOIN chitiet_phieu_nhap ct ON pn.ma_pn = ct.ma_pn " +
+                "WHERE pn.ma_ncc = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maNCC);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new ThongKeNCCDTO(rs.getInt("so_don"), rs.getDouble("tong_tien"));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return new ThongKeNCCDTO(0, 0);
+    }
+
+    // Lấy danh sách phiếu nhập kèm tổng tiền từng phiếu
+    public ArrayList<Object[]> getLichSuPhieu(String maNCC) {
+        ArrayList<Object[]> list = new ArrayList<>();
+        String sql = "SELECT pn.ma_pn, pn.ngay_ct, SUM(ct.thanh_tien) AS tong_phieu " +
+                "FROM phieu_nhap pn " +
+                "JOIN chitiet_phieu_nhap ct ON pn.ma_pn = ct.ma_pn " +
+                "WHERE pn.ma_ncc = ? " +
+                "GROUP BY pn.ma_pn, pn.ngay_ct";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maNCC);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new Object[]{
+                        rs.getString("ma_pn"),
+                        rs.getTimestamp("ngay_ct"),
+                        rs.getDouble("tong_phieu")
+                });
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
     }
 }

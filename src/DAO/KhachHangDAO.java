@@ -23,6 +23,7 @@ public class KhachHangDAO {
                 kh.setHoTenKH(rs.getString("ten_kh"));
                 kh.setDiaChi(rs.getString("dia_chi"));
                 kh.setSdt(rs.getString("sdt"));
+                kh.setCT(rs.getString("chi_tieu"));
                 list.add(kh);
             }
         } catch (Exception e) {
@@ -40,6 +41,7 @@ public class KhachHangDAO {
             ps.setString(2,kh.getHoTenKH());
             ps.setString(3,kh.getDiaChi());
             ps.setString(4,kh.getSdt());
+            ps.setString(5,kh.getCT());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
@@ -58,6 +60,7 @@ public class KhachHangDAO {
             ps.setString(2,kh.getDiaChi());
             ps.setString(3,kh.getSdt());
             ps.setString(4,kh.getMaKH());
+            ps.setString(5,kh.getCT());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
