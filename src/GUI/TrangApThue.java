@@ -6,7 +6,6 @@ import javax.swing.border.*;
 import javax.swing.table.*;
 
 public class TrangApThue extends JPanel {
-
     public TrangApThue() {
         setLayout(new BorderLayout(0, 20));
         setBorder(new EmptyBorder(20, 25, 20, 25));
