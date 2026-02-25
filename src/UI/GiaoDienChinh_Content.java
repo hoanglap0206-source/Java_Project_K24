@@ -33,7 +33,7 @@ public class GiaoDienChinh_Content extends JPanel {
         mapPages.put("Nhập kho", new NhapKho_GUI());
         mapPages.put("Phiếu nhập", new PhieuNhap_GUI());
         mapPages.put("Xuất kho", new XuatKho_GUI());
-        mapPages.put("Phiếu xuất", new PhieuNhap_GUI());
+        mapPages.put("Phiếu xuất", new PhieuXuat_GUI());
         mapPages.put("Báo cáo", new BaoCao_GUI());
         mapPages.put("Kệ kho", new KeKho_GUI());
         mapPages.put("Tồn kho",new TonKho_GUI());
