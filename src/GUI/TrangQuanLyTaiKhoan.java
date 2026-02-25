@@ -156,7 +156,6 @@ public class TrangQuanLyTaiKhoan extends JPanel {
     }
 
     private JScrollPane taoBang() {
-
         String[] columns = {
                 "STT", "Full Name", "Số điện thoại",
                 "Username", "Vai trò", "Trạng thái", "Xem chi tiết"

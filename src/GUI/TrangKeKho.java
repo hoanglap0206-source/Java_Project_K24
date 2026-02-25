@@ -78,7 +78,7 @@ public class TrangKeKho extends JPanel {
 
 
         // Nút làm mới
-        JButton btnLamMoi = new JButton("↻ Làm mới");
+        JButton btnLamMoi = new JButton("⟳ Làm mới");
         Style.styleButton(btnLamMoi);
 
 
@@ -238,7 +238,7 @@ public class TrangKeKho extends JPanel {
 
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Color.WHITE);
-        headerPanel.setBorder(new EmptyBorder(0, 0, 10, 0)); // 👈 khoảng cách dưới 10px
+        headerPanel.setBorder(new EmptyBorder(0, 0, 10, 0)); // khoảng cách dưới 10px
         headerPanel.add(lblTenKe, BorderLayout.WEST);
 
         panel.add(headerPanel, BorderLayout.NORTH);
