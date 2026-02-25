@@ -157,15 +157,10 @@ public class TrangNhaCungCap extends JPanel {
     }
 
     private JScrollPane taoBang() {
-
-        String[] columns = {
-                "STT", "Mã NCC", "Tên NCC", "Liên hệ",
-                "Công nợ hiện tại", "Hạn thanh toán", "Xem chi tiết"
-        };
-
+        String[] columns = {"STT", "Mã NCC", "Tên NCC", "Số điện thoại", "Địa chỉ"};
         Object[][] data = {
-                {1, "NCC001", "Pepsi", "090000001", "120.000.000đ", "1/4/2026", "Xem"},
-                {2, "NCC002", "Vinamilk", "090000002", "120.000.000đ", "1/4/2026", "Xem"}
+                {1, "NCC001", "Pepsi", "090000001", "An Dương Vương, quận 5"},
+                {2, "NCC002", "Vinamilk", "090000002", "An Dương Vương, quận 5"}
         };
 
         JTable table = new JTable(data, columns) {
@@ -188,53 +183,9 @@ public class TrangNhaCungCap extends JPanel {
             table.getColumnModel().getColumn(i).setCellRenderer(center);
         }
 
-        // Render nút cho cột Xem
-        table.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
-        table.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JCheckBox()));
-
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(new LineBorder(new Color(180,180,180)));
 
         return scrollPane;
-    }
-
-    // ================== BUTTON RENDERER ==================
-    class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer() {
-            setText("Xem");
-            setFocusPainted(false);
-            setBackground(new Color(220,220,220));
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected,
-                boolean hasFocus, int row, int column) {
-            return this;
-        }
-    }
-
-    // ================== BUTTON EDITOR ==================
-    class ButtonEditor extends DefaultCellEditor {
-        protected JButton button;
-
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton("Xem");
-            button.addActionListener(e -> fireEditingStopped());
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(
-                JTable table, Object value, boolean isSelected,
-                int row, int column) {
-            return button;
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            JOptionPane.showMessageDialog(button, "Xem chi tiết dòng");
-            return "Xem";
-        }
     }
 }

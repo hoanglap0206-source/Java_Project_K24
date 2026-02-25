@@ -158,15 +158,10 @@ public class TrangKhachHang extends JPanel {
 
     private JScrollPane taoBang() {
 
-        String[] columns = {
-                "STT", "Mã KH", "Tên KH", "Loại",
-                "Liên hệ", "Tổng chi tiêu", "Trạng thái", "Xem chi tiết"
-        };
-
+        String[] columns = {"STT", "Mã KH", "Tên KH", "Số điện thoại", "Địa chỉ"};
         Object[][] data = {
-                {1, "KH001", "Nguyễn Văn A", "Cá nhân", "0900000001", "120.000.000đ", "Hoạt động", "Xem"},
-                {2, "KH002", "Nguyễn Văn B", "Cá nhân", "0900000002", "120.000.000đ", "Ngừng mua", "Xem"},
-                {3, "KH003", "Nguyễn Văn C", "Cá nhân", "0900000003", "120.000.000đ", "Ít mua", "Xem"}
+                {1, "KH001", "Cửa hàng A", "0900000001", "An Dương Vương, quận 5"},
+                {2, "KH002", "Cửa hàng B", "0900000002", "An Dương Vương, quận 5"},
         };
 
         JTable table = new JTable(data, columns) {
@@ -189,79 +184,9 @@ public class TrangKhachHang extends JPanel {
             table.getColumnModel().getColumn(i).setCellRenderer(center);
         }
 
-        // ===== Render màu trạng thái =====
-        table.getColumnModel().getColumn(6).setCellRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(
-                    JTable table, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int column) {
-
-                JLabel lbl = (JLabel) super.getTableCellRendererComponent(
-                        table, value, isSelected, hasFocus, row, column);
-
-                lbl.setHorizontalAlignment(SwingConstants.CENTER);
-
-                if (value != null) {
-                    String status = value.toString();
-
-                    if (status.equals("Hoạt động")) {
-                        lbl.setForeground(new Color(0,128,0));
-                    } else if (status.equals("Ngừng mua")) {
-                        lbl.setForeground(Color.RED);
-                    } else if (status.equals("Ít mua")) {
-                        lbl.setForeground(new Color(255,140,0));
-                    }
-                }
-
-                return lbl;
-            }
-        });
-
-        // ===== Nút Xem =====
-        table.getColumnModel().getColumn(7).setCellRenderer(new ButtonRenderer());
-        table.getColumnModel().getColumn(7).setCellEditor(new ButtonEditor(new JCheckBox()));
-
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(new LineBorder(new Color(180,180,180)));
 
         return scrollPane;
-    }
-
-    class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer() {
-            setText("Xem");
-            setFocusPainted(false);
-            setBackground(new Color(220,220,220));
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected,
-                boolean hasFocus, int row, int column) {
-            return this;
-        }
-    }
-
-    class ButtonEditor extends DefaultCellEditor {
-        protected JButton button;
-
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton("Xem");
-            button.addActionListener(e -> fireEditingStopped());
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(
-                JTable table, Object value, boolean isSelected,
-                int row, int column) {
-            return button;
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            JOptionPane.showMessageDialog(button, "Xem chi tiết khách hàng");
-            return "Xem";
-        }
     }
 }
