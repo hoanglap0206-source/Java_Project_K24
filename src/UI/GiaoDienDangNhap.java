@@ -155,7 +155,7 @@ public class  GiaoDienDangNhap extends JFrame {
             txtUsername.requestFocusInWindow();
         }
     }
-
+//hello
     public static void main(String[] args) {
         new GiaoDienDangNhap().setVisible(true);
     }

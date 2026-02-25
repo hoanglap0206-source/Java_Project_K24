@@ -54,7 +54,6 @@ public class NCC_BUS {
     }
 
     public ArrayList<Object[]>getLichSuPhieu(String maNCC){
-
         return nccDAO.getLichSuPhieu(maNCC);
     }
     public void refeshData(){this.listNCC=nccDAO.getAllNCC();}
