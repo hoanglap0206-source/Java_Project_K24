@@ -7,9 +7,9 @@ public class ManHinhChinh extends JFrame {
 
     private CardLayout cardLayout;
     private JPanel contentPanel;
+    public static String currentMaNV;
 
     public ManHinhChinh() {
-
         setTitle("QUẢN LÝ KHO NƯỚC GIẢI KHÁT");
 
         ImageIcon icon = new ImageIcon(getClass().getResource("/Img/ConRua.jpg"));
@@ -20,19 +20,21 @@ public class ManHinhChinh extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout(5, 3));
 
-        add(new ThanhTieuDe(), BorderLayout.NORTH);
+        add(new ThanhTieuDe(this), BorderLayout.NORTH);
 
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
 
         contentPanel.add(new TrangTongQuan(), "Tổng quan");
+        contentPanel.add(new TrangHoSo(), "Hồ sơ");
         contentPanel.add(new TrangSanPham(), "Sản phẩm");
         contentPanel.add(new TrangNhaCungCap(), "Nhà cung cấp");
         contentPanel.add(new TrangKhachHang(), "Khách hàng");
         contentPanel.add(new TrangKeKho(), "Kệ kho");
         contentPanel.add(new TrangNhapKho(), "Nhập kho");
         contentPanel.add(new TrangXuatKho(), "Xuất kho");
-        contentPanel.add(new TrangLichSuNhapXuat(), "Lịch sử nhập xuất");
+        contentPanel.add(new TrangPhieuNhap(), "Phiếu nhập");
+        contentPanel.add(new TrangPhieuXuat(), "Phiếu xuất");
         contentPanel.add(new TrangBaoCao(), "Báo cáo");
         contentPanel.add(new TrangApThue(), "Áp thuế");
         contentPanel.add(new TrangQuanLyTaiKhoan(), "Quản lý tài khoản");
