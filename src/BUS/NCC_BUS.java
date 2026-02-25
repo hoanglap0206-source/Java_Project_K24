@@ -52,10 +52,9 @@ public class NCC_BUS {
     public ThongKeNCCDTO getThongKe(String maNCC){
         return nccDAO.getThongKeTuSQL(maNCC);
     }
-    public ThongKeNCCDTO getSoDon(String maNCC){
-        return nccDAO.getThongKeTuSQL(maNCC);
-    }
+
     public ArrayList<Object[]>getLichSuPhieu(String maNCC){
+
         return nccDAO.getLichSuPhieu(maNCC);
     }
     public void refeshData(){this.listNCC=nccDAO.getAllNCC();}
