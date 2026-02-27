@@ -1,20 +1,31 @@
 package BUS;
 
 import DAO.KeKho_DAO;
+import DAO.SanPham_DAO;
 import Model.KeKho;
+import Model.SanPham;
 import java.util.*;
+
 public class KeKho_BUS {
     private ArrayList<KeKho> listKK;
     private KeKho_DAO kkDAO;
+    private SanPham_DAO spDAO;
 
     public KeKho_BUS(){
         kkDAO= new KeKho_DAO();
+        spDAO = new SanPham_DAO();
         this.listKK=kkDAO.getAllKeKho();
     }
 
     public ArrayList<KeKho> getListKK(){
-        return this.listKK;
+//        return this.listKK; // load dữ liệu 1 lần, không dùng được cho sửa thêm xóa
+        return kkDAO.getAllKeKho(); //
     }
+
+    public ArrayList<SanPham> laySanPhamTheoKe(String maKe) {
+        return spDAO.laySanPhamTheoKe(maKe);
+    }
+
 
     public String addKK(KeKho kk){
         if(kk.getMaKe().trim().isEmpty()) return "Mã kệ không được để trống!";
@@ -42,10 +53,17 @@ public class KeKho_BUS {
     }
 
     public String deleteKK(String maKe){
+
+        // Kiểm tra còn sản phẩm không
+        if(spDAO.countByMaKe(maKe) > 0){
+            return "Không thể xoá! Kệ vẫn còn sản phẩm.";
+        }
+
         if(kkDAO.delete(maKe)){
-            listKK.removeIf(kk->kk.getMaKe().equals(maKe));
+            listKK.removeIf(kk -> kk.getMaKe().equals(maKe));
             return "Xoá kệ kho thành công!";
         }
+
         return "Xoá thất bại!";
     }
 

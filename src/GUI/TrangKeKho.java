@@ -1,16 +1,20 @@
 package GUI;
 
+import BUS.KeKho_BUS;
+import Model.KeKho;
+import Model.SanPham;
+
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import javax.swing.table.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class TrangKeKho extends JPanel {
-
     private DefaultTableModel model;
     private JLabel lblTenKe;
+    private JTable table; // cho loadData
+    private KeKho_BUS bus = new KeKho_BUS();
 
     public TrangKeKho() {
         setLayout(new BorderLayout());
@@ -18,6 +22,7 @@ public class TrangKeKho extends JPanel {
 
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoBody(), BorderLayout.CENTER);
+        loadData();
     }
 
     private JPanel taoThanhCongCu() {
@@ -162,11 +167,23 @@ public class TrangKeKho extends JPanel {
     }
 
     private JPanel taoSoDoKe() {
-        JPanel grid = new JPanel(new GridLayout(3,5,15,15));
-        grid.setBorder(new EmptyBorder(10,10,10,10));
+        int rows = 3;     // A, B, C
+        int cols = 5;     // 1 → 5
 
-        for(int i=1;i<=15;i++){
-            grid.add(taoTheKe("A"+i, i*4));
+        JPanel grid = new JPanel(new GridLayout(rows, cols, 15, 15));
+        grid.setBorder(new EmptyBorder(10,10,10,10));
+        grid.setBackground(new Color(231,242,245));
+
+        char rowChar = 'A';
+
+        for(int r = 0; r < rows; r++) {
+            for(int c = 1; c <= cols; c++) {
+                String tenKe = rowChar + String.valueOf(c);
+                int percent = (r * cols + c) * 4; // demo %
+
+                grid.add(taoTheKe(tenKe, percent));
+            }
+            rowChar++;
         }
 
         return grid;
@@ -209,15 +226,6 @@ public class TrangKeKho extends JPanel {
         return card;
     }
 
-    private void capNhatBang(String maKe) {
-
-        lblTenKe.setText("Kệ " + maKe);
-        model.setRowCount(0);
-
-        model.addRow(new Object[]{1,"SKU001","Xá xị","Thùng",5,"01/02/2026"});
-        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
-    }
-
     private Color mauTheoPhanTram(int p){
         if(p<50) return new Color(40,200,100);
         if(p<80) return new Color(255,170,0);
@@ -243,9 +251,9 @@ public class TrangKeKho extends JPanel {
 
         panel.add(headerPanel, BorderLayout.NORTH);
 
-        String[] cols = {"STT","Mã sản phẩm","Tên sản phẩm","Đơn vị tính","Số lượng","Ngày nhập"};
+        String[] cols = {"STT","Mã sản phẩm","Tên sản phẩm","Đơn vị tính","Số lượng"};
         model = new DefaultTableModel(cols,0);
-        JTable table = new JTable(model);
+        table = new JTable(model);
         table.setRowHeight(28);
 
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -254,26 +262,80 @@ public class TrangKeKho extends JPanel {
         table.getTableHeader().setForeground(Color.BLACK);
         table.getTableHeader().setReorderingAllowed(false);
 
+        // Căn giữa toàn bộ
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(center);
+        }
+
         JScrollPane scroll = new JScrollPane(table);
         panel.add(scroll, BorderLayout.CENTER);
 
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        footer.setBackground(Color.WHITE);
+        panel.add(taoThongTinKe(), BorderLayout.EAST);
 
-        JLabel lblTong = new JLabel("Tổng số lượng: 10 thùng");
-        lblTong.setFont(new Font("Segoe UI", Font.BOLD,13));
-        footer.add(lblTong);
-
-        panel.add(footer, BorderLayout.SOUTH);
-
-        // dữ liệu demo
-        model.addRow(new Object[]{1,"SKU001","Xá xị","Thùng",5,"01/02/2026"});
-        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
-        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
-        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
-        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
-        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5,"01/02/2026"});
+//        // dữ liệu demo
+//        model.addRow(new Object[]{1,"SKU001","Xá xị","Thùng",5});
+//        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5});
 
         return panel;
+    }
+
+    private JPanel taoThongTinKe() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(20,20,20,20));
+        panel.setPreferredSize(new Dimension(220,150));
+
+        JLabel lblViTri = new JLabel("Vị trí: Dãy A");
+        JLabel lblSucChua = new JLabel("Sức chứa tối đa: 200");
+        JLabel lblHienTai = new JLabel("Hiện đang chứa: 10/20");
+
+        lblViTri.setFont(new Font("Segoe UI", Font.BOLD,13));
+        lblSucChua.setFont(new Font("Segoe UI", Font.BOLD,13));
+        lblHienTai.setFont(new Font("Segoe UI", Font.BOLD,13));
+
+        panel.add(lblViTri);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(lblSucChua);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(lblHienTai);
+
+        return panel;
+    }
+
+    private void capNhatBang(String maKe) {
+        lblTenKe.setText("Kệ " + maKe);
+        model.setRowCount(0);
+
+        ArrayList<SanPham> listSP = bus.laySanPhamTheoKe(maKe);
+
+        int stt = 1;
+        for (SanPham sp : listSP) {
+            model.addRow(new Object[]{
+                    stt++,
+                    sp.getMaSP(),
+                    sp.getTenSP(),
+                    sp.getDonViTinh(),
+                    sp.getSoLuong()
+            });
+        }
+    }
+
+    private void loadData() {
+        ArrayList<KeKho> list = bus.getListKK();
+
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        for (KeKho k : list) {
+            model.addRow(new Object[]{
+                    k.getMaKe(),
+                    k.getSucChua(),
+                    k.getViTri()
+            });
+        }
     }
 }

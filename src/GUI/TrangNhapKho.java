@@ -191,6 +191,14 @@ public class TrangNhapKho extends JPanel {
         table.getTableHeader().setBackground(new Color(210,230,255));
         table.getTableHeader().setReorderingAllowed(false);
 
+        // Căn giữa toàn bộ
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(center);
+        }
+
         // nút chức năng
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.setBackground(Color.WHITE);

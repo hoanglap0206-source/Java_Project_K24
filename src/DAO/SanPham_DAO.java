@@ -77,7 +77,7 @@ public class SanPham_DAO {
         }
     }
     public boolean delete(String maSP){
-        String sql = "DELETE FROM KE_KHO WHERE ma_sku=?";
+        String sql = "DELETE FROM SAN_PHAM WHERE ma_sku=?";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
@@ -88,5 +88,58 @@ public class SanPham_DAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public int countByMaKe(String maKe){ // trả về số lượng sản phẩm trong kệ
+        String sql = "SELECT COUNT(*) FROM SAN_PHAM WHERE ma_ke = ?";
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, maKe);
+            ResultSet rs = ps.executeQuery();
+
+            if(rs.next()){
+                return rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
+        ArrayList<SanPham> list = new ArrayList<>();
+        String sql = "SELECT * FROM SAN_PHAM WHERE ma_ke = ?";
+
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, maKe);
+            ResultSet rs = ps.executeQuery();
+
+            while(rs.next()){
+                SanPham sp = new SanPham();
+                KeKho kk = new KeKho();
+
+                sp.setMaSP(rs.getString("ma_sku"));
+                sp.setTenSP(rs.getString("ten_sp"));
+                sp.setDonViTinh(rs.getString("dvt"));
+                sp.setSoLuong(rs.getInt("sl"));
+                sp.setGiaTien(rs.getFloat("gia"));
+
+                kk.setMaKe(rs.getString("ma_ke"));
+                sp.setKeKho(kk);
+
+                list.add(sp);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 }

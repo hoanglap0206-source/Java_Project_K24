@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class KeKho_DAO {
     public ArrayList<KeKho> getAllKeKho(){
         ArrayList<KeKho> list = new ArrayList<>();
-        String sql = "SELECT * FROM KE_KHO";
+        String sql = "SELECT ma_ke, suc_chua, vi_tri FROM KE_KHO";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
@@ -22,7 +22,6 @@ public class KeKho_DAO {
                 kk.setMaKe(rs.getString("ma_ke"));
                 kk.setSucChua(rs.getInt("suc_chua"));
                 kk.setViTri(rs.getString("vi_tri"));
-                kk.setDangChua(rs.getString("dang_chua"));
                 list.add(kk);
             }
         } catch (Exception e) {
@@ -31,7 +30,7 @@ public class KeKho_DAO {
         return list;
     }
     public boolean insert(KeKho kk){
-        String sql ="INSERT INTO KE_KHO(ma_ke,suc_chua,vi_tri,dang_chua) VALUES (?, ?, ?,?)";
+        String sql ="INSERT INTO KE_KHO(ma_ke,suc_chua,vi_tri) VALUES (?, ?, ?)";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
@@ -39,7 +38,6 @@ public class KeKho_DAO {
             ps.setString(1,kk.getMaKe());
             ps.setInt(2,kk.getSucChua());
             ps.setString(3,kk.getViTri());
-            ps.setString(4,kk.getDangChua());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
@@ -49,15 +47,14 @@ public class KeKho_DAO {
     }
     public boolean update(KeKho kk){
         String sql =
-                "UPDATE KE_KHO SET suc_chua=?,vi_tri=?,dang_chua=? WHERE ma_ke=?";
+                "UPDATE KE_KHO SET suc_chua=?,vi_tri=? WHERE ma_ke=?";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
             ps.setInt(1,kk.getSucChua());
             ps.setString(2,kk.getViTri());
-            ps.setString(3,kk.getDangChua());
-            ps.setString(4,kk.getMaKe());
+            ps.setString(3,kk.getMaKe());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
