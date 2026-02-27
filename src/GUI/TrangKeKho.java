@@ -14,6 +14,9 @@ public class TrangKeKho extends JPanel {
     private DefaultTableModel model;
     private JLabel lblTenKe;
     private JTable table; // cho loadData
+    private JLabel lblViTri;
+    private JLabel lblSucChua;
+    private JLabel lblHienTai;
     private KeKho_BUS bus = new KeKho_BUS();
 
     public TrangKeKho() {
@@ -22,7 +25,6 @@ public class TrangKeKho extends JPanel {
 
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoBody(), BorderLayout.CENTER);
-        loadData();
     }
 
     private JPanel taoThanhCongCu() {
@@ -167,23 +169,14 @@ public class TrangKeKho extends JPanel {
     }
 
     private JPanel taoSoDoKe() {
-        int rows = 3;     // A, B, C
-        int cols = 5;     // 1 → 5
+        ArrayList<KeKho> listKe = bus.getListKK();
 
-        JPanel grid = new JPanel(new GridLayout(rows, cols, 15, 15));
+        JPanel grid = new JPanel(new GridLayout(0, 5, 15, 15));
         grid.setBorder(new EmptyBorder(10,10,10,10));
         grid.setBackground(new Color(231,242,245));
 
-        char rowChar = 'A';
-
-        for(int r = 0; r < rows; r++) {
-            for(int c = 1; c <= cols; c++) {
-                String tenKe = rowChar + String.valueOf(c);
-                int percent = (r * cols + c) * 4; // demo %
-
-                grid.add(taoTheKe(tenKe, percent));
-            }
-            rowChar++;
+        for (KeKho ke : listKe) {
+            grid.add(taoTheKe(ke.getMaKe(), 0)); // tạm để 0%
         }
 
         return grid;
@@ -289,9 +282,9 @@ public class TrangKeKho extends JPanel {
         panel.setBorder(new EmptyBorder(20,20,20,20));
         panel.setPreferredSize(new Dimension(220,150));
 
-        JLabel lblViTri = new JLabel("Vị trí: Dãy A");
-        JLabel lblSucChua = new JLabel("Sức chứa tối đa: 200");
-        JLabel lblHienTai = new JLabel("Hiện đang chứa: 10/20");
+        lblViTri = new JLabel("Vị trí: ");
+        lblSucChua = new JLabel("Sức chứa tối đa: ");
+        lblHienTai = new JLabel("Hiện đang chứa: ");
 
         lblViTri.setFont(new Font("Segoe UI", Font.BOLD,13));
         lblSucChua.setFont(new Font("Segoe UI", Font.BOLD,13));
@@ -322,20 +315,10 @@ public class TrangKeKho extends JPanel {
                     sp.getSoLuong()
             });
         }
-    }
+        KeKho ke = bus.getKeTheoMa(maKe);
 
-    private void loadData() {
-        ArrayList<KeKho> list = bus.getListKK();
-
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
-        model.setRowCount(0);
-
-        for (KeKho k : list) {
-            model.addRow(new Object[]{
-                    k.getMaKe(),
-                    k.getSucChua(),
-                    k.getViTri()
-            });
-        }
+        lblViTri.setText("Vị trí: " + ke.getViTri());
+        lblSucChua.setText("Sức chứa tối đa: " + ke.getSucChua());
+        lblHienTai.setText("Hiện đang chứa: ?");
     }
 }

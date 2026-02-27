@@ -10,10 +10,12 @@ public class KeKho_BUS {
     private ArrayList<KeKho> listKK;
     private KeKho_DAO kkDAO;
     private SanPham_DAO spDAO;
+    private SanPham_BUS sanPhamBUS;
 
     public KeKho_BUS(){
         kkDAO= new KeKho_DAO();
         spDAO = new SanPham_DAO();
+        sanPhamBUS = new SanPham_BUS();
         this.listKK=kkDAO.getAllKeKho();
     }
 
@@ -22,10 +24,13 @@ public class KeKho_BUS {
         return kkDAO.getAllKeKho(); //
     }
 
-    public ArrayList<SanPham> laySanPhamTheoKe(String maKe) {
-        return spDAO.laySanPhamTheoKe(maKe);
+    public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
+        return sanPhamBUS.laySanPhamTheoKe(maKe);
     }
 
+    public KeKho getKeTheoMa(String maKe){
+        return kkDAO.getKeTheoMa(maKe);
+    }
 
     public String addKK(KeKho kk){
         if(kk.getMaKe().trim().isEmpty()) return "Mã kệ không được để trống!";

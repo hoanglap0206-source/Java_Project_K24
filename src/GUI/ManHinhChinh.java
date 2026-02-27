@@ -26,7 +26,7 @@ public class ManHinhChinh extends JFrame {
         contentPanel = new JPanel(cardLayout);
 
         contentPanel.add(new TrangTongQuan(), "Tổng quan");
-//        contentPanel.add(new TrangHoSo(), "Hồ sơ");
+        contentPanel.add(new TrangHoSo(), "Hồ sơ");
         contentPanel.add(new TrangSanPham(), "Sản phẩm");
         contentPanel.add(new TrangNhaCungCap(), "Nhà cung cấp");
         contentPanel.add(new TrangKhachHang(), "Khách hàng");

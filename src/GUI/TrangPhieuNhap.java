@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
+import javax.swing.text.MaskFormatter;
+import java.text.ParseException;
 
 public class TrangPhieuNhap extends JPanel {
 
@@ -34,74 +36,86 @@ public class TrangPhieuNhap extends JPanel {
     }
 
     private JPanel taoThanhCongCu() {
+
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,10,10));
         panel.setOpaque(false);
 
-        // Thanh tìm kiếm
-        JTextField txtSearch = new JTextField("Tìm kiếm");
-        txtSearch.setColumns(15);
-        txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
-        txtSearch.setForeground(Color.GRAY);
+        LineBorder lineBorder = new LineBorder(new Color(198,226,255),1,true);
 
+        // ===== SEARCH =====
         JPanel pnlSearchInput = new JPanel(new BorderLayout());
         pnlSearchInput.setBackground(Color.WHITE);
-        pnlSearchInput.setPreferredSize(new Dimension(260,30));
-        pnlSearchInput.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198,226,255), 2, true),
-                new EmptyBorder(0,2,0,0)
-        ));
+        pnlSearchInput.setPreferredSize(new Dimension(220,35));
+        pnlSearchInput.setBorder(lineBorder);
 
-        JButton btnSearchIcon = new JButton("🔍");
-        btnSearchIcon.setBackground(new Color(214,238,253));
-        btnSearchIcon.setBorderPainted(false);
-        btnSearchIcon.setFocusPainted(false);
-        btnSearchIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        pnlSearchInput.add(txtSearch, BorderLayout.CENTER);
-        pnlSearchInput.add(btnSearchIcon, BorderLayout.EAST);
+        JTextField txtSearch = new JTextField("Tìm mã phiếu");
+        txtSearch.setBorder(new EmptyBorder(0,10,0,0));
+        txtSearch.setForeground(Color.GRAY);
 
         txtSearch.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
-            public void focusGained(java.awt.event.FocusEvent e) { // Khi người dùng click vào ô
-                if (txtSearch.getText().equals("Tìm kiếm")) {
-                    txtSearch.setText("");           // Xóa chữ "Tìm kiếm"
-                    txtSearch.setForeground(Color.BLACK); // Đổi màu chữ sang đen để người dùng nhập
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (txtSearch.getText().equals("Tìm mã phiếu")) {
+                    txtSearch.setText("");
+                    txtSearch.setForeground(Color.BLACK);
                 }
             }
 
             @Override
-            public void focusLost(java.awt.event.FocusEvent e) { // Khi người dùng click ra chỗ khác mà không nhập gì
+            public void focusLost(java.awt.event.FocusEvent e) {
                 if (txtSearch.getText().isEmpty()) {
+                    txtSearch.setText("Tìm mã phiếu");
                     txtSearch.setForeground(Color.GRAY);
-                    txtSearch.setText("Tìm kiếm");    // Hiện lại chữ gợi ý
                 }
             }
         });
 
-        JButton btnReload = new JButton("⟳ Làm mới");
-        Style.styleButton(btnReload);
+        JButton btnSearch = new JButton("🔍");
+        btnSearch.setBorderPainted(false);
+        btnSearch.setBackground(new Color(214,238,253));
 
-        JTextField txtFrom = new JTextField("Từ ngày");
-        txtFrom.setPreferredSize(new Dimension(100,30));
+        pnlSearchInput.add(txtSearch, BorderLayout.CENTER);
+        pnlSearchInput.add(btnSearch, BorderLayout.EAST);
 
-        JTextField txtTo = new JTextField("Đến ngày");
-        txtTo.setPreferredSize(new Dimension(100,30));
+        // ===== RELOAD =====
+        JButton btnReload = new JButton("⟳");
+        btnReload.setPreferredSize(new Dimension(45,35));
+        btnReload.setBorder(lineBorder);
+        btnReload.setBackground(Color.WHITE);
 
+        // ===== DATE FILTER =====
+        MaskFormatter dateMask = null;
+        try {
+            dateMask = new MaskFormatter("##/##/####");
+            dateMask.setPlaceholderCharacter('_');
+        } catch (Exception e) { }
+
+        JFormattedTextField tfFrom = new JFormattedTextField(dateMask);
+        tfFrom.setPreferredSize(new Dimension(110,35));
+        tfFrom.setBorder(lineBorder);
+
+        JFormattedTextField tfTo = new JFormattedTextField(dateMask);
+        tfTo.setPreferredSize(new Dimension(110,35));
+        tfTo.setBorder(lineBorder);
+
+        // ===== COMBOBOX =====
         JComboBox<String> cbNCC = new JComboBox<>(new String[]{
                 "Nhà cung cấp"
         });
+        cbNCC.setPreferredSize(new Dimension(150,35));
 
         JComboBox<String> cbTrangThai = new JComboBox<>(new String[]{
-                "Trạng thái"
+                "Trạng thái",
+                "Đã xuất kho",
+                "Đã hủy",
+                "Chờ duyệt"
         });
-
-        cbNCC.setPreferredSize(new Dimension(130,30));
-        cbTrangThai.setPreferredSize(new Dimension(120,30));
+        cbTrangThai.setPreferredSize(new Dimension(130,35));
 
         panel.add(pnlSearchInput);
         panel.add(btnReload);
-        panel.add(txtFrom);
-        panel.add(txtTo);
+        panel.add(tfFrom);
+        panel.add(tfTo);
         panel.add(cbNCC);
         panel.add(cbTrangThai);
 

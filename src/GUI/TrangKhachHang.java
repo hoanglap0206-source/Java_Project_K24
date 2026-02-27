@@ -1,11 +1,18 @@
 package GUI;
 
+import BUS.KhachHang_BUS;
+import Model.KhachHang;
+
 import javax.swing.*;
 import javax.swing.border.*;
-import java.awt.*;
 import javax.swing.table.*;
+import java.awt.*;
+import java.util.ArrayList;
 
 public class TrangKhachHang extends JPanel {
+    private JTable table;
+    private DefaultTableModel model;
+    private KhachHang_BUS khBUS = new KhachHang_BUS();
 
     public TrangKhachHang() {
         setLayout(new BorderLayout());
@@ -13,6 +20,7 @@ public class TrangKhachHang extends JPanel {
 
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
+        fillToTable();
     }
 
     private JPanel taoThanhCongCu() {
@@ -157,18 +165,16 @@ public class TrangKhachHang extends JPanel {
     }
 
     private JScrollPane taoBang() {
+        String[] columns = {"STT","Mã KH","Tên KH","SĐT","Địa chỉ","Chi tiêu"};
 
-        String[] columns = {"STT", "Mã KH", "Tên KH", "Số điện thoại", "Địa chỉ"};
-        Object[][] data = {
-                {1, "KH001", "Cửa hàng A", "0900000001", "An Dương Vương, quận 5"},
-                {2, "KH002", "Cửa hàng B", "0900000002", "An Dương Vương, quận 5"},
-        };
-
-        JTable table = new JTable(data, columns) {
-            public boolean isCellEditable(int row, int column) {
-                return column == 7; // chỉ cho bấm nút Xem
+        model = new DefaultTableModel(columns,0){
+            @Override
+            public boolean isCellEditable(int row, int column){
+                return false;
             }
         };
+
+        table = new JTable(model);
 
         table.setRowHeight(30);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -188,5 +194,23 @@ public class TrangKhachHang extends JPanel {
         scrollPane.setBorder(new LineBorder(new Color(180,180,180)));
 
         return scrollPane;
+    }
+
+    public void fillToTable(){
+        model.setRowCount(0);
+        ArrayList<KhachHang> list = khBUS.getListKH();
+        int stt = 1;
+
+        for(KhachHang kh : list){
+            Object[] row = {
+                    stt++,
+                    kh.getMaKH(),
+                    kh.getHoTenKH(),
+                    kh.getSdt(),
+                    kh.getDiaChi(),
+                    kh.getCT()
+            };
+            model.addRow(row);
+        }
     }
 }

@@ -1,11 +1,19 @@
 package GUI;
 
+import BUS.NCC_BUS;
+import Model.NhaCungCap;
+
 import javax.swing.*;
 import javax.swing.border.*;
-import java.awt.*;
 import javax.swing.table.*;
+import java.awt.*;
+import java.util.ArrayList;
+
 
 public class TrangNhaCungCap extends JPanel {
+    private JTable table;
+    private DefaultTableModel model;
+    private NCC_BUS nccBUS = new NCC_BUS();
 
     public TrangNhaCungCap() {
         setLayout(new BorderLayout());
@@ -13,6 +21,7 @@ public class TrangNhaCungCap extends JPanel {
 
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
+        fillToTable();
     }
 
     private JPanel taoThanhCongCu() {
@@ -157,17 +166,16 @@ public class TrangNhaCungCap extends JPanel {
     }
 
     private JScrollPane taoBang() {
-        String[] columns = {"STT", "Mã NCC", "Tên NCC", "Số điện thoại", "Địa chỉ"};
-        Object[][] data = {
-                {1, "NCC001", "Pepsi", "090000001", "An Dương Vương, quận 5"},
-                {2, "NCC002", "Vinamilk", "090000002", "An Dương Vương, quận 5"}
-        };
+        String[] columns = {"STT","Mã NCC","Tên NCC","SĐT","Địa chỉ"};
 
-        JTable table = new JTable(data, columns) {
-            public boolean isCellEditable(int row, int column) {
-                return column == 6; // chỉ cho bấm cột "Xem"
+        model = new DefaultTableModel(columns,0){
+            @Override
+            public boolean isCellEditable(int row,int column){
+                return false;
             }
         };
+
+        table = new JTable(model);
 
         table.setRowHeight(30);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -187,5 +195,22 @@ public class TrangNhaCungCap extends JPanel {
         scrollPane.setBorder(new LineBorder(new Color(180,180,180)));
 
         return scrollPane;
+    }
+
+    public void fillToTable(){
+        model.setRowCount(0);
+        ArrayList<NhaCungCap> list = nccBUS.getListNCC();
+        int stt = 1;
+
+        for(NhaCungCap ncc : list){
+            Object[] row = {
+                    stt++,
+                    ncc.getMaNCC(),
+                    ncc.getTenNCC(),
+                    ncc.getSdt(),
+                    ncc.getDiaChi()
+            };
+            model.addRow(row);
+        }
     }
 }

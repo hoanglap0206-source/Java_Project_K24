@@ -85,4 +85,8 @@ public class SanPham_BUS {
         return "Xóa thất bại !";
     }
     public  void refeshdata(){listSP=spDAO.getAllSanPham();}
+
+    public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
+        return spDAO.laySanPhamTheoKe(maKe);
+    }
 }

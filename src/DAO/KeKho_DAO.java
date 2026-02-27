@@ -75,4 +75,27 @@ public class KeKho_DAO {
             return false;
         }
     }
+
+    public KeKho getKeTheoMa(String maKe){
+        String sql = "SELECT ma_ke, suc_chua, vi_tri FROM KE_KHO WHERE ma_ke = ?";
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, maKe);
+            ResultSet rs = ps.executeQuery();
+
+            if(rs.next()){
+                KeKho kk = new KeKho();
+                kk.setMaKe(rs.getString("ma_ke"));
+                kk.setSucChua(rs.getInt("suc_chua"));
+                kk.setViTri(rs.getString("vi_tri"));
+                return kk;
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
