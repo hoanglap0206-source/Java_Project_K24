@@ -32,6 +32,29 @@ public class KeKho_BUS {
         return kkDAO.getKeTheoMa(maKe);
     }
 
+    public int tinhTongSoLuongTheoKe(String maKe) {
+        ArrayList<SanPham> list = laySanPhamTheoKe(maKe);
+        int tong = 0;
+
+        for (SanPham sp : list) {
+            tong += sp.getSoLuong();
+        }
+
+        return tong;
+    }
+
+    public int tinhPhanTramTheoKe(String maKe) {
+        KeKho ke = getKeTheoMa(maKe);
+        if (ke == null) return 0;
+
+        int tong = tinhTongSoLuongTheoKe(maKe);
+        int sucChua = ke.getSucChua();
+
+        if (sucChua == 0) return 0;
+
+        return (int)((double) tong / sucChua * 100);
+    }
+
     public String addKK(KeKho kk){
         if(kk.getMaKe().trim().isEmpty()) return "Mã kệ không được để trống!";
         if(kk.getSucChua()<=0) return "Sức chứa phải lớn hơn 0!";

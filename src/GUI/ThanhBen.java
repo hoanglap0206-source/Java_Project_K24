@@ -18,7 +18,7 @@ public class ThanhBen extends JPanel {
         this.manHinhChinh = manHinhChinh;
 
         setBackground(SIDEBAR_COLOR);
-        setLayout(new GridLayout(13, 1));
+        setLayout(new GridLayout(14, 1));
         setPreferredSize(new Dimension(180, 0));
 
         setBorder(BorderFactory.createMatteBorder(
@@ -35,6 +35,7 @@ public class ThanhBen extends JPanel {
         addMenu("Xuất kho");
         addMenu("Phiếu nhập");
         addMenu("Phiếu xuất");
+        addMenu("Tồn kho");
         addMenu("Báo cáo");
         addMenu("Áp thuế");
         addMenu("Quản lý tài khoản");

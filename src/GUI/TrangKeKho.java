@@ -176,7 +176,8 @@ public class TrangKeKho extends JPanel {
         grid.setBackground(new Color(231,242,245));
 
         for (KeKho ke : listKe) {
-            grid.add(taoTheKe(ke.getMaKe(), 0)); // tạm để 0%
+            int percent = bus.tinhPhanTramTheoKe(ke.getMaKe());
+            grid.add(taoTheKe(ke.getMaKe(), percent));
         }
 
         return grid;
@@ -315,10 +316,15 @@ public class TrangKeKho extends JPanel {
                     sp.getSoLuong()
             });
         }
+
         KeKho ke = bus.getKeTheoMa(maKe);
 
-        lblViTri.setText("Vị trí: " + ke.getViTri());
-        lblSucChua.setText("Sức chứa tối đa: " + ke.getSucChua());
-        lblHienTai.setText("Hiện đang chứa: ?");
+        int tong = bus.tinhTongSoLuongTheoKe(maKe);
+
+        if (ke != null) {
+            lblViTri.setText("Vị trí: " + ke.getViTri());
+            lblSucChua.setText("Sức chứa tối đa: " + ke.getSucChua());
+            lblHienTai.setText("Hiện đang chứa: " + tong);
+        }
     }
 }

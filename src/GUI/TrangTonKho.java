@@ -1,20 +1,82 @@
 package GUI;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import javax.swing.table.*;
 
-public class TrangSanPham extends JPanel {
-    private JTable table;
-    private DefaultTableModel model;
+public class TrangTonKho extends JPanel {
 
-    public TrangSanPham() {
+    public TrangTonKho() {
         setLayout(new BorderLayout());
-        setBackground(new Color(255,255,255));
+        setBackground(Color.WHITE);
+
+        JPanel pnlCompactInputs = new JPanel(new GridLayout(2, 1, 0, 5));
+        pnlCompactInputs.setOpaque(false);
+
+
+        JPanel pnlWarn = createCompactInput("Cảnh báo (ngày):", new Color(255, 255, 204), Color.BLACK);
+
+        JPanel pnlExp = createCompactInput("Sắp hết hạn (SP):", new Color(255, 102, 0), Color.WHITE);
+
+        pnlCompactInputs.add(pnlWarn);
+        pnlCompactInputs.add(pnlExp);
+
 
         add(taoThanhCongCu(), BorderLayout.NORTH);
-        add(taoNoiDung(), BorderLayout.CENTER);
+
+
+
+        String[] columnNames = {"Mã SP", "Tên SP", "Đơn vị tính", "Số lượng", "Đơn giá", "Ngày nhập", "Ngày hết hạn", "Mã kệ"};
+        Object[][] data = {
+                {"SP001", "Pepsi", "Lon", "100", "10.000", "01/01/2024", "01/01/2025", "K01"},
+                {"SP002", "Coca", "Chai", "50", "12.000", "15/02/2024", "15/02/2025", "K02"},
+                {"SP003", "Sting", "Chai", "200", "11.000", "10/03/2024", "10/03/2025", "K01"},
+                {"SP004", "Trà xanh", "Chai", "5", "9.000", "05/01/2024", "05/04/2024", "K03"}
+        };
+
+        //hàm không cho thay đổi data//
+        DefaultTableModel model=new DefaultTableModel(data,columnNames){
+            @Override
+            public boolean isCellEditable(int row,int column){
+                return false;
+            }
+        };
+
+        JTable table = new JTable(model);
+        table.setRowHeight(30);
+        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        table.getTableHeader().setBackground(new Color(230, 230, 230));
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        add(scrollPane, BorderLayout.CENTER);
+    }
+
+
+    private JPanel createCompactInput(String labelText, Color bgColor, Color textColor) {
+        JPanel pnl = new JPanel(new BorderLayout(5, 0));
+        pnl.setBackground(Color.WHITE);
+
+        JLabel lbl = new JLabel(labelText);
+        lbl.setFont(new Font("Arial", Font.BOLD, 11));
+
+        JTextField txt = new JTextField();
+        txt.setBackground(bgColor);
+        txt.setForeground(textColor);
+        txt.setCaretColor(textColor);
+        txt.setFont(new Font("Arial", Font.BOLD, 12));
+        // Tạo viền mỏng và padding cho ô nhập
+        txt.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1),
+                new EmptyBorder(2, 5, 2, 5)
+        ));
+        txt.setPreferredSize(new Dimension(80, 25));
+
+        pnl.add(lbl, BorderLayout.WEST);
+        pnl.add(txt, BorderLayout.CENTER);
+        return pnl;
     }
 
     private JPanel taoThanhCongCu() {
@@ -75,7 +137,7 @@ public class TrangSanPham extends JPanel {
 
 
         // Nút làm mới
-        JButton btnLamMoi = new JButton("↻ Làm mới");
+        JButton btnLamMoi = new JButton("⟳ Làm mới");
         Style.styleButton(btnLamMoi);
 
 
@@ -132,101 +194,5 @@ public class TrangSanPham extends JPanel {
 
         wrapper.add(panel, BorderLayout.CENTER);
         return wrapper;
-    }
-
-    private JPanel taoNoiDung() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(10, 25, 20, 25));
-
-        panel.add(taoTieuDe(), BorderLayout.NORTH);
-        panel.add(taoBang(), BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    private JPanel taoTieuDe() {
-        JPanel pnl = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        pnl.setBackground(Color.WHITE);
-
-        JLabel lblTitle = new JLabel("DANH SÁCH SẢN PHẨM");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTitle.setForeground(Color.BLACK);
-
-        pnl.add(lblTitle);
-        return pnl;
-    }
-
-    private JScrollPane taoBang() {
-        String[] columns = {
-                "STT", "Mã SP", "Tên SP", "Đơn vị tính",
-                "Số lượng", "Giá nhập", "Mã kệ", "Trạng thái"
-        };
-
-        Object[][] data = {
-                {1, "SKU001", "Xà xị", "Thùng", 100, "150.000.000đ", "A1", "Còn hàng"},
-                {2, "SKU002", "Coca Cola", "Thùng", 0, "150.000.000đ", "A1", "Hết hàng"}
-        };
-
-        table = new JTable(data, columns);
-        table.setRowHeight(30);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-
-        // Màu header
-        table.getTableHeader().setBackground(new Color(210, 230, 255));
-        table.getTableHeader().setForeground(Color.BLACK);
-
-        // Tắt reorder
-        table.getTableHeader().setReorderingAllowed(false);
-
-        // Căn giữa toàn bộ nội dung
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Áp dụng cho tất cả cột
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-        }
-
-        // Render cột trạng thái
-        table.getColumnModel().getColumn(7).setCellRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(
-                    JTable table, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int column) {
-
-                JLabel lbl = (JLabel) super.getTableCellRendererComponent(
-                        table, value, isSelected, hasFocus, row, column);
-
-                lbl.setHorizontalAlignment(SwingConstants.CENTER);
-
-                if (value != null) {
-                    if (value.toString().equals("Còn hàng")) {
-                        lbl.setForeground(new Color(0, 128, 0));
-                    } else {
-                        lbl.setForeground(Color.RED);
-                    }
-                }
-
-                return lbl;
-            }
-        });
-
-        // Chỉnh width từng cột cho giống mockup
-        table.getColumnModel().getColumn(0).setPreferredWidth(40);
-        table.getColumnModel().getColumn(1).setPreferredWidth(80);
-        table.getColumnModel().getColumn(2).setPreferredWidth(120);
-        table.getColumnModel().getColumn(3).setPreferredWidth(100);
-        table.getColumnModel().getColumn(4).setPreferredWidth(80);
-        table.getColumnModel().getColumn(5).setPreferredWidth(120);
-        table.getColumnModel().getColumn(6).setPreferredWidth(60);
-        table.getColumnModel().getColumn(7).setPreferredWidth(90);
-
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(new LineBorder(new Color(180, 180, 180)));
-
-        return scrollPane;
     }
 }

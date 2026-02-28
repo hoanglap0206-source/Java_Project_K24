@@ -6,6 +6,9 @@ import java.awt.*;
 import javax.swing.table.*;
 
 public class TrangQuanLyTaiKhoan extends JPanel {
+    private JTable table;
+    private DefaultTableModel model;
+
     public TrangQuanLyTaiKhoan() {
         setLayout(new BorderLayout());
         setBackground(new Color(255,255,255));
@@ -166,7 +169,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
                 {2, "Nguyễn Văn B", "09000002", "nv002", "Nhân viên", "Banned", "Xem"}
         };
 
-        JTable table = new JTable(data, columns) {
+        table = new JTable(data, columns) {
             public boolean isCellEditable(int row, int column) {
                 return column == 6; // chỉ cho bấm nút Xem
             }

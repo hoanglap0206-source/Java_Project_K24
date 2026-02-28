@@ -150,6 +150,7 @@ public class TrangNhapKho extends JPanel {
 
                     modelPhieu.setValueAt(slCu + soLuongNhap, i, 3);
                     txtSoLuong.setText("");
+                    capNhatTongTien();
                     return;
                 }
             }
@@ -167,6 +168,7 @@ public class TrangNhapKho extends JPanel {
             });
 
             txtSoLuong.setText("");
+            capNhatTongTien();
         });
 
         SouthPanel.add(soLuong);
