@@ -11,6 +11,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class XuatKho_GUI extends JPanel {
     private SanPham_BUS spBus = new SanPham_BUS();
@@ -19,6 +21,10 @@ public class XuatKho_GUI extends JPanel {
     JTextField txtSoLuong;
     private DefaultTableModel tableModelRight;
     private JTable tableRight;
+    private JTextField txtTongTien;
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     XuatKho_GUI(){
         JPanel main = new JPanel(new GridLayout(1, 2));
         JPanel uiLeft = new JPanel(new BorderLayout());
@@ -88,7 +94,7 @@ public class XuatKho_GUI extends JPanel {
     public JScrollPane createTableLeft(){
         String[] cols = {"Mã SP", "Tên sản phẩm", "Số lượng", "Đơn giá"};
 
-        tableModel = new DefaultTableModel(cols, 100);
+        tableModel = new DefaultTableModel(cols, 0);
         table = new JTable(tableModel);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.getColumnModel().getColumn(0).setPreferredWidth(60); // Mã SP
@@ -122,54 +128,7 @@ public class XuatKho_GUI extends JPanel {
         JButton btnThem = new JButton("Thêm");
         btnThem.setBackground(new Color(102, 255, 102));
         btnThem.setFocusPainted(false);
-        btnThem.addActionListener(e -> {
-
-            // 1. kiểm tra đã chọn dòng bên trái chưa
-            int rowLeft = table.getSelectedRow();
-            if (rowLeft == -1) {
-                JOptionPane.showMessageDialog(this, "Chưa chọn sản phẩm");
-                return;
-            }
-
-            // 2. kiểm tra số lượng nhập
-            int soLuongNhap;
-            if (txtSoLuong.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Không được để trống dữ liệu");
-                return;
-            }
-            try {
-                soLuongNhap = Integer.parseInt(txtSoLuong.getText());
-                if (soLuongNhap <= 0) throw new Exception();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
-                return;
-            }
-
-            // 3. lấy dữ liệu từ bảng trái
-            String maSP  = tableModel.getValueAt(rowLeft, 0).toString();
-            String tenSP = tableModel.getValueAt(rowLeft, 1).toString();
-            double donGia = Double.parseDouble(
-                    tableModel.getValueAt(rowLeft, 3).toString()
-            );
-
-            // 4. nếu SP đã tồn tại ở bảng phải → cộng số lượng
-            for (int i = 0; i < tableModelRight.getRowCount(); i++) {
-                if (tableModelRight.getValueAt(i, 1).equals(maSP)) {
-                    int slCu = (int) tableModelRight.getValueAt(i, 3);
-                    tableModelRight.setValueAt(slCu + soLuongNhap, i, 3);
-                    txtSoLuong.setText("");
-                    return;
-                }
-            }
-
-            // 5. nếu chưa có → thêm dòng mới
-            int stt = tableModelRight.getRowCount() + 1;
-            tableModelRight.addRow(new Object[]{
-                    stt, maSP, tenSP, soLuongNhap, donGia
-            });
-
-            txtSoLuong.setText("");
-        });
+        btnThem.addActionListener(e -> handleAddProduct());
 
         tailLeft.add(lblSoLuong);
         tailLeft.add(txtSoLuong);
@@ -204,7 +163,7 @@ public class XuatKho_GUI extends JPanel {
 
         // ===== TABLE =====
         String[] colsRight = {"STT", "Mã SP", "Tên sản phẩm", "Số lượng", "NN", "Đơn giá"};
-        tableModelRight = new DefaultTableModel(colsRight, 100);
+        tableModelRight = new DefaultTableModel(colsRight, 0);
 
         tableRight = new JTable(tableModelRight);
 
@@ -286,7 +245,7 @@ public class XuatKho_GUI extends JPanel {
         JPanel tailRight = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
 
         JLabel lblTongTien = new JLabel("TỔNG TIỀN NHẬP");
-        JTextField txtTongTien = new JTextField("", 10);
+        txtTongTien = new JTextField("0", 10);
         txtTongTien.setEditable(false);
         JButton btnNhap = new JButton("Nhập hàng");
         btnNhap.setBackground(new Color(102, 255, 102));
@@ -299,7 +258,52 @@ public class XuatKho_GUI extends JPanel {
         tailRightWrapper.add(tailRight);
         return tailRightWrapper;
     }
+    private void handleAddProduct() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Chưa chọn sản phẩm");
+            return;
+        }
 
+        int soLuong;
+        long tongTien = Long.parseLong(txtTongTien.getText());
+        try {
+            soLuong = Integer.parseInt(txtSoLuong.getText());
+            if (soLuong <= 0) throw new Exception();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+            return;
+        }
+
+        String maSP = tableModel.getValueAt(row, 0).toString();
+        String tenSP = tableModel.getValueAt(row, 1).toString();
+        double donGia = Double.parseDouble(
+                tableModel.getValueAt(row, 3).toString()
+        );
+
+        for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+            Object val = tableModelRight.getValueAt(i, 1);
+            if (val != null && val.toString().equals(maSP)) {
+                int slCu = (int) tableModelRight.getValueAt(i, 3);
+                tableModelRight.setValueAt(slCu + soLuong, i, 3);
+                tongTien += soLuong * donGia;
+                txtTongTien.setText(String.valueOf(tongTien));
+                txtSoLuong.setText("");
+                return;
+            }
+        }
+
+        String ngayNhap = LocalDate.now().format(DATE_FORMAT);
+        int stt = tableModelRight.getRowCount() + 1;
+
+        tableModelRight.addRow(new Object[]{
+                stt, maSP, tenSP, soLuong, ngayNhap, donGia
+        });
+        tongTien += soLuong * donGia;
+        String txtTien = String.valueOf(tongTien);
+        txtTongTien.setText(txtTien);
+        txtSoLuong.setText("");
+    }
     public void loadTableData() {
         tableModel.setRowCount(0); // xóa dữ liệu cũ
         for( SanPham sp : spBus.getAll()){

@@ -24,6 +24,7 @@ public class NCC_DAO {
                 ncc.setTenNCC(rs.getString("ten_ncc"));
                 ncc.setDiaChi(rs.getString("dia_chi"));
                 ncc.setSdt(rs.getString("sdt"));
+                ncc.setEmail(rs.getString("email"));
                 list.add(ncc);
             }
         } catch (Exception e) {
@@ -32,7 +33,7 @@ public class NCC_DAO {
         return list;
     }
     public boolean insert(NhaCungCap ncc){
-        String sql ="INSERT INTO NHA_CUNG_CAP(ma_ncc,ten_ncc,dia_chi,sdt) VALUES (?, ?, ?,?)";
+        String sql ="INSERT INTO NHA_CUNG_CAP(ma_ncc,ten_ncc,dia_chi,sdt,email) VALUES (?, ?, ?,?,?)";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
@@ -41,6 +42,7 @@ public class NCC_DAO {
             ps.setString(2,ncc.getTenNCC());
             ps.setString(3,ncc.getDiaChi());
             ps.setString(4,ncc.getSdt());
+            ps.setString(5,ncc.getEmail());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
@@ -50,7 +52,7 @@ public class NCC_DAO {
     }
     public boolean update(NhaCungCap ncc){
         String sql =
-                "UPDATE NHA_CUNG_CAP SET ten_ncc=?,dia_chi=?,sdt=? WHERE ma_ncc=?";
+                "UPDATE NHA_CUNG_CAP SET ten_ncc=?,dia_chi=?,sdt=?,email=? WHERE ma_ncc=?";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
@@ -58,7 +60,8 @@ public class NCC_DAO {
             ps.setString(1,ncc.getTenNCC());
             ps.setString(2,ncc.getDiaChi());
             ps.setString(3,ncc.getSdt());
-            ps.setString(4,ncc.getMaNCC());
+            ps.setString(4,ncc.getEmail());
+            ps.setString(5,ncc.getMaNCC());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {

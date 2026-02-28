@@ -21,7 +21,9 @@ public class DBConnection {
             InputStream is = DBConnection.class
                     .getClassLoader()
                     .getResourceAsStream("db.properties");
-
+            if (is == null) {
+                throw new RuntimeException("Không tìm thấy file db.properties trong classpath");
+            }
             props.load(is);
 
             String URL = props.getProperty("db.url");
