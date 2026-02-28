@@ -35,6 +35,42 @@ public class SanPham_DAO {
         }
         return list;
     }
+    public ArrayList<SanPham> getSpByKey(String input){
+        ArrayList<SanPham> list = new ArrayList<>();
+        String sql = """
+        SELECT *
+        FROM san_pham
+        WHERE LOWER(ma_sku) = LOWER(?)
+           OR LOWER(ma_sku) LIKE LOWER(CONCAT('%', ?, '%'))
+           OR LOWER(ten_sp) LIKE LOWER(CONCAT('%', ?, '%'))
+        ORDER BY (LOWER(ma_sku) = LOWER(?)) DESC
+    """;
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+        ) {
+            String keyword = "%" + input + "%";
+            ps.setString(1, input);
+            ps.setString(2, keyword);
+            ps.setString(3, keyword);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                SanPham sp = new SanPham();
+                KeKho kk = new KeKho();
+                sp.setMaSP(rs.getString("ma_sku"));
+                sp.setTenSP(rs.getString("ten_sp"));
+                sp.setDonViTinh(rs.getString("dvt"));
+                sp.setSoLuong(rs.getInt("sl"));
+                sp.setGiaTien(rs.getFloat("gia"));
+                kk.setMaKe(rs.getString("ma_ke"));
+                sp.setKeKho(kk);
+                list.add(sp);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
     public boolean insert(SanPham sp){
 //        Trước khi thêm sản phẩm cần kiểm tra sức chứa ở kệ chứa sản phẩm nếu vượt mức sức chứa thì báo lỗi
         String sql ="INSERT INTO SAN_PHAM(ma_sku,ten_sp,dvt,sl,gia,ma_ke) VALUES (?, ?, ?,?,?,?)";
@@ -142,4 +178,5 @@ public class SanPham_DAO {
 
         return list;
     }
+
 }

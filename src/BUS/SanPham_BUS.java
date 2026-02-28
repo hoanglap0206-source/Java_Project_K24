@@ -18,7 +18,10 @@ public class SanPham_BUS {
         return spDAO.getAllSanPham();
     }
 
-
+    public ArrayList<SanPham> gettSPByKeyWord(String input){
+        spDAO = new SanPham_DAO();
+        return spDAO.getSpByKey(input);
+    }
     public int getSoLuongTon(String maSP) {
         for (SanPham sp : listSP) {
             if (sp.getMaSP().equalsIgnoreCase(maSP)) {
