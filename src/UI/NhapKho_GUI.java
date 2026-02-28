@@ -11,6 +11,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
@@ -80,20 +82,7 @@ public class NhapKho_GUI extends JPanel {
                         new EmptyBorder(5, 10, 5, 10)
                 )
         );
-//        Sự kiện ghi tới đâu load sp tới đó
-        txtSearch.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                searchSP();
-            }
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                searchSP();
-            }
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-            }
-        });
+        txtSearchEvent();
 
         // ===== NÚT LÀM MỚI =====
         JButton btnRefresh = new JButton("Làm mới");
@@ -183,8 +172,12 @@ public class NhapKho_GUI extends JPanel {
 
         // ===== TABLE =====
         String[] colsRight = {"STT", "Mã SP", "Tên sản phẩm", "Số lượng", "NN", "Đơn giá"};
-        tableModelRight = new DefaultTableModel(colsRight, 0);
-
+        tableModelRight = new DefaultTableModel(colsRight, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tableRight = new JTable(tableModelRight);
 
         // cho phép bảng cao hơn
@@ -321,11 +314,45 @@ public class NhapKho_GUI extends JPanel {
         }
     }
     public void searchSP(){
-        if(txtSearch.getText().isEmpty() || txtSearch.getText().equalsIgnoreCase("Tìm kiếm")){
+        String key = txtSearch.getText().trim();
+        if(key.equalsIgnoreCase("Tìm kiếm") || key.length()<2){
             loadTableData();
             return;
         }
         loadDataFromKey();
+    }
+    public void txtSearchEvent(){
+        txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                searchSP();
+            }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                searchSP();
+            }
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
+        txtSearch.addFocusListener(new FocusAdapter() {
+            @Override
+//            Khi nhấn vào ô search
+            public void focusGained(FocusEvent e) {
+                if(txtSearch.getText().equalsIgnoreCase("Tìm kiếm")){
+                    txtSearch.setText("");
+                    txtSearch.setForeground(Color.BLACK);
+                }
+            }
+            //            Khi nhấn nơi khác
+            @Override
+            public void focusLost(FocusEvent e) {
+                if(txtSearch.getText().isEmpty()){
+                    txtSearch.setText("Tìm kiếm");
+                    txtSearch.setForeground(Color.GRAY);
+                }
+            }
+        });
     }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
