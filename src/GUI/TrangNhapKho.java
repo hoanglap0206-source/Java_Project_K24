@@ -8,6 +8,8 @@ import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class TrangNhapKho extends JPanel {
     private SanPham_BUS spBus = new SanPham_BUS();
@@ -17,6 +19,8 @@ public class TrangNhapKho extends JPanel {
     private JTable tablePhieu;
     private JTextField txtSoLuong;
     private JLabel lblTongTien;
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public TrangNhapKho() {
         setLayout(new BorderLayout());
@@ -112,64 +116,7 @@ public class TrangNhapKho extends JPanel {
         JButton btnThem = new JButton("+ Thêm");
         Style.styleButton(btnThem);
 
-        btnThem.addActionListener(e -> {
-
-            int rowLeft = tableKho.getSelectedRow();
-            if (rowLeft == -1) {
-                JOptionPane.showMessageDialog(this, "Chưa chọn sản phẩm");
-                return;
-            }
-
-            int soLuongNhap;
-            if (txtSoLuong.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Không được để trống dữ liệu");
-                return;
-            }
-
-            try {
-                soLuongNhap = Integer.parseInt(txtSoLuong.getText());
-                if (soLuongNhap <= 0) throw new Exception();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
-                return;
-            }
-
-            String maSP  = modelKho.getValueAt(rowLeft, 0).toString();
-            String tenSP = modelKho.getValueAt(rowLeft, 1).toString();
-            double donGia = Double.parseDouble(
-                    modelKho.getValueAt(rowLeft, 3).toString()
-            );
-
-            // Nếu đã tồn tại bên phải → cộng số lượng
-            for (int i = 0; i < modelPhieu.getRowCount(); i++) {
-                if (modelPhieu.getValueAt(i, 1).equals(maSP)) {
-
-                    int slCu = Integer.parseInt(
-                            modelPhieu.getValueAt(i, 3).toString()
-                    );
-
-                    modelPhieu.setValueAt(slCu + soLuongNhap, i, 3);
-                    txtSoLuong.setText("");
-                    capNhatTongTien();
-                    return;
-                }
-            }
-
-            // Nếu chưa có → thêm dòng mới
-            int stt = modelPhieu.getRowCount() + 1;
-
-            modelPhieu.addRow(new Object[]{
-                    stt,
-                    maSP,
-                    tenSP,
-                    soLuongNhap,
-                    "",          // NN để trống đúng như NhapKho_GUI
-                    donGia
-            });
-
-            txtSoLuong.setText("");
-            capNhatTongTien();
-        });
+        btnThem.addActionListener(e -> handleAddProduct());
 
         SouthPanel.add(soLuong);
         SouthPanel.add(txtSoLuong);
@@ -313,23 +260,66 @@ public class TrangNhapKho extends JPanel {
         return panel;
     }
 
-    private void capNhatTongTien() {
-
-        double tong = 0;
-
-        for (int i = 0; i < modelPhieu.getRowCount(); i++) {
-
-            int sl = Integer.parseInt(
-                    modelPhieu.getValueAt(i, 3).toString()
-            );
-
-            double gia = Double.parseDouble(
-                    modelPhieu.getValueAt(i, 5).toString()
-            );
-
-            tong += sl * gia;
+    private void handleAddProduct() {
+        int row = tableKho.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Chưa chọn sản phẩm");
+            return;
         }
 
-        lblTongTien.setText("TỔNG TIỀN NHẬP: " + tong + "đ");
+        int soLuong;
+        long tongTien = 0;
+
+        try {
+            soLuong = Integer.parseInt(txtSoLuong.getText());
+            if (soLuong <= 0) throw new Exception();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+            return;
+        }
+
+        // Lấy tổng tiền hiện tại từ label
+        String current = lblTongTien.getText()
+                .replace("TỔNG TIỀN NHẬP: ", "")
+                .replace("đ", "");
+
+        if (!current.isEmpty()) {
+            tongTien = Long.parseLong(current);
+        }
+
+        String maSP = modelKho.getValueAt(row, 0).toString();
+        String tenSP = modelKho.getValueAt(row, 1).toString();
+        double donGia = Double.parseDouble(
+                modelKho.getValueAt(row, 3).toString()
+        );
+
+        // Nếu đã tồn tại → cộng số lượng
+        for (int i = 0; i < modelPhieu.getRowCount(); i++) {
+            Object val = modelPhieu.getValueAt(i, 1);
+            if (val != null && val.toString().equals(maSP)) {
+
+                int slCu = (int) modelPhieu.getValueAt(i, 3);
+                modelPhieu.setValueAt(slCu + soLuong, i, 3);
+
+                tongTien += soLuong * donGia;
+                lblTongTien.setText("TỔNG TIỀN NHẬP: " + tongTien + "đ");
+
+                txtSoLuong.setText("");
+                return;
+            }
+        }
+
+        // Nếu chưa có → thêm mới
+        String ngayNhap = LocalDate.now().format(DATE_FORMAT);
+        int stt = modelPhieu.getRowCount() + 1;
+
+        modelPhieu.addRow(new Object[]{
+                stt, maSP, tenSP, soLuong, ngayNhap, donGia
+        });
+
+        tongTien += soLuong * donGia;
+        lblTongTien.setText("TỔNG TIỀN NHẬP: " + tongTien + "đ");
+
+        txtSoLuong.setText("");
     }
 }
