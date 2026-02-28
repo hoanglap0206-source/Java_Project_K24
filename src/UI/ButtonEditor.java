@@ -25,14 +25,23 @@ public class ButtonEditor extends DefaultCellEditor{
     @Override
     public Object getCellEditorValue(){
         if(isPushed){
-            System.out.println("Đang mở chi tiết cho dòng này...");
-            // Tìm JFrame chính để thực hiện chuyển Panel
-            Window win = SwingUtilities.getWindowAncestor(JB);
-            if (win instanceof JFrame) {
-                // Tại đây bạn có thể gọi hàm chuyển sang trang chi tiết
-                // Ví dụ: ((GiaoDienChinh_Main)win).showDetailPanel();
+           JTable table= (JTable) SwingUtilities.getAncestorOfClass(JTable.class,JB);
+           int row= table.getSelectedRow();
+
+           if(row !=1){
+               String ma= table.getValueAt(row,0).toString();
+               String ten= table.getValueAt(row,1).toString();
+               String sdt= table.getValueAt(row,2).toString();
+               String diaChi= table.getValueAt(row,3).toString();
+
+               Model.NhaCungCap ncc=new Model.NhaCungCap(ma,ten,sdt,diaChi);
+
+               //khởi tạo Frame
+               ChiTietNCC_GUI detal=new ChiTietNCC_GUI(ncc);
+               detal.setVisible(true);
             }
         }
+
         isPushed =false;
         return Label;
     }

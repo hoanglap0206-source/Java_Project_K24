@@ -22,7 +22,7 @@ public class QLyNhaCungCap_GUI extends JPanel {
         model = new DefaultTableModel(columns,0){
             @Override
             public boolean isCellEditable(int row,int column){
-                return false;
+                return column==4;
             }
         };
 
@@ -57,7 +57,8 @@ public class QLyNhaCungCap_GUI extends JPanel {
                 ncc.getMaNCC(),
                 ncc.getTenNCC(),
                 ncc.getSdt(),
-                ncc.getDiaChi()
+                ncc.getDiaChi(),
+                    "Xem"
             };
             model.addRow(row);
         }
