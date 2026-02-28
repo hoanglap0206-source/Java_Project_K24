@@ -7,6 +7,8 @@ import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -15,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class XuatKho_GUI extends JPanel {
+    private JTextField txtSearch;
     private SanPham_BUS spBus = new SanPham_BUS();
     private DefaultTableModel tableModel;
     private JTable table;
@@ -64,9 +67,8 @@ public class XuatKho_GUI extends JPanel {
                         new EmptyBorder(6, 6, 6, 6)   // ↓ gọn hơn
                 )
         );
-
         // ===== TEXT SEARCH =====
-        JTextField txtSearch = new JTextField(22); // ↑ dài hơn
+        txtSearch = new JTextField(22); // ↑ dài hơn
         txtSearch.setText("Tìm kiếm");
         txtSearch.setForeground(Color.GRAY);
         txtSearch.setPreferredSize(new Dimension(255, 28)); // chiều cao chuẩn
@@ -76,12 +78,26 @@ public class XuatKho_GUI extends JPanel {
                         new EmptyBorder(5, 10, 5, 10)
                 )
         );
+        txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                searchSP();
+            }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                searchSP();
+            }
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
 
         // ===== NÚT LÀM MỚI =====
         JButton btnRefresh = new JButton("Làm mới");
         btnRefresh.setFocusPainted(false);
         btnRefresh.setBackground(Color.WHITE);
         btnRefresh.setPreferredSize(new Dimension(115, 28)); // bằng chiều cao txtSearch
+        btnRefresh.addActionListener(e -> searchSP());
 
         innerPanel.add(txtSearch);
         innerPanel.add(btnRefresh);
@@ -314,5 +330,23 @@ public class XuatKho_GUI extends JPanel {
                     sp.getGiaTien()
             });
         }
+    }
+    public void loadDataFromKey(){
+        tableModel.setRowCount(0); // xóa dữ liệu cũ
+        for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText())){
+            tableModel.addRow(new Object[]{
+                    sp.getMaSP(),
+                    sp.getTenSP(),
+                    sp.getSoLuong(),
+                    sp.getGiaTien()
+            });
+        }
+    }
+    public void searchSP(){
+        if(txtSearch.getText().isEmpty() || txtSearch.getText().equalsIgnoreCase("Tìm kiếm")){
+            loadTableData();
+            return;
+        }
+        loadDataFromKey();
     }
 }
