@@ -29,8 +29,13 @@ public class XuatKho_GUI extends JPanel {
     private JTextField txtTongTien;
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private Timer searchTimer;
+    private JButton btnXuat,btnXoa,btnSua;
 
     XuatKho_GUI(){
+        searchTimer = new Timer(500, e -> searchSP());
+        searchTimer.setRepeats(false);
+
         JPanel main = new JPanel(new GridLayout(1, 2));
         JPanel uiLeft = new JPanel(new BorderLayout());
         JPanel uiRight = new JPanel(new BorderLayout());
@@ -50,6 +55,7 @@ public class XuatKho_GUI extends JPanel {
         setLayout(new BorderLayout());
         add(main, BorderLayout.CENTER);
     }
+
     public JPanel createSearchBar() {
 
         JPanel outerPanel = new JPanel();
@@ -86,7 +92,11 @@ public class XuatKho_GUI extends JPanel {
         btnRefresh.setFocusPainted(false);
         btnRefresh.setBackground(Color.WHITE);
         btnRefresh.setPreferredSize(new Dimension(115, 28)); // bằng chiều cao txtSearch
-        btnRefresh.addActionListener(e -> searchSP());
+        btnRefresh.addActionListener(e -> {
+            txtSearch.setText("Tìm kiếm");
+            txtSearch.setForeground(Color.GRAY);
+            loadTableData();
+        });
 
         innerPanel.add(txtSearch);
         innerPanel.add(btnRefresh);
@@ -96,6 +106,7 @@ public class XuatKho_GUI extends JPanel {
 
         return outerPanel;
     }
+
     public JScrollPane createTableLeft(){
         String[] cols = {"Mã SP", "Tên sản phẩm", "Số lượng", "Đơn giá"};
 
@@ -126,6 +137,7 @@ public class XuatKho_GUI extends JPanel {
         });
         return scroll;
     }
+
     public JPanel createTailLeft(){
         JPanel tailWrapper = new JPanel(new GridBagLayout());
         tailWrapper.setBorder(new EmptyBorder(10, 0, 60, 0));
@@ -147,6 +159,7 @@ public class XuatKho_GUI extends JPanel {
         tailWrapper.add(tailLeft);
         return tailWrapper;
     }
+
     public JPanel createFormRight(){
         JPanel headRightWrap = new JPanel(new GridLayout(3,2,0,20));
         headRightWrap.setBorder(new EmptyBorder(40,5,15,20));
@@ -166,6 +179,7 @@ public class XuatKho_GUI extends JPanel {
         headRightWrap.add(txtNTP);
         return headRightWrap;
     }
+
     public JPanel createTableRight() {
 
         // ===== WRAP TỔNG (FIX: KHÔNG DÙNG GRIDLAYOUT) =====
@@ -229,9 +243,11 @@ public class XuatKho_GUI extends JPanel {
         // ===== BUTTON =====
         JPanel btnWrap = new JPanel(new GridLayout(1, 3, 15, 0));
 
-        JButton btnXuat = new JButton("Xuất Excel");
-        JButton btnSua = new JButton("Sửa số lượng");
-        JButton btnXoa = new JButton("Xóa sản phẩm");
+        btnXuat = new JButton("Xuất Excel");
+        btnSua = new JButton("Sửa số lượng");
+        btnXoa = new JButton("Xóa sản phẩm");
+
+        bTnRightEvent();
 
         btnXuat.setFocusPainted(false);
         btnSua.setFocusPainted(false);
@@ -253,6 +269,7 @@ public class XuatKho_GUI extends JPanel {
 
         return TableRightWrap;
     }
+
     public JPanel createTailRight(){
         JPanel tailRightWrapper = new JPanel(new GridBagLayout());
         tailRightWrapper.setBorder(new EmptyBorder(10, 0, 60, 0));
@@ -273,6 +290,7 @@ public class XuatKho_GUI extends JPanel {
         tailRightWrapper.add(tailRight);
         return tailRightWrapper;
     }
+
     private void handleAddProduct() {
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -289,17 +307,26 @@ public class XuatKho_GUI extends JPanel {
             JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
             return;
         }
-
+        int quantity = Integer.parseInt(
+                tableModel.getValueAt(row,2).toString()
+        );
         String maSP = tableModel.getValueAt(row, 0).toString();
         String tenSP = tableModel.getValueAt(row, 1).toString();
         double donGia = Double.parseDouble(
                 tableModel.getValueAt(row, 3).toString()
         );
-
+        if(soLuong>quantity){
+            JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+            return;
+        }
         for (int i = 0; i < tableModelRight.getRowCount(); i++) {
             Object val = tableModelRight.getValueAt(i, 1);
             if (val != null && val.toString().equals(maSP)) {
                 int slCu = (int) tableModelRight.getValueAt(i, 3);
+                if((slCu+soLuong)>quantity){
+                    JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+                    return;
+                }
                 tableModelRight.setValueAt(slCu + soLuong, i, 3);
                 tongTien += soLuong * donGia;
                 txtTongTien.setText(String.valueOf(tongTien));
@@ -319,6 +346,7 @@ public class XuatKho_GUI extends JPanel {
         txtTongTien.setText(txtTien);
         txtSoLuong.setText("");
     }
+
     public void loadTableData() {
         tableModel.setRowCount(0); // xóa dữ liệu cũ
         for( SanPham sp : spBus.getAll()){
@@ -330,6 +358,7 @@ public class XuatKho_GUI extends JPanel {
             });
         }
     }
+
     public void loadDataFromKey(){
         tableModel.setRowCount(0); // xóa dữ liệu cũ
         for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText())){
@@ -341,23 +370,25 @@ public class XuatKho_GUI extends JPanel {
             });
         }
     }
+
     public void searchSP(){
         String key = txtSearch.getText().trim();
-        if(key.equalsIgnoreCase("Tìm kiếm") || key.length()<2){
+        if(key.equalsIgnoreCase("Tìm kiếm")){
             loadTableData();
             return;
         }
         loadDataFromKey();
     }
+
     public void txtSearchEvent(){
         txtSearch.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                searchSP();
+                restartTimer();
             }
             @Override
             public void removeUpdate(DocumentEvent e) {
-                searchSP();
+                restartTimer();
             }
             @Override
             public void changedUpdate(DocumentEvent e) {
@@ -381,5 +412,40 @@ public class XuatKho_GUI extends JPanel {
                 }
             }
         });
+    }
+
+    private void restartTimer() {
+        if (searchTimer.isRunning()) {
+            searchTimer.restart();
+        } else {
+            searchTimer.start();
+        }
+    }
+
+    public void deleteSP(){
+        int row = tableRight.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Sản phẩm không tồn tại,vui lòng chọn lại");
+            return;
+        }
+        long sumMoney = 0;
+        tableModelRight.removeRow(row);
+        for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+            int quantity = Integer.parseInt(
+                    tableModelRight.getValueAt(i, 3).toString()
+            );
+
+            double money = Double.parseDouble(
+                    tableModelRight.getValueAt(i, 5).toString()
+            );
+//                        Cập nhật STT sau khi xóa dòng
+            tableModelRight.setValueAt(i+1,i,0);
+            sumMoney += quantity * money;
+        }
+        txtTongTien.setText(String.valueOf(sumMoney));
+    }
+
+    public void bTnRightEvent(){
+        btnXoa.addActionListener(e -> deleteSP());
     }
 }

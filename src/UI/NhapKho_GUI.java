@@ -29,8 +29,13 @@ public class NhapKho_GUI extends JPanel {
     private JTextField txtTongTien;
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private Timer searchTimer; //Biến lưu giá trị thời gian khi người dùng nhập dữ liệu
+    private JButton btnXuat,btnXoa,btnSua;
 
     public NhapKho_GUI() {
+        searchTimer = new Timer(1000, e -> searchSP()); // Đợi người dùng ngưng 1s mới gọi hàm
+        searchTimer.setRepeats(false); // Chạy 1 lần duy nhất,không lặp
+
         JPanel main = new JPanel(new GridLayout(1, 2));
         JPanel uiLeft = new JPanel(new BorderLayout());
         JPanel uiRight = new JPanel(new BorderLayout());
@@ -51,6 +56,7 @@ public class NhapKho_GUI extends JPanel {
         add(main, BorderLayout.CENTER);
 
     }
+
     public JPanel createSearchBar() {
 
         JPanel outerPanel = new JPanel();
@@ -89,7 +95,11 @@ public class NhapKho_GUI extends JPanel {
         btnRefresh.setFocusPainted(false);
         btnRefresh.setBackground(Color.WHITE);
         btnRefresh.setPreferredSize(new Dimension(115, 28)); // bằng chiều cao txtSearch
-        btnRefresh.addActionListener(e -> searchSP());
+        btnRefresh.addActionListener(e -> {
+            txtSearch.setText("Tìm kiếm");
+            txtSearch.setForeground(Color.GRAY);
+            loadTableData();
+        });
 
         innerPanel.add(txtSearch);
         innerPanel.add(btnRefresh);
@@ -99,6 +109,7 @@ public class NhapKho_GUI extends JPanel {
 
         return outerPanel;
     }
+
     public JScrollPane createTableLeft(){
         String[] cols = {"Mã SP", "Tên sản phẩm", "Số lượng", "Đơn giá"};
 
@@ -128,6 +139,7 @@ public class NhapKho_GUI extends JPanel {
         });
         return scroll;
     }
+
     public JPanel createTailLeft(){
         JPanel tailWrapper = new JPanel(new GridBagLayout());
         tailWrapper.setBorder(new EmptyBorder(10, 0, 60, 0));
@@ -148,6 +160,7 @@ public class NhapKho_GUI extends JPanel {
         tailWrapper.add(tailLeft);
         return tailWrapper;
     }
+
     public JPanel createFormRight(){
         JPanel headRightWrap = new JPanel(new GridLayout(3,2,0,20));
         headRightWrap.setBorder(new EmptyBorder(40,5,15,20));
@@ -167,6 +180,7 @@ public class NhapKho_GUI extends JPanel {
         headRightWrap.add(txtNTP);
         return headRightWrap;
     }
+
     public JPanel createTableRight(){
         JPanel TableRightWrap = new JPanel(new BorderLayout(0, 20));
 
@@ -201,9 +215,11 @@ public class NhapKho_GUI extends JPanel {
         // ===== BUTTON =====
         JPanel btnWrap = new JPanel(new GridLayout(1, 3, 15, 0));
 
-        JButton btnXuat = new JButton("Xuất Excel");
-        JButton btnSua = new JButton("Sửa số lượng");
-        JButton btnXoa = new JButton("Xóa sản phẩm");
+        btnXuat = new JButton("Xuất Excel");
+        btnSua = new JButton("Sửa số lượng");
+        btnXoa = new JButton("Xóa sản phẩm");
+
+        bTnRightEvent();
 
         btnXuat.setFocusPainted(false);
         btnSua.setFocusPainted(false);
@@ -225,6 +241,7 @@ public class NhapKho_GUI extends JPanel {
 
         return TableRightWrap;
     }
+
     public JPanel createTailRight(){
         JPanel tailRightWrapper = new JPanel(new GridBagLayout());
         tailRightWrapper.setBorder(new EmptyBorder(10, 0, 60, 0));
@@ -245,6 +262,7 @@ public class NhapKho_GUI extends JPanel {
         tailRightWrapper.add(tailRight);
         return tailRightWrapper;
     }
+
     private void handleAddProduct() {
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -291,6 +309,7 @@ public class NhapKho_GUI extends JPanel {
         txtTongTien.setText(txtTien);
         txtSoLuong.setText("");
     }
+
     public void loadTableData() {
         tableModel.setRowCount(0); // xóa dữ liệu cũ
         for( SanPham sp : spBus.getAll()){
@@ -302,6 +321,7 @@ public class NhapKho_GUI extends JPanel {
             });
         }
     }
+
     public void loadDataFromKey(){
         tableModel.setRowCount(0); // xóa dữ liệu cũ
         for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText())){
@@ -313,23 +333,25 @@ public class NhapKho_GUI extends JPanel {
             });
         }
     }
+
     public void searchSP(){
         String key = txtSearch.getText().trim();
-        if(key.equalsIgnoreCase("Tìm kiếm") || key.length()<2){
+        if(key.equalsIgnoreCase("Tìm kiếm")){
             loadTableData();
             return;
         }
         loadDataFromKey();
     }
+
     public void txtSearchEvent(){
         txtSearch.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                searchSP();
+                restartTimer();
             }
             @Override
             public void removeUpdate(DocumentEvent e) {
-                searchSP();
+                restartTimer();
             }
             @Override
             public void changedUpdate(DocumentEvent e) {
@@ -353,6 +375,41 @@ public class NhapKho_GUI extends JPanel {
                 }
             }
         });
+    }
+
+    private void restartTimer() {
+        if (searchTimer.isRunning()) { // Nếu Timer đang chạy thì khởi tạo lại,đếm từ 0 -> 1s
+            searchTimer.restart();
+        } else {
+            searchTimer.start();
+        }
+    }
+
+    public void deleteSP(){
+        int row = tableRight.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Sản phẩm không tồn tại,vui lòng chọn lại");
+            return;
+        }
+        long sumMoney = 0;
+        tableModelRight.removeRow(row);
+        for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+            int quantity = Integer.parseInt(
+                    tableModelRight.getValueAt(i, 3).toString()
+            );
+
+            double money = Double.parseDouble(
+                    tableModelRight.getValueAt(i, 5).toString()
+            );
+//            Cập nhật STT sau khi xóa dòng
+            tableModelRight.setValueAt(i+1,i,0);
+            sumMoney += quantity * money;
+        }
+        txtTongTien.setText(String.valueOf(sumMoney));
+    }
+
+    public void bTnRightEvent(){
+        btnXoa.addActionListener(e -> deleteSP());
     }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
