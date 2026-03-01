@@ -5,14 +5,14 @@ import BUS.NV_BUS;
 import javax.swing.*;
 import java.awt.*;
 
-public class  ManHinhDangNhap extends JFrame {
+public class ManHinhDangNhap extends JFrame {
 
     private JTextField txtUsername;
     private JPasswordField txtPassword;
 
     public ManHinhDangNhap() {
         setTitle("Đăng nhập hệ thống");
-        ImageIcon icon = new ImageIcon(getClass().getResource("/Img/ConRua.jpg")); // !!
+        ImageIcon icon = new ImageIcon(getClass().getResource("/Img/ConRua.jpg"));
         setIconImage(icon.getImage());
         setSize(800, 450);
         setLocationRelativeTo(null);
@@ -56,7 +56,6 @@ public class  ManHinhDangNhap extends JFrame {
 
         JLabel header = new JLabel("ĐĂNG NHẬP NGƯỜI DÙNG");
         header.setFont(new Font("Segoe UI", Font.BOLD, 20));
-//        header.setHorizontalAlignment(SwingConstants.CENTER);
         right.add(header, gbc);
 
         gbc.gridy++;
@@ -139,16 +138,16 @@ public class  ManHinhDangNhap extends JFrame {
 
         NV_BUS nvBus = new NV_BUS();
         if(nvBus.login(txtAcc, txtPass)){
-            //Mở giao diện chính
-            ManHinhChinh mainFrame = new ManHinhChinh();
+            // Mở giao diện chính và truyền mã nhân viên
+            ManHinhChinh mainFrame = new ManHinhChinh(txtAcc);
             mainFrame.setVisible(true);
 
-            //Frame chào mừng hiện lên + Tên người dùng
+            // Frame chào mừng hiện lên + Lấy Tên người dùng thực tế từ DB
             SwingUtilities.invokeLater(() ->{
-                new PopupChaoMung(mainFrame, txtAcc);
+                new PopupChaoMung(mainFrame, nvBus.getTenNV_BUS(txtAcc));
             });
-            this.dispose();//Thoát cái giao diện đăng nhập
-        }else{
+            this.dispose(); // Thoát giao diện đăng nhập
+        } else {
             JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu");
 
             txtUsername.setText("");

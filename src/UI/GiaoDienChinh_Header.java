@@ -130,6 +130,8 @@ public class GiaoDienChinh_Header extends JPanel {
         });
     }
 
+
+
     private void updateTitle(){
         title.setText("QUẢN LÝ KHO NƯỚC GIẢI KHÁT  |  " + titleCN);
     }

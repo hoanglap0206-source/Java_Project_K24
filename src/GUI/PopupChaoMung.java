@@ -2,13 +2,11 @@ package GUI;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.plaf.FontUIResource;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-
 
 //Tạo ra giao diện mờ và đè lên giao diện chính
 public class PopupChaoMung extends JDialog {
+
     public PopupChaoMung(JFrame main, String nameUser) {
         super(main, true);
         setUndecorated(true);
@@ -37,9 +35,7 @@ public class PopupChaoMung extends JDialog {
         JPanel pnlCard = new JPanel();
         pnlCard.setLayout(new BoxLayout(pnlCard, BoxLayout.Y_AXIS));
         pnlCard.setBackground(new Color(210, 210, 210));
-        pnlCard.setPreferredSize(new Dimension(400, 250));
         pnlCard.setBorder(new EmptyBorder(20, 20, 20, 20));
-
         pnlCard.add(Box.createVerticalGlue());
 
         //Cho pnlCard bằng 1/2 kích thước của Dialog
@@ -75,19 +71,20 @@ public class PopupChaoMung extends JDialog {
         pnlIcon.setMaximumSize(new Dimension(100, 100));
         pnlIcon.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Hiển thị tên người dùng (Đã nhận giá trị từ ManHinhChinh truyền xuống)
         JLabel lblWelcome = new JLabel("Chào mừng " + nameUser);
         lblWelcome.setFont(new Font("Arial", Font.BOLD, 20));
         lblWelcome.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        pnlCard.add(Box.createVerticalStrut(10)); // Tạo một khoảng trống nhỏ ở trên cùng (nếu muốn)
-        pnlCard.add(pnlIcon);                     // Icon nằm trên
-        pnlCard.add(Box.createVerticalStrut(20)); // Khoảng cách giữa Icon và Chữ
-        pnlCard.add(lblWelcome);                  // Chữ nằm dưới
+        pnlCard.add(Box.createVerticalStrut(10));
+        pnlCard.add(pnlIcon);
+        pnlCard.add(Box.createVerticalStrut(20));
+        pnlCard.add(lblWelcome);
         pnlCard.add(Box.createVerticalGlue());
 
         pnlGreeting.add(pnlCard);
 
-        // Sửa lỗi MouseEvent
+        // Sửa lỗi MouseEvent (click để ẩn JDialog)
         pnlGreeting.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
@@ -99,11 +96,10 @@ public class PopupChaoMung extends JDialog {
 
         // Sẽ tự đóng sau 4s
         new Thread(() -> {
-            try { Thread.sleep(4000); } catch (InterruptedException e) {}
+            try { Thread.sleep(4000); } catch (InterruptedException ignored) {}
             dispose();
         }).start();
 
         setVisible(true);
     }
 }
-
