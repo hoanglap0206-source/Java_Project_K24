@@ -1,51 +1,58 @@
 package GUI;
 
+import Model.NhanVien;
+import BUS.NV_BUS;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import javax.swing.table.*;
+import java.util.ArrayList;
 
 public class TrangQuanLyTaiKhoan extends JPanel {
     private JTable table;
     private DefaultTableModel model;
+    private NV_BUS nvBUS = new NV_BUS();
 
     public TrangQuanLyTaiKhoan() {
         setLayout(new BorderLayout());
-        setBackground(new Color(255,255,255));
+        setBackground(new Color(255, 255, 255));
 
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
+        loadDataFromBUS();
+
     }
 
     private JPanel taoThanhCongCu() {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(Color.WHITE);
-        wrapper.setBorder(new EmptyBorder(15,20,5,20));
+        wrapper.setBorder(new EmptyBorder(15, 20, 5, 20));
 
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,12,8));
-        panel.setBackground(new Color(231,242,245));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
+        panel.setBackground(new Color(231, 242, 245));
         panel.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198,226,255), 2),
-                new EmptyBorder(2,12,2,12)
+                new LineBorder(new Color(198, 226, 255), 2),
+                new EmptyBorder(2, 12, 2, 12)
         ));
 
 
         // Thanh tìm kiếm
         JTextField txtSearch = new JTextField("Tìm kiếm");
         txtSearch.setColumns(15);
-        txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
+        txtSearch.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         txtSearch.setForeground(Color.GRAY);
 
         JPanel pnlSearchInput = new JPanel(new BorderLayout());
         pnlSearchInput.setBackground(Color.WHITE);
-        pnlSearchInput.setPreferredSize(new Dimension(260,30));
+        pnlSearchInput.setPreferredSize(new Dimension(260, 30));
         pnlSearchInput.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198,226,255), 2, true),
-                new EmptyBorder(0,2,0,0)
+                new LineBorder(new Color(198, 226, 255), 2, true),
+                new EmptyBorder(0, 2, 0, 0)
         ));
 
         JButton btnSearchIcon = new JButton("🔍");
-        btnSearchIcon.setBackground(new Color(214,238,253));
+        btnSearchIcon.setBackground(new Color(214, 238, 253));
         btnSearchIcon.setBorderPainted(false);
         btnSearchIcon.setFocusPainted(false);
         btnSearchIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -150,7 +157,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         JPanel pnl = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnl.setBackground(Color.WHITE);
 
-        JLabel lblTitle = new JLabel("DANH SÁCH SẢN PHẨM");
+        JLabel lblTitle = new JLabel("DANH SÁCH TÀI KHOẢN");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblTitle.setForeground(Color.BLACK);
 
@@ -164,21 +171,18 @@ public class TrangQuanLyTaiKhoan extends JPanel {
                 "Username", "Vai trò", "Trạng thái", "Xem chi tiết"
         };
 
-        Object[][] data = {
-                {1, "Nguyễn Văn A", "09000001", "nv001", "Nhân viên", "Active", "Xem"},
-                {2, "Nguyễn Văn B", "09000002", "nv002", "Nhân viên", "Banned", "Xem"}
-        };
-
-        table = new JTable(data, columns) {
+        model = new DefaultTableModel(columns, 0) {
+            @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 6; // chỉ cho bấm nút Xem
+                return column == 6;
             }
         };
 
+        table = new JTable(model);
         table.setRowHeight(30);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        table.getTableHeader().setBackground(new Color(210,230,255));
+        table.getTableHeader().setBackground(new Color(210, 230, 255));
         table.getTableHeader().setReorderingAllowed(false);
 
         // Căn giữa toàn bộ
@@ -205,7 +209,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
                     String status = value.toString();
 
                     if (status.equals("Active")) {
-                        lbl.setForeground(new Color(0,128,0));
+                        lbl.setForeground(new Color(0, 128, 0));
                     } else if (status.equals("Banned")) {
                         lbl.setForeground(Color.RED);
                     }
@@ -220,7 +224,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         table.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor(new JCheckBox()));
 
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(new LineBorder(new Color(180,180,180)));
+        scrollPane.setBorder(new LineBorder(new Color(180, 180, 180)));
 
         return scrollPane;
     }
@@ -229,7 +233,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         public ButtonRenderer() {
             setText("Xem");
             setFocusPainted(false);
-            setBackground(new Color(220,220,220));
+            setBackground(new Color(220, 220, 220));
         }
 
         @Override
@@ -260,6 +264,33 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         public Object getCellEditorValue() {
             JOptionPane.showMessageDialog(button, "Xem chi tiết tài khoản");
             return "Xem";
+        }
+    }
+
+
+    private void loadDataFromBUS() {
+        model.setRowCount(0);
+
+        ArrayList<NhanVien> list = nvBUS.getAll();
+
+        int stt = 1;
+        for (NhanVien nv : list) {
+
+            String statusRaw = nv.getTrangThai();
+            String statusShow =
+                    "HoatDong".equalsIgnoreCase(statusRaw)
+                            ? "Active"
+                            : "Banned";
+
+            model.addRow(new Object[]{
+                    stt++,
+                    nv.getHoTen(),
+                    nv.getSDT(),
+                    nv.getMaNV(),
+                    nv.getChucVu(),
+                    statusShow,
+                    "Xem"
+            });
         }
     }
 }
