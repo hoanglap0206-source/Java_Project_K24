@@ -260,7 +260,7 @@ public class XuatKho_GUI extends JPanel {
         JLabel lblTongTien = new JLabel("TỔNG TIỀN NHẬP");
         txtTongTien = new JTextField("0", 10);
         txtTongTien.setEditable(false);
-        JButton btnNhap = new JButton("Nhập hàng");
+        JButton btnNhap = new JButton("Xuất hàng");
         btnNhap.setBackground(new Color(102, 255, 102));
         btnNhap.setFocusPainted(false);
 
@@ -342,7 +342,7 @@ public class XuatKho_GUI extends JPanel {
 
     public void loadDataFromKey(){
         tableModel.setRowCount(0); // xóa dữ liệu cũ
-        for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText())){
+        for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText().trim())){
             tableModel.addRow(new Object[]{
                     sp.getMaSP(),
                     sp.getTenSP(),

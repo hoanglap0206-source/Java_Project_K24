@@ -341,7 +341,7 @@ public class NhapKho_GUI extends JPanel {
 
     public void loadDataFromKey(){
         tableModel.setRowCount(0); // xóa dữ liệu cũ
-        for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText())){
+        for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText().trim())){
             tableModel.addRow(new Object[]{
                     sp.getMaSP(),
                     sp.getTenSP(),
