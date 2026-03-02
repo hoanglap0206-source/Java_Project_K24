@@ -1,7 +1,11 @@
 package BUS;
 
 import DAO.PhieuXuat_DAO;
+import Model.ChiTiet_PhieuXuat;
 import Model.PhieuXuat;
+import Model.SanPham;
+
+import javax.swing.table.DefaultTableModel;
 import java.util.ArrayList;
 
 public class PhieuXuat_BUS {
@@ -35,6 +39,28 @@ public class PhieuXuat_BUS {
         return "Thêm thất bại!";
     }
 
+//    public boolean insertPX(PhieuXuat px, DefaultTableModel model,){
+//        if(!pxDAO.insert(px)){
+//            return false;
+//        }
+//        for (int i=0;i<model.getRowCount();i++){
+//            PhieuXuat pX = new PhieuXuat();
+//            pX.setMaPX(px.getMaPX());
+//
+//            String maSP = model.getValueAt(i,1).toString();
+//            SanPham sp = new SanPham();
+//            sp.setMaSP(maSP);
+//
+//            int soLuong = Integer.parseInt(model.getValueAt(i,3).toString());
+//
+//            double donGia = Double.parseDouble(model.getValueAt(i,5).toString());
+//
+//            long thanhTien =0;
+//            thanhTien += soLuong*donGia;
+//
+//            ChiTiet_PhieuXuat ctPX = new ChiTiet_PhieuXuat(pX,sp,soLuong,donGia,thanhTien);
+//        }
+//    }
     public String updatePhieuXuat(PhieuXuat px) {
         if (pxDAO.update(px)) {
             for (int i = 0; i < listPX.size(); i++)

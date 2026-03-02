@@ -28,8 +28,8 @@ public class ChiTietPN_DAO {
                 ct.setPhieuNhap(pn);
                 ct.setSanPham(sp);
                 ct.setSoLuong(rs.getInt("sl"));
-                ct.setDonGia(rs.getFloat("don_gia"));
-                ct.setThanhTien(rs.getFloat("thanh_tien"));
+                ct.setDonGia(rs.getDouble("don_gia"));
+                ct.setThanhTien(rs.getLong("thanh_tien"));
                 list.add(ct);
             }
         } catch (Exception e) {
@@ -46,8 +46,8 @@ public class ChiTietPN_DAO {
             ps.setString(1,ct.getPhieuNhap().getMaPN());
             ps.setString(2,ct.getSanPham().getMaSP());
             ps.setInt(3,ct.getSoLuong());
-            ps.setFloat(4,ct.getDonGia());
-            ps.setFloat(5,ct.getThanhTien());
+            ps.setDouble(4,ct.getDonGia());
+            ps.setLong(5,ct.getThanhTien());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
@@ -63,8 +63,8 @@ public class ChiTietPN_DAO {
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
             ps.setInt(1,ct.getSoLuong());
-            ps.setFloat(2,ct.getDonGia());
-            ps.setFloat(3,ct.getThanhTien());
+            ps.setDouble(2,ct.getDonGia());
+            ps.setLong(3,ct.getThanhTien());
             ps.setString(4,ct.getPhieuNhap().getMaPN());
             ps.setString(5,ct.getSanPham().getMaSP());
             int rows = ps.executeUpdate();

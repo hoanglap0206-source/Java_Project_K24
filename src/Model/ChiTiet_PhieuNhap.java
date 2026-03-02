@@ -4,13 +4,13 @@ public class ChiTiet_PhieuNhap {
     private PhieuNhap phieuNhap;
     private SanPham sanPham;
     private int soLuong;
-    private float donGia;
-    private float thanhTien;
+    private double donGia;
+    private long thanhTien;
 
     public ChiTiet_PhieuNhap() {
     }
 
-    public ChiTiet_PhieuNhap(PhieuNhap phieuNhap, SanPham sanPham, int soLuong, float donGia, float thanhTien) {
+    public ChiTiet_PhieuNhap(PhieuNhap phieuNhap, SanPham sanPham, int soLuong, double donGia, long thanhTien) {
         this.phieuNhap = phieuNhap;
         this.sanPham = sanPham;
         this.soLuong = soLuong;
@@ -42,19 +42,19 @@ public class ChiTiet_PhieuNhap {
         this.soLuong = soLuong;
     }
 
-    public float getDonGia() {
+    public double getDonGia() {
         return donGia;
     }
 
-    public void setDonGia(float donGia) {
+    public void setDonGia(double donGia) {
         this.donGia = donGia;
     }
 
-    public float getThanhTien() {
+    public long getThanhTien() {
         return thanhTien;
     }
 
-    public void setThanhTien(float thanhTien) {
+    public void setThanhTien(long thanhTien) {
         this.thanhTien = thanhTien;
     }
 }

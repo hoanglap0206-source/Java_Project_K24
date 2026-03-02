@@ -1,6 +1,10 @@
 package UI;
 
+import BUS.PhieuNhap_BUS;
 import BUS.SanPham_BUS;
+import Model.NhaCungCap;
+import Model.NhanVien;
+import Model.PhieuNhap;
 import Model.SanPham;
 
 import javax.swing.*;
@@ -16,11 +20,13 @@ import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class NhapKho_GUI extends JPanel {
     private JTextField txtSearch;
     private SanPham_BUS spBus = new SanPham_BUS();
+    private PhieuNhap_BUS pnBus = new PhieuNhap_BUS();
     private DefaultTableModel tableModel;
     private JTable table;
     JTextField txtSoLuong;
@@ -30,10 +36,10 @@ public class NhapKho_GUI extends JPanel {
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private Timer searchTimer; //Biến lưu giá trị thời gian khi người dùng nhập dữ liệu
-    private JButton btnXuat,btnXoa,btnSua;
+    private JButton btnXuat,btnXoa,btnSua,btnNhap;
     private boolean isEditMode = false;
     private JTextField txtSoLuongRight;
-    private JTextField txtNTP,txtID;
+    private JTextField txtNTP,txtID,txtNCC;
     private String maNV = GiaoDienChinh_Main.currentMaNV;
 
     public NhapKho_GUI() {
@@ -169,11 +175,11 @@ public class NhapKho_GUI extends JPanel {
         JPanel headRightWrap = new JPanel(new GridLayout(3,2,0,20));
         headRightWrap.setBorder(new EmptyBorder(40,5,15,20));
         JLabel lblID = new JLabel("Mã phiếu nhập");
-        JLabel lblNCC = new JLabel("Nhà cung cấp");
+        JLabel lblNCC = new JLabel("Nhà Cung Cấp");
         JLabel lblNTP = new JLabel("Người tạo phiếu");
         txtID = new JTextField("Tự động tạo");
         txtID.setEnabled(false);
-        JTextField txtNCC = new JTextField("Tên nhà cung cấp");
+        txtNCC = new JTextField("Mã nhà cung cấp");
         txtNTP = new JTextField("Tên người dùng");
         txtNTP.setEnabled(false);
         headRightWrap.add(lblID);
@@ -262,7 +268,7 @@ public class NhapKho_GUI extends JPanel {
         JLabel lblTongTien = new JLabel("TỔNG TIỀN NHẬP");
         txtTongTien = new JTextField("0", 10);
         txtTongTien.setEditable(false);
-        JButton btnNhap = new JButton("Nhập hàng");
+        btnNhap = new JButton("Nhập hàng");
         btnNhap.setBackground(new Color(102, 255, 102));
         btnNhap.setFocusPainted(false);
 
@@ -460,9 +466,66 @@ public class NhapKho_GUI extends JPanel {
         });
     }
 
+    public void taoPN(){
+        txtNCC.addFocusListener(new FocusAdapter() {
+            @Override
+//            Khi nhấn vào ô search
+            public void focusGained(FocusEvent e) {
+                if(txtNCC.getText().equalsIgnoreCase("Mã Nhà Cung Cấp")){
+                    txtNCC.setText("");
+                    txtNCC.setForeground(Color.BLACK);
+                }
+            }
+            //            Khi nhấn nơi khác
+//            @Override
+//            public void focusLost(FocusEvent e) {
+//                if(txtSearch.getText().isEmpty()){
+//                    txtSearch.setText("Nhà cung cấp");
+//                    txtSearch.setForeground(Color.GRAY);
+//                }
+//            }
+        });
+        DateTimeFormatter date_form =
+                DateTimeFormatter.ofPattern("ddMMyyyy");
+        String ngayNhap = LocalDate.now().format(date_form);
+        String maPN = "PN" + maNV + ngayNhap;
+
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        String ManCC = txtNCC.getText().trim();
+        NhaCungCap ncc = new NhaCungCap();
+        ncc.setMaNCC(ManCC);
+        if(ManCC.isEmpty() || ManCC.equalsIgnoreCase("Mã nhà cung cấp")){
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập mã Nhà Cung Cấp");
+            return;
+        }
+
+        NhanVien nv = new NhanVien();
+        nv.setMaNV(maNV);
+
+        PhieuNhap pn = new PhieuNhap(maPN,dateTime,ncc,nv);
+        if (pnBus.insertPN(pn,tableModelRight)){
+            JOptionPane.showMessageDialog(this, "Thêm phiếu thành công");
+            return;
+        }else{
+            JOptionPane.showMessageDialog(this, "Thêm phiếu thất bại");
+            return;
+        }
+    }
     public void bTnRightEvent(){
         btnXoa.addActionListener(e -> deleteSP());
         UpdateSP();
+        btnNhap.addActionListener(e ->{
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Bạn có muốn thêm Phiếu nhập?",
+                    "Xác nhận",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+               taoPN();
+            }
+        });
     }
 //    public static void main(String[] args) {
 //        SwingUtilities.invokeLater(() -> {

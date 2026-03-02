@@ -22,17 +22,24 @@ public class ChiTietPN_BUS {
     }
 
     public String addCTPN(ChiTiet_PhieuNhap CTPN){
-        if(CTPN.getSoLuong()<=0) return "Số Lượng phải lớn hơn 0";
-        for(ChiTiet_PhieuNhap items:listPN){
-            if(items.getPhieuNhap().getMaPN().equals(CTPN.getPhieuNhap().getMaPN())
-            || items.getSanPham().getMaSP().equals(CTPN.getSanPham().getMaSP()))
-                return"Sản phẩm này đã có trong phiếu nhập.Hãy dùng chức năng cập nhật số lương!";
+        if (CTPN.getSoLuong() <= 0)
+            return "Số lượng phải lớn hơn 0";
+
+        for (ChiTiet_PhieuNhap items : listPN) {
+            if (
+                    items.getPhieuNhap().getMaPN().equals(CTPN.getPhieuNhap().getMaPN())
+                            && items.getSanPham().getMaSP().equals(CTPN.getSanPham().getMaSP())
+            ) {
+                return "Sản phẩm này đã có trong phiếu nhập. Hãy cập nhật số lượng!";
+            }
         }
-        if(CTPNDAO.insert(CTPN)){
+
+        if (CTPNDAO.insert(CTPN)) {
             listPN.add(CTPN);
-            return"thêm phiếu nhập thành công!";
+            return "Thêm chi tiết phiếu nhập thành công!";
         }
-        return"Thêm phiếu nhập thất bại!";
+
+        return "Thêm chi tiết phiếu nhập thất bại!";
     }
 
     public String updateCTPN(ChiTiet_PhieuNhap ct){
@@ -41,7 +48,7 @@ public class ChiTietPN_BUS {
             for(int i=0;i<listPN.size();i++){
                 ChiTiet_PhieuNhap item= listPN.get(i);
                 if(item.getPhieuNhap().getMaPN().equals(ct.getPhieuNhap().getMaPN())
-                || item.getSanPham().getMaSP().equals(ct.getSanPham().getMaSP())) {
+                        || item.getSanPham().getMaSP().equals(ct.getSanPham().getMaSP())) {
                     listPN.set(i, ct);
                     break;
                 }
@@ -55,7 +62,7 @@ public class ChiTietPN_BUS {
         if(CTPNDAO.delete(maPN,maSP))
         {
             listPN.removeIf(bc->bc.getPhieuNhap().getMaPN().equals(maPN)
-            && bc.getSanPham().getMaSP().equals(maSP));
+                    && bc.getSanPham().getMaSP().equals(maSP));
             return "Đã xoá sản phẩm khỏi phiếu!";
         }
         return"Xoá thất bại!";

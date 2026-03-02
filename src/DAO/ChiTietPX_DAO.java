@@ -28,8 +28,8 @@ public class ChiTietPX_DAO {
                 ct.setPhieuXuat(px);
                 ct.setSanPham(sp);
                 ct.setSoLuong(rs.getInt("sl"));
-                ct.setDonGia(rs.getFloat("don_gia"));
-                ct.setThanhTien(rs.getFloat("thanh_tien"));
+                ct.setDonGia(rs.getDouble("don_gia"));
+                ct.setThanhTien(rs.getLong("thanh_tien"));
                 ct.setThueVAT(rs.getFloat("thue_vat"));
                 list.add(ct);
             }
@@ -48,8 +48,8 @@ public class ChiTietPX_DAO {
             ps.setString(1,ct.getPhieuXuat().getMaPX());
             ps.setString(2,ct.getSanPham().getMaSP());
             ps.setInt(3,ct.getSoLuong());
-            ps.setFloat(4,ct.getDonGia());
-            ps.setFloat(5,ct.getThanhTien());
+            ps.setDouble(4,ct.getDonGia());
+            ps.setLong(5,ct.getThanhTien());
             ps.setFloat(6,ct.getThueVAT());
             int rows = ps.executeUpdate();
             return rows > 0;
@@ -66,8 +66,8 @@ public class ChiTietPX_DAO {
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
             ps.setInt(1,ct.getSoLuong());
-            ps.setFloat(2,ct.getDonGia());
-            ps.setFloat(3,ct.getThanhTien());
+            ps.setDouble(2,ct.getDonGia());
+            ps.setLong(3,ct.getThanhTien());
             ps.setFloat(4,ct.getThueVAT());
             ps.setString(5,ct.getPhieuXuat().getMaPX());
             ps.setString(6,ct.getSanPham().getMaSP());
