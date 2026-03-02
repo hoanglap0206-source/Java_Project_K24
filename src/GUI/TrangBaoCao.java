@@ -5,6 +5,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
 public class TrangBaoCao extends JPanel {
@@ -105,21 +106,22 @@ public class TrangBaoCao extends JPanel {
         pnlTableHeader.add(pnlMaBaoCao, BorderLayout.EAST);
 
 
-        String[] columns = {"Mã SP", "Tên SP", "Đơn vị tính", "Số lượng (đã nhập/xuất)", "Đơn giá"};
+        String[] columns = {"Mã báo cáo", "Đơn vị tính", "Số lượng (đã nhập/xuất)", "Đơn giá","Xem chi tiết"};
         Object[][] data = {
-                {"SP001", "Pepsi", "Lon", "100", "10.000"},
-                {"SP002", "Coca", "Chai", "50", "12.000"},
-                {"SP003", "Sting", "Chai", "200", "11.000"},
-                {"SP004", "Trà xanh", "Chai", "5", "9.000"}
+                {"BC001",  "Lon", "100", "10.000","Xem"},
+                {"BC002",  "Chai", "50", "12.000","Xem"},
+                {"BC003",  "Chai", "200", "11.000","Xem"},
+                {"BC004",  "Chai", "5", "9.000","Xem"}
         };
         DefaultTableModel model = new DefaultTableModel(data, columns) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return column==4;
             }
         };
         JTable table = new JTable(model);
         table.setRowHeight(30);
+
 
 
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
@@ -128,6 +130,12 @@ public class TrangBaoCao extends JPanel {
         table.getTableHeader().setReorderingAllowed(false);
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(new LineBorder(Color.BLACK, 1));
+        table.getColumnModel().getColumn(4).setCellRenderer(new TrangBaoCao.ButtonRenderer());
+        table.getColumnModel().getColumn(4).setCellEditor(new TrangBaoCao.ButtonEditor(new JCheckBox()));
+
+
+
+
 
 
         pnlCenter.add(pnlTableHeader, BorderLayout.NORTH);
@@ -155,7 +163,65 @@ public class TrangBaoCao extends JPanel {
         add(pnlSouth,BorderLayout.SOUTH);
 
     }
-    public static void main(String[]  args){
+
+    class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {
+            setText("Xem");
+            setFocusPainted(false);
+            setBackground(new Color(220,220,220));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+            return this;
+        }
+    }
+
+    class ButtonEditor extends DefaultCellEditor {
+        protected JButton button;
+        private JTable table;
+        private int currentRow;
+
+        public ButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton("Xem");
+            button.setFocusPainted(false);
+            button.setBackground(new Color(147, 211, 255));
+            button.addActionListener(e -> {
+                // Dừng trạng thái edit của ô bảng để tránh lỗi hiển thị
+                fireEditingStopped();
+
+                // Gọi hàm hiển thị cửa sổ chi tiết
+                hienThiChiTietSanPham();
+            });
+        }
+        @Override
+        public Component getTableCellEditorComponent(JTable table,Object value,boolean isSelected,int row,int column){
+            this.table=table;
+            this.currentRow=row;
+            return button;
+        }
+        private void hienThiChiTietSanPham() {
+            // Lấy dữ liệu từ dòng hiện tại của JTable
+
+            String mabc = table.getValueAt(currentRow, 0).toString();
+            String dvt = table.getValueAt(currentRow, 1).toString();
+            String soLuong = table.getValueAt(currentRow, 2).toString();
+            String donGia = table.getValueAt(currentRow, 3).toString();
+
+
+            Window parentWindow = SwingUtilities.getWindowAncestor(button);
+
+
+            ChiTietSanPham_Dialog dialog = new ChiTietSanPham_Dialog(parentWindow,  mabc, dvt, soLuong, donGia);
+            dialog.setVisible(true); // Hiển thị UI
+        }
+        }
+
+
+        public static void main(String[]  args){
         SwingUtilities.invokeLater(()->
         {
             JFrame frame =new JFrame(" Bao cao");
@@ -170,3 +236,4 @@ public class TrangBaoCao extends JPanel {
     }
 
 }
+
