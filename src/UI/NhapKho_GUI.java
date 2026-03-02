@@ -464,14 +464,14 @@ public class NhapKho_GUI extends JPanel {
         btnXoa.addActionListener(e -> deleteSP());
         UpdateSP();
     }
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame f = new JFrame("Nhập kho");
-            f.setContentPane(new NhapKho_GUI());
-            f.setSize(1200, 800);
-            f.setLocationRelativeTo(null);
-            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            f.setVisible(true);
-        });
-    }
+//    public static void main(String[] args) {
+//        SwingUtilities.invokeLater(() -> {
+//            JFrame f = new JFrame("Nhập kho");
+//            f.setContentPane(new NhapKho_GUI());
+//            f.setSize(1200, 800);
+//            f.setLocationRelativeTo(null);
+//            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//            f.setVisible(true);
+//        });
+//    }
 }

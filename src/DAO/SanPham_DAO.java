@@ -176,7 +176,6 @@ public class SanPham_DAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return list;
     }
 
