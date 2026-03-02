@@ -142,8 +142,8 @@ public class TrangBaoCao extends JPanel {
         lblTong.setFont(new Font("Arial", Font.PLAIN, 14));
 
 
-        JButton btnAdd=new JButton("+Thêm báo cáo");
-        btnAdd.setBackground(new Color(66,133,244));
+        JButton btnAdd=new JButton("Xoá báo cáo");
+        btnAdd.setBackground(new Color(244, 66, 66));
         btnAdd.setForeground(Color.WHITE);
         btnAdd.setFont(new Font("Arial",Font.BOLD,12));
         btnAdd.setFocusPainted(false);
