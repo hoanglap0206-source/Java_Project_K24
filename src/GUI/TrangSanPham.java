@@ -1,5 +1,8 @@
 package GUI;
 
+import BUS.SanPham_BUS;
+import Model.SanPham;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -9,43 +12,46 @@ public class TrangSanPham extends JPanel {
     private JTable table;
     private DefaultTableModel model;
 
+    private SanPham_BUS spBus = new SanPham_BUS();
+
     public TrangSanPham() {
         setLayout(new BorderLayout());
-        setBackground(new Color(255,255,255));
+        setBackground(new Color(255, 255, 255));
 
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
+        loadTableData();
     }
 
     private JPanel taoThanhCongCu() {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(Color.WHITE);
-        wrapper.setBorder(new EmptyBorder(15,20,5,20));
+        wrapper.setBorder(new EmptyBorder(15, 20, 5, 20));
 
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,12,8));
-        panel.setBackground(new Color(231,242,245));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
+        panel.setBackground(new Color(231, 242, 245));
         panel.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198,226,255), 2),
-                new EmptyBorder(2,12,2,12)
+                new LineBorder(new Color(198, 226, 255), 2),
+                new EmptyBorder(2, 12, 2, 12)
         ));
 
 
         // Thanh tìm kiếm
         JTextField txtSearch = new JTextField("Tìm kiếm");
         txtSearch.setColumns(15);
-        txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
+        txtSearch.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         txtSearch.setForeground(Color.GRAY);
 
         JPanel pnlSearchInput = new JPanel(new BorderLayout());
         pnlSearchInput.setBackground(Color.WHITE);
-        pnlSearchInput.setPreferredSize(new Dimension(260,30));
+        pnlSearchInput.setPreferredSize(new Dimension(260, 30));
         pnlSearchInput.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198,226,255), 2, true),
-                new EmptyBorder(0,2,0,0)
+                new LineBorder(new Color(198, 226, 255), 2, true),
+                new EmptyBorder(0, 2, 0, 0)
         ));
 
         JButton btnSearchIcon = new JButton("🔍");
-        btnSearchIcon.setBackground(new Color(214,238,253));
+        btnSearchIcon.setBackground(new Color(214, 238, 253));
         btnSearchIcon.setBorderPainted(false);
         btnSearchIcon.setFocusPainted(false);
         btnSearchIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -164,12 +170,14 @@ public class TrangSanPham extends JPanel {
                 "Số lượng", "Giá nhập", "Mã kệ", "Trạng thái"
         };
 
-        Object[][] data = {
-                {1, "SKU001", "Xà xị", "Thùng", 100, "150.000.000đ", "A1", "Còn hàng"},
-                {2, "SKU002", "Coca Cola", "Thùng", 0, "150.000.000đ", "A1", "Hết hàng"}
+        model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Không cho sửa trực tiếp trên bảng
+            }
         };
 
-        table = new JTable(data, columns);
+        table = new JTable(model);
         table.setRowHeight(30);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -228,5 +236,35 @@ public class TrangSanPham extends JPanel {
         scrollPane.setBorder(new LineBorder(new Color(180, 180, 180)));
 
         return scrollPane;
+    }
+
+
+    private void loadTableData() {
+        if (model == null) return;
+        model.setRowCount(0);
+
+        int stt = 1;
+        java.text.DecimalFormat df = new java.text.DecimalFormat("#,###đ");
+
+        // Sửa lại thành getAll() theo đúng file BUS của bạn
+        for (SanPham sp : spBus.getAll()) {
+
+            // Logic trạng thái
+            String trangThai = (sp.getSoLuong() > 0) ? "Còn hàng" : "Hết hàng";
+
+            // Lấy mã kệ từ đối tượng KeKho bên trong SanPham (dùng đúng tên biến make)
+            String make = (sp.getKeKho() != null) ? sp.getKeKho().getMaKe() : "Chưa có";
+
+            model.addRow(new Object[]{
+                    stt++,
+                    sp.getMaSP(),
+                    sp.getTenSP(),
+                    sp.getDonViTinh(),
+                    sp.getSoLuong(),
+                    df.format(sp.getGiaTien()),
+                    make, // Phải trùng với tên biến khai báo ở trên
+                    trangThai
+            });
+        }
     }
 }
