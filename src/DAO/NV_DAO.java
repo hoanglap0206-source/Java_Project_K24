@@ -25,6 +25,7 @@ public class NV_DAO {
                 nv.setMatKhau(rs.getString("mat_khau"));
                 nv.setChucVu(rs.getString("chuc_vu"));
                 nv.setTrangThai(rs.getString("trang_thai"));
+                nv.setSDT(rs.getString("sdt"));
                 list.add(nv);
             }
         } catch (Exception e) {
@@ -33,7 +34,7 @@ public class NV_DAO {
         return list;
     }
     public boolean insert(NhanVien nv){
-        String sql ="INSERT INTO NHAN_VIEN(ma_nhan_vien,ho_ten,mat_khau,chuc_vu,trang_thai) VALUES (?, ?, ?,?,?)";
+        String sql ="INSERT INTO NHAN_VIEN(ma_nhan_vien,ho_ten,mat_khau,chuc_vu,trang_thai,sdt) VALUES (?, ?, ?,?,?,?)";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
@@ -43,6 +44,7 @@ public class NV_DAO {
             ps.setString(3,nv.getMatKhau());
             ps.setString(4,nv.getChucVu());
             ps.setString(5,nv.getTrangThai());
+            ps.setString(6,nv.getSDT());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
@@ -55,7 +57,7 @@ public class NV_DAO {
 //  các thuộc tính,bao gồm ma_nhan_vien khi click vào dòng chứa nhân viên đó (MouseListener)
 //  lưu ý: không nên sửa đổi mã nhân viên. hàm xóa cũng tương tự
         String sql =
-                "UPDATE NHAN_VIEN SET ho_ten=?,mat_khau=?,chuc_vu=?,trang_thai=? WHERE ma_nhan_vien=?";
+                "UPDATE NHAN_VIEN SET ho_ten=?,mat_khau=?,chuc_vu=?,trang_thai=?,sdt=? WHERE ma_nhan_vien=?";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
@@ -64,7 +66,8 @@ public class NV_DAO {
             ps.setString(2,nv.getMatKhau());
             ps.setString(3,nv.getChucVu());
             ps.setString(4,nv.getTrangThai());
-            ps.setString(5,nv.getMaNV());
+            ps.setString(5,nv.getSDT());
+            ps.setString(6,nv.getMaNV());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {

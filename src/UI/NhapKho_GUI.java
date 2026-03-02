@@ -31,9 +31,13 @@ public class NhapKho_GUI extends JPanel {
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private Timer searchTimer; //Biến lưu giá trị thời gian khi người dùng nhập dữ liệu
     private JButton btnXuat,btnXoa,btnSua;
+    private boolean isEditMode = false;
+    private JTextField txtSoLuongRight;
+    private JTextField txtNTP,txtID;
+    private String maNV = GiaoDienChinh_Main.currentMaNV;
 
     public NhapKho_GUI() {
-        searchTimer = new Timer(1000, e -> searchSP()); // Đợi người dùng ngưng 1s mới gọi hàm
+        searchTimer = new Timer(500, e -> searchSP()); // Đợi người dùng ngưng 1s mới gọi hàm
         searchTimer.setRepeats(false); // Chạy 1 lần duy nhất,không lặp
 
         JPanel main = new JPanel(new GridLayout(1, 2));
@@ -167,10 +171,10 @@ public class NhapKho_GUI extends JPanel {
         JLabel lblID = new JLabel("Mã phiếu nhập");
         JLabel lblNCC = new JLabel("Nhà cung cấp");
         JLabel lblNTP = new JLabel("Người tạo phiếu");
-        JTextField txtID = new JTextField("Tự động tạo");
+        txtID = new JTextField("Tự động tạo");
         txtID.setEnabled(false);
         JTextField txtNCC = new JTextField("Tên nhà cung cấp");
-        JTextField txtNTP = new JTextField("Tên người dùng");
+        txtNTP = new JTextField("Tên người dùng");
         txtNTP.setEnabled(false);
         headRightWrap.add(lblID);
         headRightWrap.add(txtID);
@@ -189,7 +193,7 @@ public class NhapKho_GUI extends JPanel {
         tableModelRight = new DefaultTableModel(colsRight, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return isEditMode && column == 3;
             }
         };
         tableRight = new JTable(tableModelRight);
@@ -212,7 +216,13 @@ public class NhapKho_GUI extends JPanel {
         // add bảng vào CENTER
         TableRightWrap.add(scrollRight, BorderLayout.CENTER);
 
-        // ===== BUTTON =====
+        // ===== BUTTON & Text =====
+        JPanel Container = new JPanel(new GridLayout(2,1,5,5));
+        JPanel SoLGWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        JLabel lblSoLuong = new JLabel("SỐ LƯỢNG");
+        txtSoLuongRight = new JTextField("0",5);
+        SoLGWrap.add(lblSoLuong);
+        SoLGWrap.add(txtSoLuongRight);
         JPanel btnWrap = new JPanel(new GridLayout(1, 3, 15, 0));
 
         btnXuat = new JButton("Xuất Excel");
@@ -232,9 +242,10 @@ public class NhapKho_GUI extends JPanel {
         btnWrap.add(btnXuat);
         btnWrap.add(btnSua);
         btnWrap.add(btnXoa);
-
+        Container.add(SoLGWrap);
+        Container.add(btnWrap);
         JPanel btnContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        btnContainer.add(btnWrap);
+        btnContainer.add(Container);
 
         // add nút xuống SOUTH
         TableRightWrap.add(btnContainer, BorderLayout.SOUTH);
@@ -336,7 +347,7 @@ public class NhapKho_GUI extends JPanel {
 
     public void searchSP(){
         String key = txtSearch.getText().trim();
-        if(key.equalsIgnoreCase("Tìm kiếm")){
+        if(key.equalsIgnoreCase("Tìm kiếm") || key.isEmpty()){
             loadTableData();
             return;
         }
@@ -408,8 +419,50 @@ public class NhapKho_GUI extends JPanel {
         txtTongTien.setText(String.valueOf(sumMoney));
     }
 
+    public void UpdateSP(){
+        tableRight.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                int row = tableRight.getSelectedRow();
+                if (row == -1) return;
+                // UX: cho con trỏ nhảy sang ô nhập số lượng
+                txtSoLuongRight.requestFocus();
+            }
+        });
+        btnSua.addActionListener(e->{
+            int row = tableRight.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Sản phẩm không tồn tại,vui lòng chọn lại");
+                return;
+            }
+            int soLuong;
+            try {
+                soLuong = Integer.parseInt(txtSoLuongRight.getText());
+                if (soLuong <= 0) throw new Exception();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+                return;
+            }
+            tableModelRight.setValueAt(soLuong,row,3);
+            long sumMoney = 0;
+            for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+                int quantity = Integer.parseInt(
+                        tableModelRight.getValueAt(i, 3).toString()
+                );
+
+                double money = Double.parseDouble(
+                        tableModelRight.getValueAt(i, 5).toString()
+                );
+                sumMoney += quantity * money;
+            }
+            txtTongTien.setText(String.valueOf(sumMoney));
+        });
+    }
+
     public void bTnRightEvent(){
         btnXoa.addActionListener(e -> deleteSP());
+        UpdateSP();
     }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

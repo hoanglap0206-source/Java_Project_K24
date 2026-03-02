@@ -53,6 +53,7 @@ public class SanPham_DAO {
             ps.setString(1, input);
             ps.setString(2, keyword);
             ps.setString(3, keyword);
+            ps.setString(4,input);
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 SanPham sp = new SanPham();

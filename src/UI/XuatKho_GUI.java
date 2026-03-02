@@ -31,6 +31,9 @@ public class XuatKho_GUI extends JPanel {
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private Timer searchTimer;
     private JButton btnXuat,btnXoa,btnSua;
+    private boolean isEditMode = false;
+    private JTextField txtSoLuongRight,txtID,txtNTP;
+    private String maNV = GiaoDienChinh_Main.currentMaNV;
 
     XuatKho_GUI(){
         searchTimer = new Timer(500, e -> searchSP());
@@ -166,10 +169,10 @@ public class XuatKho_GUI extends JPanel {
         JLabel lblID = new JLabel("Mã phiếu xuất");
         JLabel lblNCC = new JLabel("Tên khách hàng");
         JLabel lblNTP = new JLabel("Người tạo phiếu");
-        JTextField txtID = new JTextField("Tự động tạo");
+        txtID = new JTextField("Tự động tạo");
         txtID.setEnabled(false);
         JTextField txtNCC = new JTextField("Tên khách hàng");
-        JTextField txtNTP = new JTextField("Tên người dùng");
+        txtNTP = new JTextField();
         txtNTP.setEnabled(false);
         headRightWrap.add(lblID);
         headRightWrap.add(txtID);
@@ -180,9 +183,7 @@ public class XuatKho_GUI extends JPanel {
         return headRightWrap;
     }
 
-    public JPanel createTableRight() {
-
-        // ===== WRAP TỔNG (FIX: KHÔNG DÙNG GRIDLAYOUT) =====
+    public JPanel createTableRight(){
         JPanel TableRightWrap = new JPanel(new BorderLayout(0, 20));
 
         // ===== TABLE =====
@@ -190,10 +191,9 @@ public class XuatKho_GUI extends JPanel {
         tableModelRight = new DefaultTableModel(colsRight, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return isEditMode && column == 3;
             }
         };
-
         tableRight = new JTable(tableModelRight);
 
         // cho phép bảng cao hơn
@@ -211,36 +211,16 @@ public class XuatKho_GUI extends JPanel {
 
         JScrollPane scrollRight = new JScrollPane(tableRight);
         scrollRight.setBorder(new EmptyBorder(25, 10, 0, 10));
-
-        // ===== VAT PANEL =====
-        JPanel vatPanel = new JPanel(new BorderLayout(10, 0));
-        vatPanel.setBorder(new EmptyBorder(5, 10, 10, 10));
-
-        JLabel lblVat = new JLabel("Thuế VAT");
-        lblVat.setPreferredSize(new Dimension(100, 30));
-
-        JTextField txtVat = new JTextField();
-        txtVat.setHorizontalAlignment(JTextField.CENTER);
-
-        JLabel lblPercent = new JLabel("%");
-        lblPercent.setBorder(new EmptyBorder(0, 5, 0, 5));
-
-        JPanel vatValuePanel = new JPanel(new BorderLayout());
-        vatValuePanel.add(txtVat, BorderLayout.CENTER);
-        vatValuePanel.add(lblPercent, BorderLayout.EAST);
-
-        vatPanel.add(lblVat, BorderLayout.WEST);
-        vatPanel.add(vatValuePanel, BorderLayout.CENTER);
-
-        // ===== TABLE + VAT =====
-        JPanel tableContainer = new JPanel(new BorderLayout());
-        tableContainer.add(scrollRight, BorderLayout.CENTER);
-        tableContainer.add(vatPanel, BorderLayout.SOUTH);
-
         // add bảng vào CENTER
-        TableRightWrap.add(tableContainer, BorderLayout.CENTER);
+        TableRightWrap.add(scrollRight, BorderLayout.CENTER);
 
-        // ===== BUTTON =====
+        // ===== BUTTON & Text =====
+        JPanel Container = new JPanel(new GridLayout(2,1,5,5));
+        JPanel SoLGWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        JLabel lblSoLuong = new JLabel("SỐ LƯỢNG");
+        txtSoLuongRight = new JTextField("0",5);
+        SoLGWrap.add(lblSoLuong);
+        SoLGWrap.add(txtSoLuongRight);
         JPanel btnWrap = new JPanel(new GridLayout(1, 3, 15, 0));
 
         btnXuat = new JButton("Xuất Excel");
@@ -260,9 +240,10 @@ public class XuatKho_GUI extends JPanel {
         btnWrap.add(btnXuat);
         btnWrap.add(btnSua);
         btnWrap.add(btnXoa);
-
+        Container.add(SoLGWrap);
+        Container.add(btnWrap);
         JPanel btnContainer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        btnContainer.add(btnWrap);
+        btnContainer.add(Container);
 
         // add nút xuống SOUTH
         TableRightWrap.add(btnContainer, BorderLayout.SOUTH);
@@ -373,7 +354,7 @@ public class XuatKho_GUI extends JPanel {
 
     public void searchSP(){
         String key = txtSearch.getText().trim();
-        if(key.equalsIgnoreCase("Tìm kiếm")){
+        if(key.equalsIgnoreCase("Tìm kiếm") || key.isEmpty()){
             loadTableData();
             return;
         }
@@ -445,7 +426,61 @@ public class XuatKho_GUI extends JPanel {
         txtTongTien.setText(String.valueOf(sumMoney));
     }
 
+    public void UpdateSP(){
+        tableRight.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                int row = tableRight.getSelectedRow();
+                if (row == -1) return;
+                // UX: cho con trỏ nhảy sang ô nhập số lượng
+                txtSoLuongRight.requestFocus();
+            }
+        });
+
+        btnSua.addActionListener(e->{
+            int row = tableRight.getSelectedRow();
+            String maSP = String.valueOf(tableModelRight.getValueAt(row,1));
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Sản phẩm không tồn tại,vui lòng chọn lại");
+                return;
+            }
+            int soLuong;
+            try {
+                soLuong = Integer.parseInt(txtSoLuongRight.getText());
+                if (soLuong <= 0) throw new Exception();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+                return;
+            }
+            for(int i=0;i<tableModel.getRowCount();i++){
+                Object val = tableModel.getValueAt(i,0);
+                if(val!=null && val.toString().equals(maSP)){
+                    int soLuongLeft = Integer.parseInt(tableModel.getValueAt(i,2).toString());
+                    if (soLuongLeft<soLuong){
+                        JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+                        return;
+                    }
+                }
+            }
+            tableModelRight.setValueAt(soLuong,row,3);
+            long sumMoney = 0;
+            for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+                int quantity = Integer.parseInt(
+                        tableModelRight.getValueAt(i, 3).toString()
+                );
+
+                double money = Double.parseDouble(
+                        tableModelRight.getValueAt(i, 5).toString()
+                );
+                sumMoney += quantity * money;
+            }
+            txtTongTien.setText(String.valueOf(sumMoney));
+        });
+    }
+
     public void bTnRightEvent(){
         btnXoa.addActionListener(e -> deleteSP());
+        UpdateSP();
     }
 }

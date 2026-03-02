@@ -32,7 +32,7 @@ public class KhachHangDAO {
         return list;
     }
     public boolean insert(KhachHang kh){
-        String sql ="INSERT INTO KHACH_HANG(ma_kh,ten_kh,dia_chi,sdt) VALUES (?, ?, ?,?)";
+        String sql ="INSERT INTO KHACH_HANG(ma_kh,ten_kh,dia_chi,sdt,chi_tieu) VALUES (?, ?, ?,?,?)";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
@@ -51,7 +51,7 @@ public class KhachHangDAO {
     }
     public boolean update(KhachHang kh){
         String sql =
-                "UPDATE KHACH_HANG SET ten_kh=?,dia_chi=?,sdt=? WHERE ma_kh=?";
+                "UPDATE KHACH_HANG SET ten_kh=?,dia_chi=?,sdt=?,chi_tieu=? WHERE ma_kh=?";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
@@ -59,8 +59,8 @@ public class KhachHangDAO {
             ps.setString(1,kh.getHoTenKH());
             ps.setString(2,kh.getDiaChi());
             ps.setString(3,kh.getSdt());
-            ps.setString(4,kh.getMaKH());
-            ps.setString(5,kh.getCT());
+            ps.setString(5,kh.getMaKH());
+            ps.setString(4,kh.getCT());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
