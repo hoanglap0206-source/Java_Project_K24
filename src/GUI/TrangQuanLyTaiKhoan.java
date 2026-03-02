@@ -262,18 +262,4 @@ public class TrangQuanLyTaiKhoan extends JPanel {
             return "Xem";
         }
     }
-
-    public static void main(String[]  args){
-        SwingUtilities.invokeLater(()->
-        {
-            JFrame frame =new JFrame(" Bao cao");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-            frame.add(new TrangQuanLyTaiKhoan());
-            frame.setSize(1000, 600);
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
-
-    }
 }
