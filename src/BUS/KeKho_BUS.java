@@ -56,10 +56,10 @@ public class KeKho_BUS {
     }
 
     public String addKK(KeKho kk){
-        if(kk.getMaKe().trim().isEmpty()) return "Mã kệ không được để trống!";
+        if(kk.getMaKe().trim().isEmpty()) return "Mã kệ không được để trống!"; // ?
         if(kk.getSucChua()<=0) return "Sức chứa phải lớn hơn 0!";
 
-        if(kkDAO.insert(kk)){
+        if(kkDAO.insert(kk)){ // insert ?
           listKK.add(kk);
           return "Thêm kệ kho thành công!";
         }
@@ -75,13 +75,12 @@ public class KeKho_BUS {
                     break;
                 }
             }
-            return "Cập Nhật thành công!";
+            return "Cập nhật thành công!";
         }
-        return"Cập nhật thất bại!";
+        return "Cập nhật thất bại!";
     }
 
     public String deleteKK(String maKe){
-
         // Kiểm tra còn sản phẩm không
         if(spDAO.countByMaKe(maKe) > 0){
             return "Không thể xoá! Kệ vẫn còn sản phẩm.";
@@ -94,5 +93,4 @@ public class KeKho_BUS {
 
         return "Xoá thất bại!";
     }
-
 }

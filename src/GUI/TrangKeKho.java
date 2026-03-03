@@ -11,13 +11,22 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class TrangKeKho extends JPanel {
-    private DefaultTableModel model;
+    private DefaultTableModel model; // ?
+    private JPanel soDoKe;
     private JLabel lblTenKe;
-    private JTable table; // cho loadData
+    private JTable table;
     private JLabel lblViTri;
     private JLabel lblSucChua;
     private JLabel lblHienTai;
     private KeKho_BUS bus = new KeKho_BUS();
+    private JButton btnAdd;
+    private JButton btnEdit;
+    private JButton btnDelete;
+    private JButton btnLamMoi;
+    private JButton btnPrint;
+    private JButton btnExcel;
+    private JTextField txtSearch;
+    private JButton btnSearchIcon;
 
     public TrangKeKho() {
         setLayout(new BorderLayout());
@@ -39,26 +48,25 @@ public class TrangKeKho extends JPanel {
                 new EmptyBorder(2,12,2,12)
         ));
 
-
         // Thanh tìm kiếm
-        JTextField txtSearch = new JTextField("Tìm kiếm");
+        txtSearch = new JTextField("Tìm kiếm");
         txtSearch.setColumns(15);
         txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
         txtSearch.setForeground(Color.GRAY);
 
         JPanel pnlSearchInput = new JPanel(new BorderLayout());
         pnlSearchInput.setBackground(Color.WHITE);
-        pnlSearchInput.setPreferredSize(new Dimension(260,30));
+        pnlSearchInput.setPreferredSize(new Dimension(260,30)); // ?
         pnlSearchInput.setBorder(new CompoundBorder(
                 new LineBorder(new Color(198,226,255), 2, true),
                 new EmptyBorder(0,2,0,0)
         ));
 
-        JButton btnSearchIcon = new JButton("🔍");
+        btnSearchIcon = new JButton("🔍");
         btnSearchIcon.setBackground(new Color(214,238,253));
-        btnSearchIcon.setBorderPainted(false);
-        btnSearchIcon.setFocusPainted(false);
-        btnSearchIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnSearchIcon.setBorderPainted(false); // ?
+        btnSearchIcon.setFocusPainted(false); // ?
+        btnSearchIcon.setCursor(new Cursor(Cursor.HAND_CURSOR)); // ?
 
         pnlSearchInput.add(txtSearch, BorderLayout.CENTER);
         pnlSearchInput.add(btnSearchIcon, BorderLayout.EAST);
@@ -83,22 +91,18 @@ public class TrangKeKho extends JPanel {
             }
         });
 
+        btnSearchIcon.addActionListener(e -> timKe());
 
         // Nút làm mới
-        JButton btnLamMoi = new JButton("⟳ Làm mới");
+        btnLamMoi = new JButton("⟳ Làm mới");
         Style.styleButton(btnLamMoi);
 
-
         // Combobox Lọc
-        String[] itemLoc = {"Lọc", "1", "2", "3", "4", "5"};
+        String[] itemLoc = {"Lọc", "< 50%", "50 - 80%", "> 80%"};
         JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
 
-        // Style cơ bản
-        comboBoxLoc.setBackground(new Color(214, 238, 253));
-        comboBoxLoc.setPreferredSize(new Dimension(90, 30));
-        comboBoxLoc.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        comboBoxLoc.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        comboBoxLoc.setSelectedIndex(0);
+        Style.styleLoc(comboBoxLoc);
+        comboBoxLoc.setSelectedIndex(0); // ?
 
         // Placeholder "Lọc"
         comboBoxLoc.setRenderer(new DefaultListCellRenderer() {
@@ -108,28 +112,47 @@ public class TrangKeKho extends JPanel {
                     boolean isSelected, boolean cellHasFocus) {
 
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(
-                        list, value, index, isSelected, cellHasFocus);
+                        list, value, index, isSelected, cellHasFocus); // ?
 
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
 
                 if (index == -1 && comboBoxLoc.getSelectedIndex() == -1) {
                     lbl.setText("Lọc");
-                    lbl.setForeground(Color.GRAY);
+                    lbl.setForeground(Color.GRAY); // setForeground ?
                 }
                 return lbl;
             }
         });
 
+        comboBoxLoc.addActionListener(e -> {
+            String value = comboBoxLoc.getSelectedItem().toString();
+            locKeTheoPhanTram(value);
+        });
+
 
         // Các nút khác
-        JButton btnEdit = new JButton("Chỉnh sửa");
+        btnEdit = new JButton("Chỉnh sửa");
         Style.styleButton(btnEdit);
-        JButton btnDelete = new JButton("Xóa");
+        btnDelete = new JButton("Xóa");
         Style.styleButton(btnDelete);
-        JButton btnAdd = new JButton("+ Thêm");
+        btnAdd = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
-        JButton btnExcel = new JButton("Xuất excel");
+        btnPrint = new JButton("In");
+        Style.styleButton(btnPrint);
+
+        // Nút xuất excel
+        ImageIcon excelIcon = new ImageIcon(getClass().getResource("/Img/Excel.png"));
+        Image scaledImage = excelIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+        btnExcel = new JButton("Xuất Excel", scaledIcon);
         Style.styleButton(btnExcel);
+        btnExcel.addActionListener(e -> xuatExcel());
+
+        // Xử lý sự kiện
+        btnAdd.addActionListener(e -> themKe());
+        btnEdit.addActionListener(e -> suaKe());
+        btnDelete.addActionListener(e -> xoaKe());
+        btnLamMoi.addActionListener(e -> loadSoDo());
 
         // Thêm vào panel
         panel.add(pnlSearchInput);
@@ -151,9 +174,15 @@ public class TrangKeKho extends JPanel {
 
         JLabel lblTitle = new JLabel("SƠ ĐỒ KHO TỔNG");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD,18));
+        JLabel ltlTongSpTrongKho = new JLabel("Tổng số sản phẩm trong kho:");
+        ltlTongSpTrongKho.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
+
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(Color.WHITE);
         titlePanel.add(lblTitle, BorderLayout.WEST);
+
+
 
         // Panel chứa grid + bảng
         JPanel content = new JPanel(new BorderLayout(0,20));
@@ -169,18 +198,11 @@ public class TrangKeKho extends JPanel {
     }
 
     private JPanel taoSoDoKe() {
-        ArrayList<KeKho> listKe = bus.getListKK();
-
-        JPanel grid = new JPanel(new GridLayout(0, 5, 15, 15));
-        grid.setBorder(new EmptyBorder(10,10,10,10));
-        grid.setBackground(new Color(231,242,245));
-
-        for (KeKho ke : listKe) {
-            int percent = bus.tinhPhanTramTheoKe(ke.getMaKe());
-            grid.add(taoTheKe(ke.getMaKe(), percent));
-        }
-
-        return grid;
+        soDoKe = new JPanel(new GridLayout(0, 5, 15, 15));
+        soDoKe.setBorder(new EmptyBorder(10,10,10,10));
+        soDoKe.setBackground(new Color(231,242,245));
+        loadSoDo();
+        return soDoKe;
     }
 
     private JPanel taoTheKe(String ten, int percent){
@@ -196,10 +218,10 @@ public class TrangKeKho extends JPanel {
 
         JLabel lbl = new JLabel(ten);
         lbl.setFont(new Font("Segoe UI", Font.BOLD,12));
-        lbl.setPreferredSize(new Dimension(25,25)); // cố định độ rộng cho đều
+        lbl.setPreferredSize(new Dimension(25,25)); // cố định độ rộng cho đều ?
 
         JProgressBar bar = new JProgressBar();
-        bar.setValue(percent);
+        bar.setValue(percent); // những dòng dưới này ?
         bar.setString(percent + "%");
         bar.setStringPainted(true);
         bar.setForeground(mauTheoPhanTram(percent));
@@ -211,19 +233,13 @@ public class TrangKeKho extends JPanel {
         card.add(content, BorderLayout.CENTER);
 
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        card.addMouseListener(new java.awt.event.MouseAdapter() {
+        card.addMouseListener(new java.awt.event.MouseAdapter() { // chưa hiểu cú pháp của mấy cái event lắm
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 capNhatBang(ten);
             }
         });
 
         return card;
-    }
-
-    private Color mauTheoPhanTram(int p){
-        if(p<50) return new Color(40,200,100);
-        if(p<80) return new Color(255,170,0);
-        return new Color(230,50,50);
     }
 
     private JPanel taoBang(){
@@ -233,14 +249,14 @@ public class TrangKeKho extends JPanel {
                 new LineBorder(new Color(220,220,220)),
                 new EmptyBorder(15,15,15,15)
         ));
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE,350));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE,350)); // ?
 
         lblTenKe = new JLabel("Kệ A1");
         lblTenKe.setFont(new Font("Segoe UI", Font.BOLD,15));
 
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Color.WHITE);
-        headerPanel.setBorder(new EmptyBorder(0, 0, 10, 0)); // khoảng cách dưới 10px
+        headerPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
         headerPanel.add(lblTenKe, BorderLayout.WEST);
 
         panel.add(headerPanel, BorderLayout.NORTH);
@@ -254,24 +270,20 @@ public class TrangKeKho extends JPanel {
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
         table.getTableHeader().setBackground(new Color(210,230,255));
         table.getTableHeader().setForeground(Color.BLACK);
-        table.getTableHeader().setReorderingAllowed(false);
+        table.getTableHeader().setReorderingAllowed(false); // ?
 
         // Căn giữa toàn bộ
-        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer(); // DefaultTableCellRenderer ?
         center.setHorizontalAlignment(SwingConstants.CENTER);
 
         for (int i = 0; i < table.getColumnCount(); i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(center);
+            table.getColumnModel().getColumn(i).setCellRenderer(center); // Giải thích cú pháp này
         }
 
         JScrollPane scroll = new JScrollPane(table);
         panel.add(scroll, BorderLayout.CENTER);
 
         panel.add(taoThongTinKe(), BorderLayout.EAST);
-
-//        // dữ liệu demo
-//        model.addRow(new Object[]{1,"SKU001","Xá xị","Thùng",5});
-//        model.addRow(new Object[]{2,"SKU002","Coca Cola","Thùng",5});
 
         return panel;
     }
@@ -300,6 +312,151 @@ public class TrangKeKho extends JPanel {
         return panel;
     }
 
+    private void timKe() {
+        String keyword = txtSearch.getText().trim();
+
+        if (keyword.isEmpty() || keyword.equals("Tìm kiếm")) {
+            loadSoDo();
+            return;
+        }
+
+        soDoKe.removeAll();
+
+        ArrayList<KeKho> listKe = bus.getListKK();
+
+        for (KeKho ke : listKe) {
+            if (ke.getMaKe().toLowerCase().contains(keyword.toLowerCase())) {
+                int percent = bus.tinhPhanTramTheoKe(ke.getMaKe());
+                soDoKe.add(taoTheKe(ke.getMaKe(), percent));
+            }
+        }
+
+        soDoKe.revalidate();
+        soDoKe.repaint();
+    }
+
+    private void themKe(){
+        String ma = JOptionPane.showInputDialog("Nhập mã kệ:"); // ?
+        if(ma == null || ma.trim().isEmpty()) return; // ? return
+
+        String viTri = JOptionPane.showInputDialog("Nhập vị trí:");
+        if(viTri == null) return;
+
+        String suc = JOptionPane.showInputDialog("Nhập sức chứa:");
+        if(suc == null) return;
+
+        try{
+            int sucChua = Integer.parseInt(suc);
+            KeKho ke = new KeKho(ma.trim(), sucChua, viTri.trim());
+            JOptionPane.showMessageDialog(null, bus.addKK(ke)); // ?
+            loadSoDo();
+        }catch(Exception ex){
+            JOptionPane.showMessageDialog(null,"Sức chứa phải là số!");
+        }
+    }
+
+    private void suaKe(){
+        String maKe = lblTenKe.getText().replace("Kệ ","").trim();
+        KeKho ke = bus.getKeTheoMa(maKe);
+
+        if(ke == null){
+            JOptionPane.showMessageDialog(null,"Chưa chọn kệ!");
+            return;
+        }
+
+        String viTri = JOptionPane.showInputDialog("Vị trí mới:", ke.getViTri());
+        if(viTri == null) return;
+
+        String suc = JOptionPane.showInputDialog("Sức chứa mới:", ke.getSucChua());
+        if(suc == null) return;
+
+        try{
+            ke.setViTri(viTri.trim());
+            ke.setSucChua(Integer.parseInt(suc));
+            JOptionPane.showMessageDialog(null, bus.updateKK(ke));
+            loadSoDo();
+        }catch(Exception ex){
+            JOptionPane.showMessageDialog(null,"Sức chứa phải là số!");
+        }
+    }
+
+    private void xoaKe(){
+        String maKe = lblTenKe.getText().replace("Kệ ","").trim();
+        if(maKe.isEmpty()) return;
+
+        int confirm = JOptionPane.showConfirmDialog(
+                null,
+                "Xóa kệ " + maKe + "?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if(confirm == JOptionPane.YES_OPTION){
+            JOptionPane.showMessageDialog(null, bus.deleteKK(maKe));
+            loadSoDo();
+        }
+    }
+
+    private void loadSoDo(){
+        soDoKe.removeAll();
+
+        ArrayList<KeKho> listKe = bus.getListKK();
+
+        for (KeKho ke : listKe) {
+            int percent = bus.tinhPhanTramTheoKe(ke.getMaKe());
+            soDoKe.add(taoTheKe(ke.getMaKe(), percent));
+        }
+
+        soDoKe.revalidate();
+        soDoKe.repaint();
+    }
+
+    private void xuatExcel(){
+
+    }
+
+    private void locKeTheoPhanTram(String value){
+        soDoKe.removeAll();
+
+        ArrayList<KeKho> listKe = bus.getListKK();
+
+        for (KeKho ke : listKe) {
+            int percent = bus.tinhPhanTramTheoKe(ke.getMaKe());
+
+            switch (value) {
+                case "< 50%":
+                    if (percent < 50) {
+                        soDoKe.add(taoTheKe(ke.getMaKe(), percent));
+                    }
+                    break;
+
+                case "50 - 80%":
+                    if (percent >= 50 && percent <= 80) {
+                        soDoKe.add(taoTheKe(ke.getMaKe(), percent));
+                    }
+                    break;
+
+                case "> 80%":
+                    if (percent > 80) {
+                        soDoKe.add(taoTheKe(ke.getMaKe(), percent));
+                    }
+                    break;
+
+                default: // "Lọc"
+                    soDoKe.add(taoTheKe(ke.getMaKe(), percent));
+            }
+        }
+
+        soDoKe.revalidate();
+        soDoKe.repaint();
+    }
+
+    private Color mauTheoPhanTram(int p){
+        if(p<50) return new Color(40,200,100);
+        if(p<80) return new Color(255,170,0);
+        return new Color(230,50,50);
+    }
+
     private void capNhatBang(String maKe) {
         lblTenKe.setText("Kệ " + maKe);
         model.setRowCount(0);
@@ -318,9 +475,7 @@ public class TrangKeKho extends JPanel {
         }
 
         KeKho ke = bus.getKeTheoMa(maKe);
-
         int tong = bus.tinhTongSoLuongTheoKe(maKe);
-
         if (ke != null) {
             lblViTri.setText("Vị trí: " + ke.getViTri());
             lblSucChua.setText("Sức chứa tối đa: " + ke.getSucChua());

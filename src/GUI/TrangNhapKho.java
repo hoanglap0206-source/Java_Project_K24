@@ -5,42 +5,58 @@ import Model.SanPham;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class TrangNhapKho extends JPanel {
     private SanPham_BUS spBus = new SanPham_BUS();
-    private DefaultTableModel modelKho;
-    private DefaultTableModel modelPhieu;
-    private JTable tableKho;
-    private JTable tablePhieu;
+    private DefaultTableModel tableModel;
+    private DefaultTableModel tableModelRight;
+    private JTable table;
+    private JTable tableRight;
     private JTextField txtSoLuong;
     private JLabel lblTongTien;
+    private JTextField txtTongTien;
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private JTextField txtSearch;
+    private JTextField txtSoLuongRight;
+    private JButton btnXuat, btnXoa, btnSua;
+    private boolean isEditMode = false;
+    private Timer searchTimer;
 
     public TrangNhapKho() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        add(taoNoiDung(), BorderLayout.CENTER);
+        add(createContent(), BorderLayout.CENTER);
+
+        searchTimer = new Timer(500, e -> searchSP());
+        searchTimer.setRepeats(false);
+
+        txtSearchEvent();
     }
 
-    private JPanel taoNoiDung() {
+    private JPanel createContent() {
         JPanel panel = new JPanel(new GridLayout(1, 2, 20, 0));
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         panel.setBackground(Color.WHITE);
 
-        panel.add(taoDanhSachKho());
-        panel.add(taoPhieuNhap());
+        panel.add(createFormLeft());
+        panel.add(createFormRight());
 
         return panel;
     }
 
-    private JPanel taoDanhSachKho() {
+    private JPanel createFormLeft() {
         JPanel panel = new JPanel(new BorderLayout(0,10));
         panel.setBackground(Color.WHITE);
 
@@ -52,7 +68,7 @@ public class TrangNhapKho extends JPanel {
         JPanel timKiemWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT,5,5));
         timKiemWrapper.setBackground(Color.WHITE);
         // Thanh tìm kiếm
-        JTextField txtSearch = new JTextField("Tìm kiếm");
+        txtSearch = new JTextField("Tìm kiếm");
         txtSearch.setColumns(15);
         txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
         txtSearch.setForeground(Color.GRAY);
@@ -123,48 +139,36 @@ public class TrangNhapKho extends JPanel {
         SouthPanel.add(btnThem);
 
         panel.add(NorthPanel, BorderLayout.NORTH);
-        panel.add(taoBangSPKho(), BorderLayout.CENTER);
+        panel.add(createTableLeft(), BorderLayout.CENTER);
         panel.add(SouthPanel, BorderLayout.SOUTH);
         return panel;
     }
 
-    private JScrollPane taoBangSPKho() {
+    private JScrollPane createTableLeft() {
         String[] columns = {"Mã SP", "Tên sản phẩm", "SL", "Đơn giá"};
 
-        modelKho = new DefaultTableModel(columns, 0);
-        tableKho = new JTable(modelKho);
+        tableModel = new DefaultTableModel(columns, 0);
+        table = new JTable(tableModel);
 
-        tableKho.setRowHeight(30);
-        tableKho.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tableKho.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        tableKho.getTableHeader().setBackground(new Color(210,230,255));
-        tableKho.getTableHeader().setReorderingAllowed(false);
+        table.setRowHeight(30);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        table.getTableHeader().setBackground(new Color(210,230,255));
+        table.getTableHeader().setReorderingAllowed(false);
 
         loadTableData();
 
-        tableKho.addMouseListener(new java.awt.event.MouseAdapter() {
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 txtSoLuong.requestFocus();
             }
         });
 
-        return new JScrollPane(tableKho);
+        return new JScrollPane(table);
     }
 
-    private void loadTableData() {
-        modelKho.setRowCount(0);
-        for (SanPham sp : spBus.getAll()) {
-            modelKho.addRow(new Object[]{
-                    sp.getMaSP(),
-                    sp.getTenSP(),
-                    sp.getSoLuong(),
-                    sp.getGiaTien()
-            });
-        }
-    }
-
-    private JPanel taoPhieuNhap() {
+    private JPanel createFormRight() {
         JPanel panel = new JPanel(new BorderLayout(0, 10));
         panel.setBackground(Color.WHITE);
 
@@ -172,14 +176,14 @@ public class TrangNhapKho extends JPanel {
         title.setFont(new Font("Segoe UI", Font.BOLD, 14));
         title.setHorizontalAlignment(SwingConstants.CENTER);
 
-        panel.add(taoThongTinPhieu(), BorderLayout.NORTH);
-        panel.add(taoBangPhieuNhap(), BorderLayout.CENTER);
-        panel.add(taoTongTien(), BorderLayout.SOUTH);
+        panel.add(createTailRight(), BorderLayout.NORTH);
+        panel.add(createTableRight(), BorderLayout.CENTER);
+        panel.add(createTotalAmount(), BorderLayout.SOUTH);
 
         return panel;
     }
 
-    private JPanel taoThongTinPhieu() {
+    private JPanel createTailRight() {
         JPanel panel = new JPanel(new GridLayout(3,2,10,10));
         panel.setBackground(Color.WHITE);
         panel.setBorder(new TitledBorder("THÔNG TIN PHIẾU NHẬP"));
@@ -196,80 +200,180 @@ public class TrangNhapKho extends JPanel {
         return panel;
     }
 
-    private JPanel taoBangPhieuNhap() {
+    private JPanel createTableRight() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
         String[] columns = {"STT","Mã SP","Tên sản phẩm","SL","Ngày nhập","Đơn giá"};
 
-        modelPhieu = new DefaultTableModel(columns, 0);
-        tablePhieu = new JTable(modelPhieu);
+        tableModelRight = new DefaultTableModel(columns, 0);
+        tableRight = new JTable(tableModelRight);
 
-        tablePhieu.setRowHeight(30);
-        tablePhieu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tablePhieu.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        tablePhieu.getTableHeader().setBackground(new Color(210,230,255));
-        tablePhieu.getTableHeader().setReorderingAllowed(false);
+        tableRight.setRowHeight(30);
+        tableRight.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tableRight.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tableRight.getTableHeader().setBackground(new Color(210,230,255));
+        tableRight.getTableHeader().setReorderingAllowed(false);
 
         // Căn giữa
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
 
-        for (int i = 0; i < tablePhieu.getColumnCount(); i++) {
-            tablePhieu.getColumnModel().getColumn(i).setCellRenderer(center);
+        for (int i = 0; i < tableRight.getColumnCount(); i++) {
+            tableRight.getColumnModel().getColumn(i).setCellRenderer(center);
         }
+
+        // Số lượng mới
+        JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        editPanel.setBackground(Color.WHITE);
+
+        JLabel lblSoLuongRight = new JLabel("Số lượng mới:");
+
+        txtSoLuongRight = new JTextField(5);
+        txtSoLuongRight.setPreferredSize(new Dimension(80, 28));
+        txtSoLuongRight.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        editPanel.add(lblSoLuongRight);
+        editPanel.add(txtSoLuongRight);
 
         // Nút chức năng
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.setBackground(Color.WHITE);
 
-        JButton btnExcel = new JButton("Xuất Excel");
-        Style.styleButton(btnExcel);
+        btnXuat = new JButton("Xuất Excel");
+        Style.styleButton(btnXuat);
 
-        JButton btnSua = new JButton("Sửa số lượng");
+        btnSua = new JButton("Sửa số lượng");
         Style.styleButton(btnSua);
 
-        JButton btnXoa = new JButton("Xóa sản phẩm");
+        btnXoa = new JButton("Xóa sản phẩm");
         Style.styleButton(btnXoa);
 
-        buttonPanel.add(btnExcel);
+        buttonPanel.add(btnXuat);
         buttonPanel.add(btnSua);
         buttonPanel.add(btnXoa);
 
-        panel.add(new JScrollPane(tablePhieu), BorderLayout.CENTER);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
+        bTnRightEvent();
+
+        JPanel southWrapper = new JPanel(new BorderLayout());
+        southWrapper.setBackground(Color.WHITE);
+
+        southWrapper.add(editPanel, BorderLayout.NORTH);
+        southWrapper.add(buttonPanel, BorderLayout.SOUTH);
+
+        panel.add(new JScrollPane(tableRight), BorderLayout.CENTER);
+        panel.add(southWrapper, BorderLayout.SOUTH);
 
         return panel;
     }
 
-    private JPanel taoTongTien() {
+    private JPanel createTotalAmount() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(10,0,0,0));
 
-        lblTongTien = new JLabel("TỔNG TIỀN NHẬP: 0đ");
+        JPanel leftWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        leftWrapper.setBackground(Color.WHITE);
+
+        lblTongTien = new JLabel("TỔNG TIỀN NHẬP: ");
         lblTongTien.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblTongTien.setForeground(new Color(0,128,0));
+
+        txtTongTien = new JTextField("0", 10);
+        txtTongTien.setEditable(false);
+        txtTongTien.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        txtTongTien.setForeground(new Color(0,128,0));
+
+        leftWrapper.add(lblTongTien);
+        leftWrapper.add(txtTongTien);
 
         JButton btnNhap = new JButton("Nhập kho");
         Style.styleButton(btnNhap);
 
-        panel.add(lblTongTien, BorderLayout.WEST);
+        panel.add(leftWrapper, BorderLayout.WEST);
         panel.add(btnNhap, BorderLayout.EAST);
 
         return panel;
     }
 
+    public void deleteSP(){
+        int row = tableRight.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Sản phẩm không tồn tại,vui lòng chọn lại");
+            return;
+        }
+        long sumMoney = 0;
+        tableModelRight.removeRow(row);
+        for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+            int quantity = Integer.parseInt(
+                    tableModelRight.getValueAt(i, 3).toString()
+            );
+
+            double money = Double.parseDouble(
+                    tableModelRight.getValueAt(i, 5).toString()
+            );
+//            Cập nhật STT sau khi xóa dòng
+            tableModelRight.setValueAt(i+1,i,0);
+            sumMoney += quantity * money;
+        }
+        txtTongTien.setText(String.valueOf(sumMoney));
+    }
+
+    public void UpdateSP(){
+        tableRight.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                int row = tableRight.getSelectedRow();
+                if (row == -1) return;
+                // UX: cho con trỏ nhảy sang ô nhập số lượng
+                txtSoLuongRight.requestFocus();
+            }
+        });
+        btnSua.addActionListener(e->{
+            int row = tableRight.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Sản phẩm không tồn tại,vui lòng chọn lại");
+                return;
+            }
+            int soLuong;
+            try {
+                soLuong = Integer.parseInt(txtSoLuongRight.getText());
+                if (soLuong <= 0) throw new Exception();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+                return;
+            }
+            tableModelRight.setValueAt(soLuong,row,3);
+            long sumMoney = 0;
+            for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+                int quantity = Integer.parseInt(
+                        tableModelRight.getValueAt(i, 3).toString()
+                );
+
+                double money = Double.parseDouble(
+                        tableModelRight.getValueAt(i, 5).toString()
+                );
+                sumMoney += quantity * money;
+            }
+            txtTongTien.setText(String.valueOf(sumMoney));
+        });
+    }
+
+    public void bTnRightEvent(){
+        btnXoa.addActionListener(e -> deleteSP());
+        UpdateSP();
+    }
+
     private void handleAddProduct() {
-        int row = tableKho.getSelectedRow();
+        int row = table.getSelectedRow();
         if (row == -1) {
             JOptionPane.showMessageDialog(this, "Chưa chọn sản phẩm");
             return;
         }
 
         int soLuong;
-        long tongTien = 0;
-
+        long tongTien = Long.parseLong(txtTongTien.getText());
         try {
             soLuong = Integer.parseInt(txtSoLuong.getText());
             if (soLuong <= 0) throw new Exception();
@@ -278,48 +382,108 @@ public class TrangNhapKho extends JPanel {
             return;
         }
 
-        // Lấy tổng tiền hiện tại từ label
-        String current = lblTongTien.getText()
-                .replace("TỔNG TIỀN NHẬP: ", "")
-                .replace("đ", "");
-
-        if (!current.isEmpty()) {
-            tongTien = Long.parseLong(current);
-        }
-
-        String maSP = modelKho.getValueAt(row, 0).toString();
-        String tenSP = modelKho.getValueAt(row, 1).toString();
+        String maSP = tableModel.getValueAt(row, 0).toString();
+        String tenSP = tableModel.getValueAt(row, 1).toString();
         double donGia = Double.parseDouble(
-                modelKho.getValueAt(row, 3).toString()
+                tableModel.getValueAt(row, 3).toString()
         );
 
-        // Nếu đã tồn tại → cộng số lượng
-        for (int i = 0; i < modelPhieu.getRowCount(); i++) {
-            Object val = modelPhieu.getValueAt(i, 1);
+        for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+            Object val = tableModelRight.getValueAt(i, 1);
             if (val != null && val.toString().equals(maSP)) {
-
-                int slCu = (int) modelPhieu.getValueAt(i, 3);
-                modelPhieu.setValueAt(slCu + soLuong, i, 3);
-
+                int slCu = (int) tableModelRight.getValueAt(i, 3);
+                tableModelRight.setValueAt(slCu + soLuong, i, 3);
                 tongTien += soLuong * donGia;
-                lblTongTien.setText("TỔNG TIỀN NHẬP: " + tongTien + "đ");
-
+                txtTongTien.setText(String.valueOf(tongTien));
                 txtSoLuong.setText("");
                 return;
             }
         }
 
-        // Nếu chưa có → thêm mới
         String ngayNhap = LocalDate.now().format(DATE_FORMAT);
-        int stt = modelPhieu.getRowCount() + 1;
+        int stt = tableModelRight.getRowCount() + 1;
 
-        modelPhieu.addRow(new Object[]{
+        tableModelRight.addRow(new Object[]{
                 stt, maSP, tenSP, soLuong, ngayNhap, donGia
         });
-
         tongTien += soLuong * donGia;
-        lblTongTien.setText("TỔNG TIỀN NHẬP: " + tongTien + "đ");
-
+        String txtTien = String.valueOf(tongTien);
+        txtTongTien.setText(txtTien);
         txtSoLuong.setText("");
+    }
+
+    public void loadTableData() {
+        tableModel.setRowCount(0); // xóa dữ liệu cũ
+        for( SanPham sp : spBus.getAll()){
+            tableModel.addRow(new Object[]{
+                    sp.getMaSP(),
+                    sp.getTenSP(),
+                    sp.getSoLuong(),
+                    sp.getGiaTien()
+            });
+        }
+    }
+
+    public void loadDataFromKey(){
+        tableModel.setRowCount(0); // xóa dữ liệu cũ
+        for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText())){
+            tableModel.addRow(new Object[]{
+                    sp.getMaSP(),
+                    sp.getTenSP(),
+                    sp.getSoLuong(),
+                    sp.getGiaTien()
+            });
+        }
+    }
+
+    public void searchSP(){
+        String key = txtSearch.getText().trim();
+        if(key.equalsIgnoreCase("Tìm kiếm") || key.isEmpty()){
+            loadTableData();
+            return;
+        }
+        loadDataFromKey();
+    }
+
+    public void txtSearchEvent(){
+        txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                restartTimer();
+            }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                restartTimer();
+            }
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
+        txtSearch.addFocusListener(new FocusAdapter() {
+            @Override
+//            Khi nhấn vào ô search
+            public void focusGained(FocusEvent e) {
+                if(txtSearch.getText().equalsIgnoreCase("Tìm kiếm")){
+                    txtSearch.setText("");
+                    txtSearch.setForeground(Color.BLACK);
+                }
+            }
+            //            Khi nhấn nơi khác
+            @Override
+            public void focusLost(FocusEvent e) {
+                if(txtSearch.getText().isEmpty()){
+                    txtSearch.setText("Tìm kiếm");
+                    txtSearch.setForeground(Color.GRAY);
+                }
+            }
+        });
+    }
+
+    private void restartTimer() {
+        if (searchTimer.isRunning()) { // Nếu Timer đang chạy thì khởi tạo lại,đếm từ 0 -> 1s
+            searchTimer.restart();
+        } else {
+            searchTimer.start();
+        }
     }
 }
