@@ -512,6 +512,7 @@ public class NhapKho_GUI extends JPanel {
             return;
         }
     }
+
     public void bTnRightEvent(){
         btnXoa.addActionListener(e -> deleteSP());
         UpdateSP();
