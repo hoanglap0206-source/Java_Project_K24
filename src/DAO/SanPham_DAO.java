@@ -113,6 +113,41 @@ public class SanPham_DAO {
             return false;
         }
     }
+
+    public boolean updateSP(Connection conn,int soLuong,String maKe,String maSP){
+//        Nếu muốn thay đổi mã kệ,cần kiểm tra số sức chứa còn lại của kệ xem có chứa đc số lượng sản phẩm mới này ko?
+        String sql =
+                "UPDATE SAN_PHAM SET sl=?,ma_ke=? WHERE ma_sku=?";
+        try (
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1,soLuong);
+            ps.setString(2,maKe);
+            ps.setString(3,maSP);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public int SumSLbyMaKe(Connection conn,String maKe){
+        int tong = 0;
+        String sql = "SELECT SUM(sl) FROM SanPham WHERE ma_ke = ?";
+        try (
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, maKe);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                tong = rs.getInt(1); // nếu NULL thì tự về 0
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }return tong;
+    }
+
     public boolean delete(String maSP){
         String sql = "DELETE FROM SAN_PHAM WHERE ma_sku=?";
         try (

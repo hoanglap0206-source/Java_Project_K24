@@ -1,19 +1,24 @@
 package BUS;
 
 import DAO.PhieuNhap_DAO;
+import DataBase.DBConnection;
 import Model.ChiTiet_PhieuNhap;
 import Model.PhieuNhap;
 import Model.SanPham;
 
 import javax.swing.table.DefaultTableModel;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 public class PhieuNhap_BUS {
     private ArrayList<PhieuNhap> listPN;
     private PhieuNhap_DAO pnDAO;
     private ChiTietPN_BUS ctPN_Bus;
+    private SanPham_BUS spBus;
     public PhieuNhap_BUS(){
         pnDAO= new PhieuNhap_DAO();
         ctPN_Bus = new ChiTietPN_BUS();
+        spBus = new SanPham_BUS();
         this.listPN= pnDAO.getAllPhieuNhap();
     }
 
@@ -35,32 +40,69 @@ public class PhieuNhap_BUS {
         return "Thêm phiếu nhập thất bại!";
     }
 
-    public boolean insertPN(PhieuNhap pn, DefaultTableModel model){
-        if(!pnDAO.insert(pn)){
+    public boolean insertPN(Connection conn, PhieuNhap pn, DefaultTableModel model) {
+
+        if (!pnDAO.inSert(conn, pn)) {
             return false;
         }
-        for (int i=0;i<model.getRowCount();i++){
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+
             PhieuNhap pN = new PhieuNhap();
             pN.setMaPN(pn.getMaPN());
 
-            String maSP = model.getValueAt(i,1).toString();
+            String maSP = model.getValueAt(i, 1).toString();
             SanPham sp = new SanPham();
             sp.setMaSP(maSP);
 
-            int soLuong = Integer.parseInt(model.getValueAt(i,3).toString());
+            int soLuong = Integer.parseInt(model.getValueAt(i, 3).toString());
+            double donGia = Double.parseDouble(model.getValueAt(i, 5).toString());
 
-            double donGia = Double.parseDouble(model.getValueAt(i,5).toString());
+            long thanhTien = (long) (soLuong * donGia);
 
-            long thanhTien = 0;
-            thanhTien += soLuong*donGia;
+            ChiTiet_PhieuNhap ctPN =
+                    new ChiTiet_PhieuNhap(pN, sp, soLuong, donGia, thanhTien);
 
-            ChiTiet_PhieuNhap ctPN = new ChiTiet_PhieuNhap(pN,sp,soLuong,donGia,thanhTien);
-            String result = ctPN_Bus.addCTPN(ctPN);
-            if (!result.equals("Thêm chi tiết phiếu nhập thành công!")) {
+            if (!ctPN_Bus.addCTPN(conn, ctPN)) {
                 return false;
             }
-        }return true;
+        }
+        return true;
     }
+
+    public boolean taoPhieuNhap(PhieuNhap pn, DefaultTableModel model) {
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            if (!insertPN(conn, pn, model)) {
+                throw new SQLException("Thêm PN thất bại");
+            }
+
+            if (!spBus.updateSP(conn, model)) {
+                throw new SQLException("Lỗi cập nhật sản phẩm");
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            try {
+                if (conn != null) conn.rollback();
+            } catch (Exception ignored) {}
+            return false;
+
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
     public String updatePN(PhieuNhap pn){
         if(pnDAO.update(pn))
             return "Cập nhật thành công!";

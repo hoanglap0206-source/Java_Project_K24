@@ -504,7 +504,7 @@ public class NhapKho_GUI extends JPanel {
         nv.setMaNV(maNV);
 
         PhieuNhap pn = new PhieuNhap(maPN,dateTime,ncc,nv);
-        if (pnBus.insertPN(pn,tableModelRight)){
+        if (pnBus.taoPhieuNhap(pn,tableModelRight)){
             JOptionPane.showMessageDialog(this, "Thêm phiếu thành công");
             return;
         }else{

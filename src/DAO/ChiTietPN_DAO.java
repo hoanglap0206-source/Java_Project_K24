@@ -55,6 +55,25 @@ public class ChiTietPN_DAO {
             return false;
         }
     }
+
+    public boolean inSert(Connection conn,ChiTiet_PhieuNhap ct){
+        String sql ="INSERT INTO CHITIET_PHIEU_NHAP(ma_pn,ma_sku,sl,don_gia,thanh_tien) VALUES (?, ?, ?,?,?)";
+        try (
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1,ct.getPhieuNhap().getMaPN());
+            ps.setString(2,ct.getSanPham().getMaSP());
+            ps.setInt(3,ct.getSoLuong());
+            ps.setDouble(4,ct.getDonGia());
+            ps.setLong(5,ct.getThanhTien());
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean update(ChiTiet_PhieuNhap ct){
         String sql =
                 "UPDATE CHITIET_PHIEU_NHAP SET sl=?,don_gia=?,thanh_tien=? WHERE ma_pn=? AND ma_sku=?";

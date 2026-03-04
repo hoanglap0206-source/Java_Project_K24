@@ -40,7 +40,7 @@ public class ManHinhChinh extends JFrame {
         contentPanel.add(new TrangNhaCungCap(), "Quản lý nhà cung cấp");
         contentPanel.add(new TrangKhachHang(), "Thông tin khách hàng");
         contentPanel.add(new TrangKeKho(), "Kệ kho");
-//        contentPanel.add(new TrangNhapKho(), "Nhập kho");
+        contentPanel.add(new TrangNhapKho(), "Nhập kho");
         contentPanel.add(new TrangXuatKho(), "Xuất kho");
         contentPanel.add(new TrangPhieuNhap(), "Phiếu nhập");
         contentPanel.add(new TrangPhieuXuat(), "Phiếu xuất");
