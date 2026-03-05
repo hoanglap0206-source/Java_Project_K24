@@ -1,14 +1,19 @@
 package GUI;
 
+import UI.TonKho_GUI;
+
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class TrangTonKho extends JPanel {
-
+    private JTable table;
+    private DefaultTableModel model;
     public TrangTonKho() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -38,14 +43,14 @@ public class TrangTonKho extends JPanel {
         };
 
         //hàm không cho thay đổi data//
-        DefaultTableModel model=new DefaultTableModel(data,columnNames){
+         model=new DefaultTableModel(data,columnNames){
             @Override
             public boolean isCellEditable(int row,int column){
                 return false;
             }
         };
 
-        JTable table = new JTable(model);
+         table = new JTable(model);
         table.setRowHeight(30);
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         table.getTableHeader().setBackground(new Color(230, 230, 230));
@@ -183,6 +188,20 @@ public class TrangTonKho extends JPanel {
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
 
+        btnAdd.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            xulythem();
+            }
+        });
+
+        btnEdit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                xulysua();
+            }
+        });
         // Thêm vào panel
         panel.add(pnlSearchInput);
         panel.add(btnLamMoi);
@@ -194,5 +213,95 @@ public class TrangTonKho extends JPanel {
 
         wrapper.add(panel, BorderLayout.CENTER);
         return wrapper;
+    }
+    public void xulysua() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm cần chỉnh sửa!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 1. Lấy Mã SP để biết đang sửa dòng nào
+        String maSP = table.getValueAt(row, 0).toString();
+        String tenSP = table.getValueAt(row, 1).toString();
+
+        // 2. Tạo danh sách các mục cho phép sửa
+        String[] cacMucCanSua = {"Tên sản phẩm", "Đơn vị tính", "Số lượng", "Đơn giá", "Hủy bỏ"};
+
+        // Hiển thị hộp thoại để người dùng chọn mục muốn sửa
+        int luaChon = JOptionPane.showOptionDialog(this,
+                "Bạn muốn chỉnh sửa thông tin gì của sản phẩm:\n" + maSP + " - " + tenSP,
+                "Chọn thông tin chỉnh sửa",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                cacMucCanSua,
+                cacMucCanSua[0]);
+
+        // 3. Xử lý Switch-Case theo lựa chọn
+        switch (luaChon) {
+            case 0: // Sửa Tên sản phẩm
+                String tenHienTai = table.getValueAt(row, 1).toString();
+                String tenMoi = JOptionPane.showInputDialog(this, "Nhập tên sản phẩm mới:", tenHienTai);
+                if (tenMoi != null && !tenMoi.trim().isEmpty()) {
+                    // TODO: Gọi BUS -> DAO để UPDATE tên vào CSDL
+                    // Nếu SQL Update thành công thì cập nhật lại trên bảng JTable:
+                    table.setValueAt(tenMoi, row, 1);
+                    JOptionPane.showMessageDialog(this, "Đã cập nhật tên thành công!");
+                }
+                break;
+
+            case 1: // Sửa Đơn vị tính
+                String dvtHienTai = table.getValueAt(row, 2).toString();
+                String dvtMoi = JOptionPane.showInputDialog(this, "Nhập đơn vị tính mới (Lon/Chai/Thùng...):", dvtHienTai);
+                if (dvtMoi != null && !dvtMoi.trim().isEmpty()) {
+                    // TODO: Gọi BUS -> DAO
+                    table.setValueAt(dvtMoi, row, 2);
+                }
+                break;
+
+            case 2: // Sửa Số lượng
+                String slHienTai = table.getValueAt(row, 3).toString();
+                String slMoiStr = JOptionPane.showInputDialog(this, "Nhập số lượng thực tế trong kho:", slHienTai);
+                if (slMoiStr != null && !slMoiStr.trim().isEmpty()) {
+                    try {
+                        int slMoi = Integer.parseInt(slMoiStr);
+                        // TODO: Gọi BUS -> DAO để UPDATE số lượng
+                        table.setValueAt(slMoi, row, 3);
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(this, "Số lượng phải là số nguyên hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                break;
+
+            case 3: // Sửa Đơn giá
+                String giaHienTai = table.getValueAt(row, 4).toString();
+                String giaMoiStr = JOptionPane.showInputDialog(this, "Nhập đơn giá mới:", giaHienTai);
+                if (giaMoiStr != null && !giaMoiStr.trim().isEmpty()) {
+                    // TODO: Kiểm tra số hợp lệ, gọi BUS -> DAO UPDATE giá
+                    table.setValueAt(giaMoiStr, row, 4);
+                }
+                break;
+
+            default:
+                // Người dùng chọn "Hủy bỏ" hoặc bấm dấu X tắt cửa sổ
+                break;
+        }
+    }
+    public void xulythem(){
+
+    }
+    public static void main(String[]  args){
+        SwingUtilities.invokeLater(()->
+        {
+            JFrame frame =new JFrame(" Ton kho");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+            frame.add(new TrangTonKho());
+            frame.setSize(1000, 600);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
+
     }
 }

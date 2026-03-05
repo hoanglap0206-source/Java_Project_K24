@@ -41,7 +41,7 @@ public class BaoCaoTonKho_DAO {
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-            ps.setString(1,bc.getMaBC());
+            ps.setString(1,bc.getMaTonKho());
             ps.setInt(2,bc.getsLTon());
             ps.setInt(3,bc.getCanhBaoHH());
             ps.setString(4,bc.getSanPham().getMaSP());
@@ -62,7 +62,7 @@ public class BaoCaoTonKho_DAO {
             ps.setInt(1,bc.getsLTon());
             ps.setInt(2,bc.getCanhBaoHH());
             ps.setString(3,bc.getSanPham().getMaSP());
-            ps.setString(4,bc.getMaBC());
+            ps.setString(4,bc.getMaTonKho());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {

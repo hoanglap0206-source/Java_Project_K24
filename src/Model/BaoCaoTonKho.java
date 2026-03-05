@@ -1,7 +1,7 @@
 package Model;
 
 public class BaoCaoTonKho {
-    private String maBC;
+    private String maTonKho;
     private int sLTon;
     private int canhBaoHH;
     private SanPham sanPham;
@@ -9,19 +9,19 @@ public class BaoCaoTonKho {
     public BaoCaoTonKho() {
     }
 
-    public BaoCaoTonKho(String maBC, int sLTon, int canhBaoHH, SanPham sanPham) {
-        this.maBC = maBC;
+    public BaoCaoTonKho(String maTonKho, int sLTon, int canhBaoHH, SanPham sanPham) {
+        this.maTonKho = maTonKho;
         this.sLTon = sLTon;
         this.canhBaoHH = canhBaoHH;
         this.sanPham = sanPham;
     }
 
-    public String getMaBC() {
-        return maBC;
+    public String getMaTonKho() {
+        return maTonKho;
     }
 
-    public void setMaBC(String maBC) {
-        this.maBC = maBC;
+    public void setMaBC(String maTonKho) {
+        this.maTonKho = maTonKho;
     }
 
     public int getsLTon() {

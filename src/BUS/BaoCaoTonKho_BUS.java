@@ -47,7 +47,7 @@ public class BaoCaoTonKho_BUS {
 
     public String addBaoCao(BaoCaoTonKho bc) {
         // Kiểm tra nghiệp vụ (Check logic)
-        if (bc.getMaBC().isEmpty()) return "Mã báo cáo không được để trống!";
+        if (bc.getMaTonKho().isEmpty()) return "Mã báo cáo không được để trống!";
 
         // Gọi DAO ghi xuống SQL
         if (baoCaoDAO.insert(bc)) {
@@ -61,7 +61,7 @@ public class BaoCaoTonKho_BUS {
         if (baoCaoDAO.update(bc)) {
             // Cập nhật lại đối tượng tương ứng trong RAM
             for (int i = 0; i < listBaoCao.size(); i++) {
-                if (listBaoCao.get(i).getMaBC().equals(bc.getMaBC())) {
+                if (listBaoCao.get(i).getMaTonKho().equals(bc.getMaTonKho())) {
                     listBaoCao.set(i, bc);
                     break;
                 }
@@ -74,7 +74,7 @@ public class BaoCaoTonKho_BUS {
     public String deleteBaoCao(String maBC) {
         if (baoCaoDAO.delete(maBC)) {
             // Xóa khỏi RAM
-            listBaoCao.removeIf(bc -> bc.getMaBC().equals(maBC));
+            listBaoCao.removeIf(bc -> bc.getMaTonKho().equals(maBC));
             return "Xóa thành công!";
         }
         return "Xóa thất bại!";
