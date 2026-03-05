@@ -26,15 +26,15 @@ public class TonKho_DAO {
             while (rs.next()) {
 
                 SanPham sp = new SanPham();
-                sp.setMaSP(rs.getString("ma_sp"));
+                sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
-                sp.setDonViTinh(rs.getString("don_vi_tinh"));
+                sp.setDonViTinh(rs.getString("dvt"));
 
 
 
                 BaoCaoTonKho tk = new BaoCaoTonKho();
-                tk.setMaBC(rs.getString("ma_ton_kho"));
-                tk.setsLTon(rs.getInt("so_luong_ton"));
+                tk.setMaBC(rs.getString("ma_bc"));
+                tk.setsLTon(rs.getInt("ton"));
                 tk.setCanhBaoHH(rs.getInt("canh_bao_hh"));
 
 
