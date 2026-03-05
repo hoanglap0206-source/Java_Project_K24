@@ -53,7 +53,7 @@ public class SanPham_BUS {
             int soLuongMoi = tinhSLuong(maSP, sL);
             int soLuongCu = soLuongMoi - sL;
 
-            ArrayList<KeKho> listKe = kkBUS.getlistKK(conn);
+            ArrayList<KeKho> listKe = kkBUS.getlistkK(conn);
             boolean daUpdate = false;
 
             for (KeKho kkho : listKe) {
