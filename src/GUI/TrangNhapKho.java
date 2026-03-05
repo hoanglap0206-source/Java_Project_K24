@@ -122,6 +122,9 @@ public class TrangNhapKho extends JPanel {
         JButton btnLamMoi = new JButton("⟳ Làm mới");
         Style.styleButton(btnLamMoi);
 
+        btnSearchIcon.addActionListener(e -> loadDataFromKey());
+        btnLamMoi.addActionListener(e -> loadTableData());
+
         NorthPanel.add(title, BorderLayout.NORTH);
         timKiemWrapper.add(pnlSearchInput);
         timKiemWrapper.add(btnLamMoi);
@@ -155,7 +158,12 @@ public class TrangNhapKho extends JPanel {
     private JScrollPane createTableLeft() {
         String[] columns = {"Mã SP", "Tên sản phẩm", "SL", "Đơn giá"};
 
-        tableModel = new DefaultTableModel(columns, 0);
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         table = new JTable(tableModel);
 
         table.setRowHeight(30);
@@ -239,7 +247,12 @@ public class TrangNhapKho extends JPanel {
 
         String[] columns = {"STT","Mã SP","Tên sản phẩm","SL","Ngày nhập","Đơn giá"};
 
-        tableModelRight = new DefaultTableModel(columns, 0);
+        tableModelRight = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return isEditMode && column == 3;
+            }
+        };
         tableRight = new JTable(tableModelRight);
 
         tableRight.setRowHeight(30);
