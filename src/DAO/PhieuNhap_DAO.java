@@ -105,4 +105,42 @@ public class PhieuNhap_DAO {
             return false;
         }
     }
+
+    public ArrayList<PhieuNhap> getDanhSachPhieuNhapTongKet() {
+        ArrayList<PhieuNhap> list = new ArrayList<>();
+        String sql = "SELECT pn.ma_pn, pn.ngay_ct, ncc.ma_ncc, ncc.ten_ncc, SUM(ct.thanh_tien) AS tong_tien " +
+                "FROM PHIEU_NHAP pn " +
+                "JOIN NHA_CUNG_CAP ncc ON pn.ma_ncc = ncc.ma_ncc " +
+                "JOIN CHITIET_PHIEU_NHAP ct ON pn.ma_pn = ct.ma_pn " +
+                "GROUP BY pn.ma_pn, pn.ngay_ct, ncc.ma_ncc, ncc.ten_ncc";
+
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+        ) {
+            while (rs.next()) {
+                PhieuNhap pn = new PhieuNhap();
+                NhaCungCap ncc = new NhaCungCap();
+
+                // Lấy thông tin phiếu nhập
+                pn.setMaPN(rs.getString("ma_pn"));
+                pn.setNgay_ct(rs.getTimestamp("ngay_ct").toLocalDateTime());
+
+                // Lấy thông tin nhà cung cấp
+                ncc.setMaNCC(rs.getString("ma_ncc"));
+                // Lấy tên nhà cung cấp
+                ncc.setTenNCC(rs.getString("ten_ncc"));
+                pn.setNhaCC(ncc);
+
+                // Lấy tổng tiền đã được SUM từ SQL
+                pn.setTongTien(rs.getLong("tong_tien"));
+
+                list.add(pn);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

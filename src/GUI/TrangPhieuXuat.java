@@ -4,11 +4,20 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
+import BUS.PhieuXuat_BUS;
+import BUS.ChiTietPX_BUS;
+import Model.PhieuXuat;
+import Model.ChiTiet_PhieuXuat;
+import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
 
 public class TrangPhieuXuat extends JPanel {
 
     private DefaultTableModel model;
     private JTable table;
+
+    private PhieuXuat_BUS pxBus = new PhieuXuat_BUS();
+    private ChiTietPX_BUS ctpxBus = new ChiTietPX_BUS();
 
     public TrangPhieuXuat() {
         setLayout(new BorderLayout());
@@ -90,10 +99,12 @@ public class TrangPhieuXuat extends JPanel {
         JComboBox<String> cbNCC = new JComboBox<>(new String[]{
                 "Khách hàng"
         });
+        cbNCC.setBackground(new Color(204, 227, 253));
 
         JComboBox<String> cbTrangThai = new JComboBox<>(new String[]{
                 "Trạng thái"
         });
+        cbNCC.setBackground(new Color(204, 227, 253));
 
         cbNCC.setPreferredSize(new Dimension(130,30));
         cbTrangThai.setPreferredSize(new Dimension(120,30));
@@ -164,29 +175,35 @@ public class TrangPhieuXuat extends JPanel {
         JScrollPane scroll = new JScrollPane(table);
         panel.add(scroll, BorderLayout.CENTER);
 
-        themDuLieuMau();
+        loadDataToTable();
 
         return panel;
     }
 
-    private void themDuLieuMau() {
-        model.addRow(new Object[]{
-                1,"PX001","28/06/2024",
-                "Cửa hàng A","150.000.000đ",
-                "Đã xuất kho","Xem"
-        });
+    public void loadDataToTable() {
+        model.setRowCount(0); // Xóa sạch bảng cũ
+        ArrayList<PhieuXuat> dsPX = pxBus.getListPX(); // Lấy danh sách từ BUS
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-        model.addRow(new Object[]{
-                2,"PX002","11/07/2024",
-                "Đại lý B","150.000.000đ",
-                "Đã hủy","Xem"
-        });
+        int stt = 1;
+        for (PhieuXuat px : dsPX) {
+            // Tính tổng tiền cho mỗi phiếu bằng cách duyệt chi tiết
+            long tongTien = 0;
+            ArrayList<ChiTiet_PhieuXuat> dsCT = ctpxBus.getListByMaPX(px.getMaPX());
+            for (ChiTiet_PhieuXuat ct : dsCT) {
+                tongTien += ct.getThanhTien();
+            }
 
-        model.addRow(new Object[]{
-                3,"PX003","29/09/2024",
-                "Cửa hàng C","150.000.000đ",
-                "Chờ duyệt","Xem | Sửa | Hủy"
-        });
+            model.addRow(new Object[]{
+                    stt++,
+                    px.getMaPX(),
+                    px.getNgay_ct().format(formatter), // Định dạng ngày giờ 2026
+                    px.getKhachHang().getMaKH(), // Mã khách hàng ngẫu nhiên KHxx
+                    String.format("%,dđ", tongTien), // Định dạng tiền tệ
+                    "Đã xuất kho",
+                    "Xem"
+            });
+        }
     }
 
     private JPanel taoFooter() {

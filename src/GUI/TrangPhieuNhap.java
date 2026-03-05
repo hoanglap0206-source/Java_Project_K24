@@ -1,16 +1,24 @@
 package GUI;
 
+import BUS.PhieuNhap_BUS;
+import Model.PhieuNhap;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
 import javax.swing.text.MaskFormatter;
 import java.text.ParseException;
+import java.util.ArrayList;
 
 public class TrangPhieuNhap extends JPanel {
 
     private DefaultTableModel model;
     private JTable table;
+
+    private PhieuNhap_BUS pnBus = new PhieuNhap_BUS();
+    private java.text.DecimalFormat df = new java.text.DecimalFormat("#,### VNĐ"); // Phần cuối sẽ có VND
+    private java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public TrangPhieuNhap() {
         setLayout(new BorderLayout());
@@ -103,6 +111,7 @@ public class TrangPhieuNhap extends JPanel {
                 "Nhà cung cấp"
         });
         cbNCC.setPreferredSize(new Dimension(150,35));
+        cbNCC.setBackground(new Color(204, 227, 253));
 
         JComboBox<String> cbTrangThai = new JComboBox<>(new String[]{
                 "Trạng thái",
@@ -111,6 +120,7 @@ public class TrangPhieuNhap extends JPanel {
                 "Chờ duyệt"
         });
         cbTrangThai.setPreferredSize(new Dimension(130,35));
+        cbTrangThai.setBackground(new Color(204, 227, 253));
 
         panel.add(pnlSearchInput);
         panel.add(btnReload);
@@ -132,7 +142,12 @@ public class TrangPhieuNhap extends JPanel {
                 "Nhà cung cấp","Tổng tiền","Trạng thái","Thao tác"
         };
 
-        model = new DefaultTableModel(columns,0);
+        model = new DefaultTableModel(columns,0){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         table = new JTable(model);
 
         table.setRowHeight(30);
@@ -178,29 +193,37 @@ public class TrangPhieuNhap extends JPanel {
         JScrollPane scroll = new JScrollPane(table);
         panel.add(scroll, BorderLayout.CENTER);
 
-        themDuLieuMau();
+        loadDataToTable();
 
         return panel;
     }
 
-    private void themDuLieuMau() {
-        model.addRow(new Object[]{
-                1,"PN001","28/06/2024",
-                "Pepsi Việt Nam","150.000.000đ",
-                "Đã xuất kho","Xem"
-        });
+    public void loadDataToTable() {
+        model.setRowCount(0);
+        ArrayList<PhieuNhap> ds = pnBus.getListPN();
 
-        model.addRow(new Object[]{
-                2,"PN002","11/07/2024",
-                "Vinamilk","150.000.000đ",
-                "Đã hủy","Xem"
-        });
+        // Cần gọi thêm ChiTietPN_BUS để tính tiền
+        BUS.ChiTietPN_BUS ctBus = new BUS.ChiTietPN_BUS();
 
-        model.addRow(new Object[]{
-                3,"PN003","29/09/2024",
-                "Red Bull","150.000.000đ",
-                "Chờ duyệt","Xem | Sửa | Hủy"
-        });
+        int stt = 1;
+        for (PhieuNhap pn : ds) {
+            // Tính tổng tiền từ danh sách chi tiết của phiếu này
+            long tongTien = 0;
+            ArrayList<Model.ChiTiet_PhieuNhap> dsChiTiet = ctBus.getListPN(pn.getMaPN());
+            for (Model.ChiTiet_PhieuNhap ct : dsChiTiet) {
+                tongTien += ct.getThanhTien();
+            }
+
+            model.addRow(new Object[]{
+                    stt++,
+                    pn.getMaPN(),
+                    pn.getNgay_ct().format(dtf),
+                    (pn.getNhaCC() != null) ? pn.getNhaCC().getMaNCC() : "N/A", // Lấy mã hoặc tên NCC
+                    df.format(tongTien), // Hiển thị số tiền thực tế
+                    "Đã nhập hàng",
+                    "Xem"
+            });
+        }
     }
 
     private JPanel taoFooter() {

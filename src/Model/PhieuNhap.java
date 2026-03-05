@@ -7,6 +7,7 @@ public class PhieuNhap {
     private LocalDateTime ngay_ct;
     private NhaCungCap nhaCC;
     private NhanVien nhanVien;
+    private long TongTien;
 
     public PhieuNhap() {
     }
@@ -48,5 +49,13 @@ public class PhieuNhap {
 
     public void setNhanVien(NhanVien nhanVien) {
         this.nhanVien = nhanVien;
+    }
+
+    public long getTongTien() {
+        return TongTien;
+    }
+
+    public void setTongTien(long TongTien) {
+        this.TongTien = TongTien;
     }
 }

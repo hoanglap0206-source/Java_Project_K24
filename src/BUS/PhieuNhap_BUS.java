@@ -120,4 +120,9 @@ public class PhieuNhap_BUS {
         return "Xoá phiếu nhập thất bại!";
     }
     public void refeshData(){this.listPN=pnDAO.getAllPhieuNhap();}
+
+    //Lấy danh sách dùng cho TrangPhieuNhap
+    public ArrayList<PhieuNhap> getListTongKet() {
+        return pnDAO.getDanhSachPhieuNhapTongKet();
+    }
 }
