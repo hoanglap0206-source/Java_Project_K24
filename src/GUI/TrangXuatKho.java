@@ -213,6 +213,7 @@ public class TrangXuatKho extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
+        // Tạo bảng
         tableModelRight = new DefaultTableModel(
                 new String[]{"STT","Mã SP","Tên sản phẩm","SL","Đơn giá"},
                 0
@@ -225,7 +226,6 @@ public class TrangXuatKho extends JPanel {
         tableRight.getTableHeader().setBackground(new Color(210,230,255));
         tableRight.getTableHeader().setReorderingAllowed(false);
 
-        // Căn giữa toàn bộ
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -235,21 +235,21 @@ public class TrangXuatKho extends JPanel {
 
         JScrollPane scroll = new JScrollPane(tableRight);
 
-        // Wrapper chứa bảng + VAT
-        JPanel centerWrapper = new JPanel();
-        centerWrapper.setLayout(new BorderLayout());
-        centerWrapper.setBackground(Color.WHITE);
-
+        // Dòng thuế
         JPanel vatPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         vatPanel.setBackground(new Color(240,240,240));
         vatPanel.setBorder(new MatteBorder(1, 1, 1, 1, new Color(180,180,180)));
-
         JLabel lblVAT = new JLabel("Thuế (VAT): 10%");
         vatPanel.add(lblVAT);
+
+        // Wrapper chứa bảng + thuế
+        JPanel centerWrapper = new JPanel(new BorderLayout());
+        centerWrapper.setBackground(Color.WHITE);
 
         centerWrapper.add(scroll, BorderLayout.CENTER);
         centerWrapper.add(vatPanel, BorderLayout.SOUTH);
 
+        // Dòng số lượng
         JPanel soLuongPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         soLuongPanel.setBackground(Color.WHITE);
 
@@ -258,8 +258,6 @@ public class TrangXuatKho extends JPanel {
 
         soLuongPanel.add(lblSoLuong);
         soLuongPanel.add(txtSoLuongRight);
-
-        panel.add(soLuongPanel, BorderLayout.NORTH);
 
         // Nút
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -279,8 +277,16 @@ public class TrangXuatKho extends JPanel {
 
         bTnRightEvent();
 
+        // Wrapper chứa số lượng và nút
+        JPanel southPanel = new JPanel(new BorderLayout());
+        southPanel.setBackground(Color.WHITE);
+
+        southPanel.add(soLuongPanel, BorderLayout.NORTH);
+        southPanel.add(buttonPanel, BorderLayout.CENTER);
+
+        // Add vào panel chính
         panel.add(centerWrapper, BorderLayout.CENTER);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
+        panel.add(southPanel, BorderLayout.SOUTH);
 
         return panel;
     }

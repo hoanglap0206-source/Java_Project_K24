@@ -52,7 +52,7 @@ public class TrangKeKho extends JPanel {
         wrapper.setBackground(Color.WHITE);
         wrapper.setBorder(new EmptyBorder(15,20,5,20));
 
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,12,8));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,12,4));
         panel.setBackground(new Color(231,242,245));
         panel.setBorder(new CompoundBorder(
                 new LineBorder(new Color(198,226,255), 2),
@@ -61,7 +61,7 @@ public class TrangKeKho extends JPanel {
 
         // Thanh tìm kiếm
         txtSearch = new JTextField("Tìm kiếm");
-        txtSearch.setColumns(15);
+        txtSearch.setColumns(10);
         txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
         txtSearch.setForeground(Color.GRAY);
 
@@ -105,7 +105,7 @@ public class TrangKeKho extends JPanel {
         btnSearchIcon.addActionListener(e -> timKe());
 
         // Nút làm mới
-        btnLamMoi = new JButton("⟳ Làm mới");
+        btnLamMoi = new JButton("⟳");
         Style.styleButton(btnLamMoi);
 
         // Combobox Lọc
@@ -153,7 +153,7 @@ public class TrangKeKho extends JPanel {
 
         // Nút xuất excel
         ImageIcon excelIcon = new ImageIcon(getClass().getResource("/Img/Excel.png"));
-        Image scaledImage = excelIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        Image scaledImage = excelIcon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
         btnExcel = new JButton("Xuất Excel", scaledIcon);
         Style.styleButton(btnExcel);
@@ -173,6 +173,7 @@ public class TrangKeKho extends JPanel {
         panel.add(btnEdit);
         panel.add(btnDelete);
         panel.add(btnAdd);
+        panel.add(btnPrint);
         panel.add(btnExcel);
 
         wrapper.add(panel, BorderLayout.CENTER);
@@ -195,13 +196,12 @@ public class TrangKeKho extends JPanel {
         titlePanel.add(lblTitle, BorderLayout.WEST);
 
 
-
         // Panel chứa grid + bảng
         JPanel content = new JPanel(new BorderLayout(0,20));
         content.setBackground(Color.WHITE);
 
-        content.add(taoSoDoKe(), BorderLayout.NORTH);
-        content.add(taoBang(), BorderLayout.CENTER);
+        content.add(taoSoDoKe(), BorderLayout.CENTER);
+        content.add(taoBang(), BorderLayout.SOUTH);
 
         main.add(titlePanel, BorderLayout.NORTH);
         main.add(content, BorderLayout.CENTER);
@@ -230,10 +230,10 @@ public class TrangKeKho extends JPanel {
 
         JLabel lbl = new JLabel(ten);
         lbl.setFont(new Font("Segoe UI", Font.BOLD,12));
-        lbl.setPreferredSize(new Dimension(25,25)); // cố định độ rộng cho đều ?
+        lbl.setPreferredSize(new Dimension(25,25));
 
         JProgressBar bar = new JProgressBar();
-        bar.setValue(percent); // những dòng dưới này ?
+        bar.setValue(percent);
         bar.setString(percent + "%");
         bar.setStringPainted(true);
         bar.setForeground(mauTheoPhanTram(percent));
@@ -245,7 +245,7 @@ public class TrangKeKho extends JPanel {
         card.add(content, BorderLayout.CENTER);
 
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        card.addMouseListener(new java.awt.event.MouseAdapter() { // chưa hiểu cú pháp của mấy cái event lắm
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 capNhatBang(ten);
             }
@@ -261,7 +261,8 @@ public class TrangKeKho extends JPanel {
                 new LineBorder(new Color(220,220,220)),
                 new EmptyBorder(15,15,15,15)
         ));
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE,350)); // ?
+//        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE,350)); // ?
+        panel.setPreferredSize(new Dimension(0,250));
 
         lblTenKe = new JLabel("Kệ A1");
         lblTenKe.setFont(new Font("Segoe UI", Font.BOLD,15));
@@ -453,67 +454,67 @@ public class TrangKeKho extends JPanel {
         }
     }
 
-//    public void xuatExcelTuBang(JTable table) {
-//        try {
-//            Workbook workbook = new XSSFWorkbook();
-//            Sheet sheet = workbook.createSheet("Data");
-//
-//            for (int i = 0; i < table.getRowCount(); i++) {
-//                Row row = sheet.createRow(i);
-//                for (int j = 0; j < table.getColumnCount(); j++) {
-//                    row.createCell(j).setCellValue(
-//                            table.getValueAt(i, j).toString()
-//                    );
-//                }
-//            }
-//
-//            FileOutputStream fos = new FileOutputStream("Data.xlsx");
-//            workbook.write(fos);
-//            fos.close();
-//            workbook.close();
-//
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        }
-//    }
-
     public void xuatExcelTuBang(JTable table) {
         try {
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Data");
 
-            // Header
-            Row header = sheet.createRow(0);
-            for (int i = 0; i < table.getColumnCount(); i++) {
-                header.createCell(i).setCellValue(table.getColumnName(i));
-            }
-
-            // Data
             for (int i = 0; i < table.getRowCount(); i++) {
-                Row row = sheet.createRow(i + 1);
+                Row row = sheet.createRow(i);
                 for (int j = 0; j < table.getColumnCount(); j++) {
-                    Object value = table.getValueAt(i, j);
-                    row.createCell(j).setCellValue(value == null ? "" : value.toString());
+                    row.createCell(j).setCellValue(
+                            table.getValueAt(i, j).toString()
+                    );
                 }
             }
 
-            // Auto size
-            for (int i = 0; i < table.getColumnCount(); i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            FileOutputStream fos = new FileOutputStream("DanhSachSanPham.xlsx");
+            FileOutputStream fos = new FileOutputStream("Data.xlsx");
             workbook.write(fos);
-
             fos.close();
             workbook.close();
-
-            JOptionPane.showMessageDialog(null, "Xuất Excel thành công!");
 
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
+
+//    public void xuatExcelTuBang(JTable table) {
+//        try {
+//            Workbook workbook = new XSSFWorkbook();
+//            Sheet sheet = workbook.createSheet("Data");
+//
+//            // Header
+//            Row header = sheet.createRow(0);
+//            for (int i = 0; i < table.getColumnCount(); i++) {
+//                header.createCell(i).setCellValue(table.getColumnName(i));
+//            }
+//
+//            // Data
+//            for (int i = 0; i < table.getRowCount(); i++) {
+//                Row row = sheet.createRow(i + 1);
+//                for (int j = 0; j < table.getColumnCount(); j++) {
+//                    Object value = table.getValueAt(i, j);
+//                    row.createCell(j).setCellValue(value == null ? "" : value.toString());
+//                }
+//            }
+//
+//            // Auto size
+//            for (int i = 0; i < table.getColumnCount(); i++) {
+//                sheet.autoSizeColumn(i);
+//            }
+//
+//            FileOutputStream fos = new FileOutputStream("DanhSachSanPham.xlsx");
+//            workbook.write(fos);
+//
+//            fos.close();
+//            workbook.close();
+//
+//            JOptionPane.showMessageDialog(null, "Xuất Excel thành công!");
+//
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
+//    }
 
     private void locKeTheoPhanTram(String value){
         soDoKe.removeAll();
