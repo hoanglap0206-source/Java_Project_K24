@@ -56,6 +56,24 @@ public class PhieuNhap_DAO {
             return false;
         }
     }
+
+    public boolean inSert(Connection conn,PhieuNhap pn){
+        String sql ="INSERT INTO PHIEU_NHAP(ma_pn,ngay_ct,ma_ncc,ma_nhan_vien) VALUES (?, ?, ?,?)";
+        try (
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1,pn.getMaPN());
+            ps.setTimestamp(2, Timestamp.valueOf(pn.getNgay_ct()));
+            ps.setString(3,pn.getNhaCC().getMaNCC());
+            ps.setString(4,pn.getNhanVien().getMaNV());
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean update(PhieuNhap pn){
         String sql =
                 "UPDATE PHIEU_NHAP SET ngay_ct=?,ma_ncc=?,ma_nhan_vien=? WHERE ma_pn=?";

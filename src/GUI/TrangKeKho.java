@@ -348,6 +348,7 @@ public class TrangKeKho extends JPanel {
     }
 
     private void themKe(){
+        int khoangTrong =0;
         String ma = JOptionPane.showInputDialog("Nhập mã kệ:"); // ?
         if(ma == null || ma.trim().isEmpty()) return; // ? return
 
@@ -359,7 +360,7 @@ public class TrangKeKho extends JPanel {
 
         try{
             int sucChua = Integer.parseInt(suc);
-            KeKho ke = new KeKho(ma.trim(), sucChua, viTri.trim());
+            KeKho ke = new KeKho(ma.trim(), sucChua, viTri.trim(),khoangTrong);
             JOptionPane.showMessageDialog(null, bus.addKK(ke)); // ?
             loadSoDo();
         }catch(Exception ex){

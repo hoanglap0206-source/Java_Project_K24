@@ -1,7 +1,12 @@
 package GUI;
 
+import BUS.PhieuNhap_BUS;
 import BUS.SanPham_BUS;
+import Model.NhaCungCap;
+import Model.NhanVien;
+import Model.PhieuNhap;
 import Model.SanPham;
+import UI.GiaoDienChinh_Main;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -14,9 +19,11 @@ import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class TrangNhapKho extends JPanel {
+    private PhieuNhap_BUS pnBus = new PhieuNhap_BUS();
     private SanPham_BUS spBus = new SanPham_BUS();
     private DefaultTableModel tableModel;
     private DefaultTableModel tableModelRight;
@@ -29,10 +36,11 @@ public class TrangNhapKho extends JPanel {
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private JTextField txtSearch;
     private JTextField txtSoLuongRight;
-    private JButton btnXuat, btnXoa, btnSua;
+    private JButton btnXuat, btnXoa, btnSua,btnNhap;
     private boolean isEditMode = false;
     private Timer searchTimer;
-
+    private JTextField txtNTP,txtID,txtNCC;
+    private String maNV = GiaoDienChinh_Main.currentMaNV;
     public TrangNhapKho() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -187,15 +195,40 @@ public class TrangNhapKho extends JPanel {
         JPanel panel = new JPanel(new GridLayout(3,2,10,10));
         panel.setBackground(Color.WHITE);
         panel.setBorder(new TitledBorder("THÔNG TIN PHIẾU NHẬP"));
+        JLabel lblID = new JLabel("Mã phiếu nhập");
+        JLabel lblNCC = new JLabel("Nhà Cung Cấp");
+        JLabel lblNTP = new JLabel("Người tạo phiếu");
+        txtID = new JTextField("Tự động tạo");
+        txtID.setEnabled(false);
+        txtNCC = new JTextField("Mã nhà cung cấp");
+        txtNCC.addFocusListener(new FocusAdapter() {
+            @Override
+//            Khi nhấn vào ô search
+            public void focusGained(FocusEvent e) {
+                if(txtNCC.getText().equalsIgnoreCase("Mã Nhà Cung Cấp")){
+                    txtNCC.setText("");
+                    txtNCC.setForeground(Color.BLACK);
+                }
+            }
+            //            Khi nhấn nơi khác
+//            @Override
+//            public void focusLost(FocusEvent e) {
+//                if(txtSearch.getText().isEmpty()){
+//                    txtSearch.setText("Nhà cung cấp");
+//                    txtSearch.setForeground(Color.GRAY);
+//                }
+//            }
+        });
+        txtNTP = new JTextField(maNV);
+        txtNTP.setEnabled(false);
+        panel.add(lblID);
+        panel.add(txtID);
 
-        panel.add(new JLabel("Mã phiếu nhập:"));
-        panel.add(new JTextField("Tự động tạo"));
+        panel.add(lblNCC);
+        panel.add(txtNCC);
 
-        panel.add(new JLabel("Nhà cung cấp:"));
-        panel.add(new JTextField());
-
-        panel.add(new JLabel("Người tạo phiếu:"));
-        panel.add(new JTextField());
+        panel.add(lblNTP);
+        panel.add(txtNTP);
 
         return panel;
     }
@@ -287,8 +320,15 @@ public class TrangNhapKho extends JPanel {
         leftWrapper.add(lblTongTien);
         leftWrapper.add(txtTongTien);
 
-        JButton btnNhap = new JButton("Nhập kho");
+        btnNhap = new JButton("Nhập kho");
         Style.styleButton(btnNhap);
+        btnNhap.addActionListener(e ->{
+            if (tableModelRight.getRowCount()==0){
+                JOptionPane.showMessageDialog(this, "Không có sản phẩm cần nhập!");
+                return;
+            }
+            taoPN();
+        });
 
         panel.add(leftWrapper, BorderLayout.WEST);
         panel.add(btnNhap, BorderLayout.EAST);
@@ -484,6 +524,35 @@ public class TrangNhapKho extends JPanel {
             searchTimer.restart();
         } else {
             searchTimer.start();
+        }
+    }
+
+    public void taoPN(){
+        DateTimeFormatter date_form =
+                DateTimeFormatter.ofPattern("ddMMyyyy");
+        String ngayNhap = LocalDate.now().format(date_form);
+        String maPN = "PN" + maNV + ngayNhap;
+
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        String ManCC = txtNCC.getText().trim();
+        NhaCungCap ncc = new NhaCungCap();
+        ncc.setMaNCC(ManCC);
+        if(ManCC.isEmpty() || ManCC.equalsIgnoreCase("Mã nhà cung cấp")){
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập mã Nhà Cung Cấp");
+            return;
+        }
+
+        NhanVien nv = new NhanVien();
+        nv.setMaNV(maNV);
+
+        PhieuNhap pn = new PhieuNhap(maPN,dateTime,ncc,nv);
+        if (pnBus.taoPhieuNhap(pn,tableModelRight)){
+            JOptionPane.showMessageDialog(this, "Thêm phiếu thành công");
+            return;
+        }else{
+            JOptionPane.showMessageDialog(this, "Thêm phiếu thất bại");
+            return;
         }
     }
 }

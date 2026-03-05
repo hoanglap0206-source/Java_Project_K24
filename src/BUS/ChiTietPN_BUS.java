@@ -2,6 +2,8 @@ package BUS;
 
 import DAO.ChiTietPN_DAO;
 import Model.ChiTiet_PhieuNhap;
+
+import java.sql.Connection;
 import java.util.*;
 public class ChiTietPN_BUS {
     private ArrayList<ChiTiet_PhieuNhap> listPN;
@@ -21,25 +23,25 @@ public class ChiTietPN_BUS {
         return result;
     }
 
-    public String addCTPN(ChiTiet_PhieuNhap CTPN){
+    public boolean addCTPN(Connection conn,ChiTiet_PhieuNhap CTPN){
         if (CTPN.getSoLuong() <= 0)
-            return "Số lượng phải lớn hơn 0";
+            return false;
 
         for (ChiTiet_PhieuNhap items : listPN) {
             if (
                     items.getPhieuNhap().getMaPN().equals(CTPN.getPhieuNhap().getMaPN())
                             && items.getSanPham().getMaSP().equals(CTPN.getSanPham().getMaSP())
             ) {
-                return "Sản phẩm này đã có trong phiếu nhập. Hãy cập nhật số lượng!";
+                return false;
             }
         }
 
-        if (CTPNDAO.insert(CTPN)) {
+        if (CTPNDAO.inSert(conn,CTPN)) {
             listPN.add(CTPN);
-            return "Thêm chi tiết phiếu nhập thành công!";
+            return true;
         }
 
-        return "Thêm chi tiết phiếu nhập thất bại!";
+        return false;
     }
 
     public String updateCTPN(ChiTiet_PhieuNhap ct){

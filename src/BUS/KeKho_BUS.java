@@ -4,6 +4,8 @@ import DAO.KeKho_DAO;
 import DAO.SanPham_DAO;
 import Model.KeKho;
 import Model.SanPham;
+
+import java.sql.Connection;
 import java.util.*;
 
 public class KeKho_BUS {
@@ -22,6 +24,11 @@ public class KeKho_BUS {
     public ArrayList<KeKho> getListKK(){
 //        return this.listKK; // load dữ liệu 1 lần, không dùng được cho sửa thêm xóa
         return kkDAO.getAllKeKho(); //
+    }
+
+    public ArrayList<KeKho> getlistKK(Connection conn){
+//        return this.listKK; // load dữ liệu 1 lần, không dùng được cho sửa thêm xóa
+        return kkDAO.getListKK(conn); //
     }
 
     public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
@@ -66,7 +73,7 @@ public class KeKho_BUS {
         return "Thêm thất bại!";
     }
 
-    public String updateKK(KeKho kk){
+    public boolean updateKK(KeKho kk){
         if(kkDAO.update(kk)){
             for(int i=0;i<listKK.size();i++){
                 if(listKK.get(i).getMaKe().equals(kk.getMaKe()))
@@ -75,9 +82,31 @@ public class KeKho_BUS {
                     break;
                 }
             }
-            return "Cập nhật thành công!";
+            return true;
         }
-        return "Cập nhật thất bại!";
+        return false;
+    }
+
+    public boolean updatekK(Connection conn,KeKho kk){
+        if(kkDAO.updateKK(conn,kk)){
+            for(int i=0;i<listKK.size();i++){
+                if(listKK.get(i).getMaKe().equals(kk.getMaKe()))
+                {
+                    listKK.set(i,kk);
+                    break;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public boolean updateKKtheoKT(Connection conn,String maKe,int khoangTrong){
+        if (kkDAO.updateKhoangTrong(conn,maKe,khoangTrong)){
+            listKK = kkDAO.getAllKeKho();
+            return true;
+        }
+        return false;
     }
 
     public String deleteKK(String maKe){

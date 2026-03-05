@@ -1,12 +1,18 @@
 package BUS;
 
+import DAO.KeKho_DAO;
 import DAO.SanPham_DAO;
+import DataBase.DBConnection;
+import Model.KeKho;
 import Model.SanPham;
+import java.sql.Connection;
+import javax.swing.table.DefaultTableModel;
 import java.util.ArrayList;
 
 public class SanPham_BUS {
     private ArrayList<SanPham> listSP;
     private SanPham_DAO spDAO;
+    private KeKho_BUS kkBUS;
 
     public SanPham_BUS() {
         spDAO = new SanPham_DAO();
@@ -31,7 +37,72 @@ public class SanPham_BUS {
         return 0;
     }
 
+    public boolean updateSP(Connection conn, DefaultTableModel model) {
+        kkBUS = new KeKho_BUS();
+        for (int i = 0; i < model.getRowCount(); i++) {
 
+            String maSP = model.getValueAt(i, 1).toString();
+            int sL = Integer.parseInt(model.getValueAt(i, 3).toString());
+
+            String maKeCu = findMaKe(maSP);
+
+            int soLuongMoi = tinhSLuong(maSP, sL);
+            int soLuongCu = soLuongMoi - sL;
+
+            ArrayList<KeKho> listKe = kkBUS.getlistKK(conn);
+            boolean daUpdate = false;
+
+            for (KeKho kkho : listKe) {
+                if (soLuongMoi > 0 && soLuongMoi <= kkho.getKhoangTrong()) {
+
+                    if (!spDAO.updateSP(conn, soLuongMoi, kkho.getMaKe(), maSP)) {
+                        return false;
+                    }
+
+                    int tongSlKeMoi = spDAO.SumSLbyMaKe(conn, kkho.getMaKe());
+                    int khoangTrongMoi = kkho.getSucChua() - tongSlKeMoi;
+                    kkho.setKhoangTrong(khoangTrongMoi);
+
+                    if (!kkBUS.updatekK(conn, kkho)) {
+                        return false;
+                    }
+                    daUpdate = true;
+                    break;
+                }
+            }
+            if (!daUpdate) {
+                return false;
+            }
+            // trả lại chỗ cho kệ cũ
+            int tongSlKeCu = spDAO.SumSLbyMaKe(conn, maKeCu);
+            int khoangTrongKeCu = tongSlKeCu - soLuongCu;
+
+            if (!kkBUS.updateKKtheoKT(conn, maKeCu, khoangTrongKeCu)) {
+                return false;
+            }
+        }
+
+        listSP = spDAO.getAllSanPham();
+        return true;
+    }
+
+    public int tinhSLuong(String maSP,int soLuong){
+        for (SanPham sp : listSP){
+            if (sp.getMaSP().equalsIgnoreCase(maSP)){
+                int sLMoi = sp.getSoLuong()+soLuong;
+                return sLMoi;
+            }
+        }return 0;
+    }
+
+    public String findMaKe(String maSP){
+        for (SanPham sp : listSP){
+            if (sp.getMaSP().equalsIgnoreCase(maSP)){
+                return sp.getKeKho().getMaKe();
+            }
+        }
+        return null;
+    }
     public boolean updateSoLuong(String maSP, int soLuongThayDoi) {
         for (int i = 0; i < listSP.size(); i++) {
             SanPham sp = listSP.get(i);
