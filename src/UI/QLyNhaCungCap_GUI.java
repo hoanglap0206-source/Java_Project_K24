@@ -1,6 +1,8 @@
 package UI;
 
 import BUS.NCC_BUS;
+import GUI.ButtonEditor;
+import GUI.buttonRender;
 import Model.NhaCungCap;
 
 import javax.swing.*;

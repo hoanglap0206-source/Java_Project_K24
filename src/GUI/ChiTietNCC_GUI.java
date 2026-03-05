@@ -1,9 +1,10 @@
-package UI;
+package GUI;
 
 import BUS.NCC_BUS;
 import Model.ThongKeNCCDTO;
 import Model.NhaCungCap;
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class ChiTietNCC_GUI extends JFrame {
         pnlTopGroup.add(pnlStats, BorderLayout.CENTER);
 
         // 2c. Bottom Center: Bảng lịch sử
-        String[] cols = {"Mã Phiếu Nhập", "Ngày Chứng Từ", "Giá Trị Đơn (VNĐ)", "Nhân Viên Nhập"};
+        String[] cols = {"Mã Phiếu Nhập", "Ngày Chứng Từ", "Giá Trị Đơn (VNĐ)"};
         model = new DefaultTableModel(cols, 0);
         tblLichSu = new JTable(model);
         tblLichSu.setRowHeight(30);
@@ -84,7 +85,12 @@ public class ChiTietNCC_GUI extends JFrame {
 
         pnlCenter.add(pnlTopGroup, BorderLayout.NORTH);
         pnlCenter.add(sp, BorderLayout.CENTER);
-
+        //Căn giữa toàn bộ
+        DefaultTableCellRenderer center= new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(SwingConstants.CENTER);
+        for(int i=0; i<tblLichSu.getColumnCount();i++){
+            tblLichSu.getColumnModel().getColumn(i).setCellRenderer(center);
+        }
         add(pnlCenter, BorderLayout.CENTER);
 
         // --- 3. Footer: Nút đóng ---
@@ -110,11 +116,11 @@ public class ChiTietNCC_GUI extends JFrame {
 
         JLabel lblTitle = new JLabel(title);
         lblTitle.setForeground(Color.WHITE);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTitle.setFont(new Font("Arial", Font.BOLD, 12));
 
         JLabel lblValue = new JLabel("0");
         lblValue.setForeground(Color.WHITE);
-        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        lblValue.setFont(new Font("Arial", Font.BOLD, 28));
         lblValue.setHorizontalAlignment(SwingConstants.RIGHT);
 
         card.add(lblTitle, BorderLayout.NORTH);
@@ -137,5 +143,6 @@ public class ChiTietNCC_GUI extends JFrame {
             row[2] = String.format("%,.0f", (Double)row[2]); // Định dạng tiền trong bảng
             model.addRow(row);
         }
+
     }
 }

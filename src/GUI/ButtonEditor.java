@@ -1,4 +1,5 @@
-package UI;
+package GUI;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -26,13 +27,13 @@ public class ButtonEditor extends DefaultCellEditor{
     public Object getCellEditorValue(){
         if(isPushed){
            JTable table= (JTable) SwingUtilities.getAncestorOfClass(JTable.class,JB);
-           int row= table.getSelectedRow();
+           int row= table.getEditingRow();
 
            if(row !=1){
-               String ma= table.getValueAt(row,0).toString();
-               String ten= table.getValueAt(row,1).toString();
-               String sdt= table.getValueAt(row,2).toString();
-               String diaChi= table.getValueAt(row,3).toString();
+               String ma= table.getValueAt(row,1).toString();
+               String ten= table.getValueAt(row,2).toString();
+               String sdt= table.getValueAt(row,3).toString();
+               String diaChi= table.getValueAt(row,4).toString();
 
                Model.NhaCungCap ncc=new Model.NhaCungCap(ma,ten,sdt,diaChi);
 
