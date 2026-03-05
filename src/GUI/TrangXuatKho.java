@@ -155,7 +155,12 @@ public class TrangXuatKho extends JPanel {
     private JScrollPane createTableLeft() {
         String[] columns = {"Mã SP", "Tên sản phẩm", "SL", "Đơn giá"};
 
-        tableModel = new DefaultTableModel(columns, 0);
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         table = new JTable(tableModel);
 
         table.setRowHeight(30);
@@ -217,7 +222,11 @@ public class TrangXuatKho extends JPanel {
         tableModelRight = new DefaultTableModel(
                 new String[]{"STT","Mã SP","Tên sản phẩm","SL","Đơn giá"},
                 0
-        );
+        ){
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tableRight = new JTable(tableModelRight);
 
         tableRight.setRowHeight(30);
@@ -378,7 +387,7 @@ public class TrangXuatKho extends JPanel {
 
     public void loadTableData() {
         tableModel.setRowCount(0); // xóa dữ liệu cũ
-        for( SanPham sp : spBus.getAll()){
+        for( SanPham sp : spBus.getListSP()){
             tableModel.addRow(new Object[]{
                     sp.getMaSP(),
                     sp.getTenSP(),

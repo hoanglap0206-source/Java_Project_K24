@@ -14,6 +14,10 @@ public class SanPham_BUS {
     private SanPham_DAO spDAO;
     private KeKho_BUS kkBUS;
 
+    public ArrayList<SanPham> getListSP() {
+        return listSP;
+    }
+
     public SanPham_BUS() {
         spDAO = new SanPham_DAO();
         listSP = spDAO.getAllSanPham(); // thêm để load data listSP
@@ -49,7 +53,7 @@ public class SanPham_BUS {
             int soLuongMoi = tinhSLuong(maSP, sL);
             int soLuongCu = soLuongMoi - sL;
 
-            ArrayList<KeKho> listKe = kkBUS.getlistKK(conn);
+            ArrayList<KeKho> listKe = kkBUS.getlistkK(conn);
             boolean daUpdate = false;
 
             for (KeKho kkho : listKe) {

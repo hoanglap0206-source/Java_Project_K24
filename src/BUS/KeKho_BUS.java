@@ -26,7 +26,7 @@ public class KeKho_BUS {
         return kkDAO.getAllKeKho(); //
     }
 
-    public ArrayList<KeKho> getlistKK(Connection conn){
+    public ArrayList<KeKho> getlistkK(Connection conn){
 //        return this.listKK; // load dữ liệu 1 lần, không dùng được cho sửa thêm xóa
         return kkDAO.getListKK(conn); //
     }

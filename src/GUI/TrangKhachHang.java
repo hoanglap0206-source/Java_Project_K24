@@ -156,7 +156,7 @@ public class TrangKhachHang extends JPanel {
         JPanel pnl = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnl.setBackground(Color.WHITE);
 
-        JLabel lblTitle = new JLabel("DANH SÁCH SẢN PHẨM");
+        JLabel lblTitle = new JLabel("DANH SÁCH KHÁCH HÀNG");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblTitle.setForeground(Color.BLACK);
 

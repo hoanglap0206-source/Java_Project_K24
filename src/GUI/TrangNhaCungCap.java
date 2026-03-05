@@ -166,12 +166,12 @@ public class TrangNhaCungCap extends JPanel {
     }
 
     private JScrollPane taoBang() {
-        String[] columns = {"STT","Mã NCC","Tên NCC","SĐT","Địa chỉ"};
+        String[] columns = {"STT","Mã NCC","Tên NCC","SĐT","Địa chỉ","Xem chi tiết"};
 
         model = new DefaultTableModel(columns,0){
             @Override
             public boolean isCellEditable(int row,int column){
-                return false;
+                return column ==5;
             }
         };
 
@@ -182,6 +182,9 @@ public class TrangNhaCungCap extends JPanel {
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
         table.getTableHeader().setBackground(new Color(210,230,255));
         table.getTableHeader().setReorderingAllowed(false);
+
+        table.getColumnModel().getColumn(5).setCellRenderer(new buttonRender());
+        table.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox()));
 
         // Căn giữa toàn bộ
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
@@ -208,7 +211,8 @@ public class TrangNhaCungCap extends JPanel {
                     ncc.getMaNCC(),
                     ncc.getTenNCC(),
                     ncc.getSdt(),
-                    ncc.getDiaChi()
+                    ncc.getDiaChi(),
+                    "Xem"
             };
             model.addRow(row);
         }

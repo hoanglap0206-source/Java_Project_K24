@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class KeKho_DAO {
     public ArrayList<KeKho> getAllKeKho(){
         ArrayList<KeKho> list = new ArrayList<>();
-        String sql = "SELECT ma_ke, suc_chua, vi_tri,khoang_trong =? FROM KE_KHO";
+        String sql = "SELECT ma_ke, suc_chua, vi_tri,khoang_trong FROM KE_KHO";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
