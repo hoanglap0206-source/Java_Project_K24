@@ -381,7 +381,7 @@ public class TrangXuatKho extends JPanel {
 
     public void loadTableData() {
         tableModel.setRowCount(0); // xóa dữ liệu cũ
-        for( SanPham sp : spBus.getAll()){
+        for( SanPham sp : spBus.getListSP()){
             tableModel.addRow(new Object[]{
                     sp.getMaSP(),
                     sp.getTenSP(),

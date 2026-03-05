@@ -14,6 +14,10 @@ public class SanPham_BUS {
     private SanPham_DAO spDAO;
     private KeKho_BUS kkBUS;
 
+    public ArrayList<SanPham> getListSP() {
+        return listSP;
+    }
+
     public SanPham_BUS() {
         spDAO = new SanPham_DAO();
         listSP = spDAO.getAllSanPham(); // thêm để load data listSP
