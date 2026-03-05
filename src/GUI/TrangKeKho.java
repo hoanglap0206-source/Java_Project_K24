@@ -209,11 +209,20 @@ public class TrangKeKho extends JPanel {
         return main;
     }
 
+    // Trả về kiểu JComponent để hiện scroll
     private JPanel taoSoDoKe() {
         soDoKe = new JPanel(new GridLayout(0, 5, 15, 15));
         soDoKe.setBorder(new EmptyBorder(10,10,10,10));
         soDoKe.setBackground(new Color(231,242,245));
+
         loadSoDo();
+
+        JScrollPane scroll = new JScrollPane(soDoKe);
+        scroll.setBorder(null); // xóa border mặc định
+        scroll.getVerticalScrollBar().setUnitIncrement(16); // Tăng tốc cuộn chuột
+
+        scroll.setPreferredSize(new Dimension(0, 250));
+
         return soDoKe;
     }
 
@@ -262,7 +271,7 @@ public class TrangKeKho extends JPanel {
                 new EmptyBorder(15,15,15,15)
         ));
 //        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE,350)); // ?
-        panel.setPreferredSize(new Dimension(0,250));
+        panel.setPreferredSize(new Dimension(0,300));
 
         lblTenKe = new JLabel("Kệ A1");
         lblTenKe.setFont(new Font("Segoe UI", Font.BOLD,15));
@@ -454,67 +463,67 @@ public class TrangKeKho extends JPanel {
         }
     }
 
-    public void xuatExcelTuBang(JTable table) {
-        try {
-            Workbook workbook = new XSSFWorkbook();
-            Sheet sheet = workbook.createSheet("Data");
-
-            for (int i = 0; i < table.getRowCount(); i++) {
-                Row row = sheet.createRow(i);
-                for (int j = 0; j < table.getColumnCount(); j++) {
-                    row.createCell(j).setCellValue(
-                            table.getValueAt(i, j).toString()
-                    );
-                }
-            }
-
-            FileOutputStream fos = new FileOutputStream("Data.xlsx");
-            workbook.write(fos);
-            fos.close();
-            workbook.close();
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
 //    public void xuatExcelTuBang(JTable table) {
 //        try {
 //            Workbook workbook = new XSSFWorkbook();
 //            Sheet sheet = workbook.createSheet("Data");
 //
-//            // Header
-//            Row header = sheet.createRow(0);
-//            for (int i = 0; i < table.getColumnCount(); i++) {
-//                header.createCell(i).setCellValue(table.getColumnName(i));
-//            }
-//
-//            // Data
 //            for (int i = 0; i < table.getRowCount(); i++) {
-//                Row row = sheet.createRow(i + 1);
+//                Row row = sheet.createRow(i);
 //                for (int j = 0; j < table.getColumnCount(); j++) {
-//                    Object value = table.getValueAt(i, j);
-//                    row.createCell(j).setCellValue(value == null ? "" : value.toString());
+//                    row.createCell(j).setCellValue(
+//                            table.getValueAt(i, j).toString()
+//                    );
 //                }
 //            }
 //
-//            // Auto size
-//            for (int i = 0; i < table.getColumnCount(); i++) {
-//                sheet.autoSizeColumn(i);
-//            }
-//
-//            FileOutputStream fos = new FileOutputStream("DanhSachSanPham.xlsx");
+//            FileOutputStream fos = new FileOutputStream("Data.xlsx");
 //            workbook.write(fos);
-//
 //            fos.close();
 //            workbook.close();
-//
-//            JOptionPane.showMessageDialog(null, "Xuất Excel thành công!");
 //
 //        } catch (Exception ex) {
 //            ex.printStackTrace();
 //        }
 //    }
+
+    public void xuatExcelTuBang(JTable table) {
+        try {
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("Data");
+
+            // Header
+            Row header = sheet.createRow(0);
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                header.createCell(i).setCellValue(table.getColumnName(i));
+            }
+
+            // Data
+            for (int i = 0; i < table.getRowCount(); i++) {
+                Row row = sheet.createRow(i + 1);
+                for (int j = 0; j < table.getColumnCount(); j++) {
+                    Object value = table.getValueAt(i, j);
+                    row.createCell(j).setCellValue(value == null ? "" : value.toString());
+                }
+            }
+
+            // Auto size
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            FileOutputStream fos = new FileOutputStream("DanhSachSanPham.xlsx");
+            workbook.write(fos);
+
+            fos.close();
+            workbook.close();
+
+            JOptionPane.showMessageDialog(null, "Xuất Excel thành công!");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
     private void locKeTheoPhanTram(String value){
         soDoKe.removeAll();
