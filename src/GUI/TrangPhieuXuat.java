@@ -129,7 +129,12 @@ public class TrangPhieuXuat extends JPanel {
                 "Khách hàng","Tổng tiền","Trạng thái","Thao tác"
         };
 
-        model = new DefaultTableModel(columns,0);
+        model = new DefaultTableModel(columns,0){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         table = new JTable(model);
 
         table.setRowHeight(30);
