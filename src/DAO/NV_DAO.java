@@ -87,7 +87,6 @@ public class NV_DAO {
             e.printStackTrace();
             return false;
         }
-        //Hello GITHUB
     }
     public ArrayList<NhanVien> getAccoount(){
         String sql =" SELECT ma_nhan_vien,mat_khau FROM NHAN_VIEN";
