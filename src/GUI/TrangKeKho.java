@@ -10,6 +10,17 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.util.ArrayList;
 
+import java.awt.print.PrinterException;
+import java.text.MessageFormat;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.FileOutputStream;
+import java.io.File;
+
 public class TrangKeKho extends JPanel {
     private DefaultTableModel model; // ?
     private JPanel soDoKe;
@@ -146,13 +157,14 @@ public class TrangKeKho extends JPanel {
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
         btnExcel = new JButton("Xuất Excel", scaledIcon);
         Style.styleButton(btnExcel);
-        btnExcel.addActionListener(e -> xuatExcel());
 
         // Xử lý sự kiện
         btnAdd.addActionListener(e -> themKe());
         btnEdit.addActionListener(e -> suaKe());
         btnDelete.addActionListener(e -> xoaKe());
         btnLamMoi.addActionListener(e -> loadSoDo());
+        btnPrint.addActionListener(e -> inDanhSach());
+        btnExcel.addActionListener(e -> xuatExcelTuBang(table));
 
         // Thêm vào panel
         panel.add(pnlSearchInput);
@@ -411,8 +423,95 @@ public class TrangKeKho extends JPanel {
         soDoKe.repaint();
     }
 
-    private void xuatExcel(){
+    private void inDanhSach(){
+        if(table.getRowCount() == 0){
+            JOptionPane.showMessageDialog(null,"Không có dữ liệu để in!");
+            return;
+        }
 
+        try {
+            String tenKe = lblTenKe.getText();
+            MessageFormat header = new MessageFormat("Danh sách sản phẩm - " + tenKe);
+            MessageFormat footer = new MessageFormat("Trang {0}");
+
+            boolean complete = table.print(
+                    JTable.PrintMode.FIT_WIDTH,
+                    header,
+                    footer
+            );
+
+            if(complete){
+                JOptionPane.showMessageDialog(null,"In thành công!");
+            }else{
+                JOptionPane.showMessageDialog(null,"Đã hủy in.");
+            }
+
+        } catch (PrinterException ex){
+            JOptionPane.showMessageDialog(null,"Lỗi khi in!");
+            ex.printStackTrace();
+        }
+    }
+
+//    public void xuatExcelTuBang(JTable table) {
+//        try {
+//            Workbook workbook = new XSSFWorkbook();
+//            Sheet sheet = workbook.createSheet("Data");
+//
+//            for (int i = 0; i < table.getRowCount(); i++) {
+//                Row row = sheet.createRow(i);
+//                for (int j = 0; j < table.getColumnCount(); j++) {
+//                    row.createCell(j).setCellValue(
+//                            table.getValueAt(i, j).toString()
+//                    );
+//                }
+//            }
+//
+//            FileOutputStream fos = new FileOutputStream("Data.xlsx");
+//            workbook.write(fos);
+//            fos.close();
+//            workbook.close();
+//
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
+//    }
+
+    public void xuatExcelTuBang(JTable table) {
+        try {
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("Data");
+
+            // Header
+            Row header = sheet.createRow(0);
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                header.createCell(i).setCellValue(table.getColumnName(i));
+            }
+
+            // Data
+            for (int i = 0; i < table.getRowCount(); i++) {
+                Row row = sheet.createRow(i + 1);
+                for (int j = 0; j < table.getColumnCount(); j++) {
+                    Object value = table.getValueAt(i, j);
+                    row.createCell(j).setCellValue(value == null ? "" : value.toString());
+                }
+            }
+
+            // Auto size
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            FileOutputStream fos = new FileOutputStream("DanhSachSanPham.xlsx");
+            workbook.write(fos);
+
+            fos.close();
+            workbook.close();
+
+            JOptionPane.showMessageDialog(null, "Xuất Excel thành công!");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     private void locKeTheoPhanTram(String value){
