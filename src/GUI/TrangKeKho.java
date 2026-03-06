@@ -22,7 +22,7 @@ import java.io.FileOutputStream;
 import java.io.File;
 
 public class TrangKeKho extends JPanel {
-    private DefaultTableModel model; // ?
+    private DefaultTableModel model;
     private JPanel soDoKe;
     private JLabel lblTenKe;
     private JTable table;
@@ -209,8 +209,8 @@ public class TrangKeKho extends JPanel {
         return main;
     }
 
-    // Trả về kiểu JComponent để hiện scroll
-    private JPanel taoSoDoKe() {
+    // Bọc Scroll
+    private JScrollPane taoSoDoKe() {
         soDoKe = new JPanel(new GridLayout(0, 5, 15, 15));
         soDoKe.setBorder(new EmptyBorder(10,10,10,10));
         soDoKe.setBackground(new Color(231,242,245));
@@ -223,7 +223,7 @@ public class TrangKeKho extends JPanel {
 
         scroll.setPreferredSize(new Dimension(0, 250));
 
-        return soDoKe;
+        return scroll;
     }
 
     private JPanel taoTheKe(String ten, int percent){

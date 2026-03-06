@@ -57,7 +57,7 @@ public class ManHinhChinh extends JFrame {
 
         // Icon ứng dụng
         try {
-            ImageIcon icon = new ImageIcon(getClass().getResource("/Img/ConRua.jpg"));
+            ImageIcon icon = new ImageIcon(getClass().getResource("/Img/Logo.jpg"));
             setIconImage(icon.getImage());
         } catch (Exception e) {
             System.out.println("Không tìm thấy icon");

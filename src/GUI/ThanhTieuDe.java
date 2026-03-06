@@ -46,7 +46,7 @@ public class ThanhTieuDe extends JPanel {
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         leftPanel.setOpaque(false);
 
-        CirclePanel logo = new CirclePanel("/Img/ConRua.jpg", 35);
+        CirclePanel logo = new CirclePanel("/Img/Logo.jpg", 35);
 
         JLabel title = new JLabel("QUẢN LÝ KHO NƯỚC GIẢI KHÁT");
         title.setForeground(new Color(20, 50, 100)); // Màu xanh đậm cho sang trọng

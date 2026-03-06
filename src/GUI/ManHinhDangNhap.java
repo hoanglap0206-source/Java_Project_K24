@@ -12,7 +12,7 @@ public class ManHinhDangNhap extends JFrame {
 
     public ManHinhDangNhap() {
         setTitle("Đăng nhập hệ thống");
-        ImageIcon icon = new ImageIcon(getClass().getResource("/Img/ConRua.jpg"));
+        ImageIcon icon = new ImageIcon(getClass().getResource("/Img/Logo.jpg"));
         setIconImage(icon.getImage());
         setSize(800, 450);
         setLocationRelativeTo(null);
@@ -30,7 +30,7 @@ public class ManHinhDangNhap extends JFrame {
 
         left.add(Box.createVerticalGlue());
 
-        CirclePanel logo = new CirclePanel("/Img/ConRua.jpg", 120);
+        CirclePanel logo = new CirclePanel("/Img/Logo.jpg", 120);
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
         left.add(logo);
 
