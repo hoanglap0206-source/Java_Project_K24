@@ -10,6 +10,9 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.util.ArrayList;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import java.awt.print.PrinterException;
 import java.text.MessageFormat;
 
@@ -38,6 +41,7 @@ public class TrangKeKho extends JPanel {
     private JButton btnExcel;
     private JTextField txtSearch;
     private JButton btnSearchIcon;
+    private JPanel selectedCard = null;
 
     public TrangKeKho() {
         setLayout(new BorderLayout());
@@ -52,12 +56,9 @@ public class TrangKeKho extends JPanel {
         wrapper.setBackground(Color.WHITE);
         wrapper.setBorder(new EmptyBorder(15,20,5,20));
 
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,12,4));
-        panel.setBackground(new Color(231,242,245));
-        panel.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198,226,255), 2),
-                new EmptyBorder(2,12,2,12)
-        ));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,10,2));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(4,10,4,10));
 
         // Thanh tìm kiếm
         txtSearch = new JTextField("Tìm kiếm");
@@ -218,7 +219,6 @@ public class TrangKeKho extends JPanel {
         loadSoDo();
 
         JScrollPane scroll = new JScrollPane(soDoKe);
-        scroll.setBorder(null); // xóa border mặc định
         scroll.getVerticalScrollBar().setUnitIncrement(16); // Tăng tốc cuộn chuột
 
         scroll.setPreferredSize(new Dimension(0, 250));
@@ -229,8 +229,8 @@ public class TrangKeKho extends JPanel {
     private JPanel taoTheKe(String ten, int percent){
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
-        card.setBorder(new LineBorder(new Color(200,200,200)));
-        card.setPreferredSize(new Dimension(140,50));
+        card.setBorder(new LineBorder(new Color(200,200,200), 1, true));
+        card.setPreferredSize(new Dimension(150,70));
 
         // panel chứa label + progress nằm ngang
         JPanel content = new JPanel(new BorderLayout(10,0));
@@ -254,11 +254,32 @@ public class TrangKeKho extends JPanel {
         card.add(content, BorderLayout.CENTER);
 
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        card.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                capNhatBang(ten);
+
+        MouseAdapter hover = new MouseAdapter() {
+            public void mouseEntered(MouseEvent e){
+                card.setBackground(new Color(245,250,255));
+                content.setBackground(new Color(245,250,255));
             }
-        });
+
+            public void mouseExited(MouseEvent e){
+                card.setBackground(Color.WHITE);
+                content.setBackground(Color.WHITE);
+            }
+
+            public void mouseClicked(MouseEvent e) {
+                capNhatBang(ten);
+                if (selectedCard != null) {
+                    selectedCard.setBorder(new LineBorder(new Color(200,200,200),1,true));
+                }
+
+                card.setBorder(new LineBorder(Color.BLUE,2,true));
+                selectedCard = card;
+            }
+        };
+
+        card.addMouseListener(hover);
+        content.addMouseListener(hover);
+        bar.addMouseListener(hover);
 
         return card;
     }
@@ -429,6 +450,16 @@ public class TrangKeKho extends JPanel {
             int percent = bus.tinhPhanTramTheoKe(ke.getMaKe());
             soDoKe.add(taoTheKe(ke.getMaKe(), percent));
         }
+
+        int soKe = soDoKe.getComponentCount();
+        int soDong = (int) Math.ceil(soKe / 5.0);
+
+        int cardHeight = 60;   // chiều cao card
+        int gap = 15;          // khoảng cách grid
+
+        int height = soDong * cardHeight + (soDong - 1) * gap + 20;
+
+        soDoKe.setPreferredSize(new Dimension(0, height));
 
         soDoKe.revalidate();
         soDoKe.repaint();
