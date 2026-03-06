@@ -20,10 +20,13 @@ public class ChiTietNCC_GUI extends JFrame {
         this.ncc = ncc;
         initGUI();
         loadThongKeVaBang();
+
     }
 
     private void initGUI() {
-        setTitle("Hồ Sơ Chi Tiết Nhà Cung Cấp");
+
+        this.setUndecorated(true);
+        //setTitle("Hồ Sơ Chi Tiết Nhà Cung Cấp");
         setSize(1000, 700);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(15, 15));
