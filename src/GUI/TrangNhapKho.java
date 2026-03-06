@@ -1,5 +1,6 @@
 package GUI;
 
+import BUS.NCC_BUS;
 import BUS.PhieuNhap_BUS;
 import BUS.SanPham_BUS;
 import Model.NhaCungCap;
@@ -25,6 +26,7 @@ import java.time.format.DateTimeFormatter;
 public class TrangNhapKho extends JPanel {
     private PhieuNhap_BUS pnBus = new PhieuNhap_BUS();
     private SanPham_BUS spBus = new SanPham_BUS();
+    private NCC_BUS nccBus = new NCC_BUS();
     private DefaultTableModel tableModel;
     private DefaultTableModel tableModelRight;
     private JTable table;
@@ -40,7 +42,7 @@ public class TrangNhapKho extends JPanel {
     private boolean isEditMode = false;
     private Timer searchTimer;
     private JTextField txtNTP,txtID,txtNCC;
-    private String maNV = GiaoDienChinh_Main.currentMaNV;
+    private String maNV = ManHinhChinh.currentMaNV;
     public TrangNhapKho() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -122,8 +124,14 @@ public class TrangNhapKho extends JPanel {
         JButton btnLamMoi = new JButton("⟳ Làm mới");
         Style.styleButton(btnLamMoi);
 
-        btnSearchIcon.addActionListener(e -> loadDataFromKey());
-        btnLamMoi.addActionListener(e -> loadTableData());
+        btnSearchIcon.addActionListener(e -> {
+            searchSP();
+            txtSearch.setText("Tìm kiếm");
+        });
+        btnLamMoi.addActionListener(e -> {
+            loadTableData();
+            txtSearch.setText("Tìm kiếm");
+        });
 
         NorthPanel.add(title, BorderLayout.NORTH);
         timKiemWrapper.add(pnlSearchInput);
@@ -205,35 +213,52 @@ public class TrangNhapKho extends JPanel {
         panel.setBorder(new TitledBorder("THÔNG TIN PHIẾU NHẬP"));
         JLabel lblID = new JLabel("Mã phiếu nhập");
         JLabel lblNCC = new JLabel("Nhà Cung Cấp");
+
+        String[] itemLoc = new String[nccBus.getListNCC().size()];
+        itemLoc[0] = "Nhà Cung Cấp";
+        for (int i = 1; i < nccBus.getListNCC().size(); i++) {
+           itemLoc[i] = nccBus.getListNCC().get(i).getMaNCC();
+        }
+        JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
+        comboBoxLoc.setBackground(new Color(214, 238, 253));
+        comboBoxLoc.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        comboBoxLoc.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        comboBoxLoc.setSelectedIndex(0);
+
+        comboBoxLoc.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(
+                    JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
+
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+
+                lbl.setHorizontalAlignment(SwingConstants.CENTER);
+
+                if (index == -1 && comboBoxLoc.getSelectedIndex() == -1) {
+                    lbl.setText("Lọc");
+                    lbl.setForeground(Color.GRAY);
+                }
+
+                return lbl;
+            }
+        });
+        comboBoxLoc.addActionListener(e -> {
+            txtNCC.setText(comboBoxLoc.getSelectedItem().toString());
+        });
+
         JLabel lblNTP = new JLabel("Người tạo phiếu");
         txtID = new JTextField("Tự động tạo");
         txtID.setEnabled(false);
-        txtNCC = new JTextField("Mã nhà cung cấp");
-        txtNCC.addFocusListener(new FocusAdapter() {
-            @Override
-//            Khi nhấn vào ô search
-            public void focusGained(FocusEvent e) {
-                if(txtNCC.getText().equalsIgnoreCase("Mã Nhà Cung Cấp")){
-                    txtNCC.setText("");
-                    txtNCC.setForeground(Color.BLACK);
-                }
-            }
-            //            Khi nhấn nơi khác
-//            @Override
-//            public void focusLost(FocusEvent e) {
-//                if(txtSearch.getText().isEmpty()){
-//                    txtSearch.setText("Nhà cung cấp");
-//                    txtSearch.setForeground(Color.GRAY);
-//                }
-//            }
-        });
+        txtNCC = new JTextField("");
         txtNTP = new JTextField(maNV);
         txtNTP.setEnabled(false);
         panel.add(lblID);
         panel.add(txtID);
 
         panel.add(lblNCC);
-        panel.add(txtNCC);
+        panel.add(comboBoxLoc);
 
         panel.add(lblNTP);
         panel.add(txtNTP);
@@ -398,6 +423,7 @@ public class TrangNhapKho extends JPanel {
                 return;
             }
             tableModelRight.setValueAt(soLuong,row,3);
+            txtSoLuongRight.setText("0");
             long sumMoney = 0;
             for (int i = 0; i < tableModelRight.getRowCount(); i++) {
                 int quantity = Integer.parseInt(

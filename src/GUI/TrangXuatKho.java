@@ -2,6 +2,8 @@ package GUI;
 
 import BUS.SanPham_BUS;
 import Model.SanPham;
+import UI.GiaoDienChinh_Main;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.DocumentEvent;
@@ -35,9 +37,10 @@ public class TrangXuatKho extends JPanel {
     private JButton btnXuat, btnXoa, btnSua;
     private boolean isEditMode = false;
 
-    private JTextField txtID, txtNTP;
+    private JTextField txtID, txtNTP,txtKH;
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private String maNV = ManHinhChinh.currentMaNV;
 
     public TrangXuatKho() {
         setLayout(new BorderLayout());
@@ -122,6 +125,15 @@ public class TrangXuatKho extends JPanel {
         JButton btnLamMoi = new JButton("⟳ Làm mới");
         Style.styleButton(btnLamMoi);
 
+        btnSearchIcon.addActionListener(e -> {
+            searchSP();
+            txtSearch.setText("Tìm kiếm");
+        });
+        btnLamMoi.addActionListener(e -> {
+            loadTableData();
+            txtSearch.setText("Tìm kiếm");
+        });
+
         NorthPanel.add(title, BorderLayout.NORTH);
         timKiemWrapper.add(pnlSearchInput);
         timKiemWrapper.add(btnLamMoi);
@@ -203,13 +215,18 @@ public class TrangXuatKho extends JPanel {
         panel.setBorder(new TitledBorder("THÔNG TIN PHIẾU XUẤT"));
 
         panel.add(new JLabel("Mã phiếu xuất:"));
-        panel.add(new JTextField("Tự động tạo"));
+        txtID = new JTextField("Tự động tạo");
+        txtID.setEnabled(false);
+        panel.add(txtID);
 
         panel.add(new JLabel("Khách hàng:"));
-        panel.add(new JTextField());
+        txtKH = new JTextField("Tên Khách hàng");
+        panel.add(txtKH);
 
         panel.add(new JLabel("Người tạo phiếu:"));
-        panel.add(new JTextField());
+        txtNTP = new JTextField(maNV);
+        txtNTP.setEnabled(false);
+        panel.add(txtNTP);
 
         return panel;
     }
@@ -522,6 +539,7 @@ public class TrangXuatKho extends JPanel {
             }
             tableModelRight.setValueAt(soLuong,row,3);
             long sumMoney = 0;
+            txtSoLuongRight.setText("0");
             for (int i = 0; i < tableModelRight.getRowCount(); i++) {
                 int quantity = Integer.parseInt(
                         tableModelRight.getValueAt(i, 3).toString()
