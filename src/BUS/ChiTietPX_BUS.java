@@ -4,6 +4,7 @@ import DAO.ChiTietPX_DAO;
 import Model.ChiTiet_PhieuXuat;
 import Model.SanPham;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 
 public class ChiTietPX_BUS {
@@ -33,27 +34,27 @@ public class ChiTietPX_BUS {
     }
 
 
-    public String addCTPX(ChiTiet_PhieuXuat ct) {
-        if (ct.getSoLuong() <= 0) return "Số lượng xuất phải lớn hơn 0!";
+    public boolean addCTPX(Connection conn,ChiTiet_PhieuXuat ct) {
+        if (ct.getSoLuong() <= 0) return false;
         int tonkho = spBUS.getSoLuongTon(ct.getSanPham().getMaSP());
         if(ct.getSoLuong() > tonkho)
-            return "Không đủ hàng! Trong kho chỉ còn"+tonkho;
+            return false;
         // Kiểm tra trùng sản phẩm trong cùng 1 phiếu
         for (ChiTiet_PhieuXuat item : listCTPX) {
             if (item.getPhieuXuat().getMaPX().equals(ct.getPhieuXuat().getMaPX())
                     && item.getSanPham().getMaSP().equals(ct.getSanPham().getMaSP())) {
-                return "Sản phẩm này đã tồn tại trong phiếu xuất!";
+                return false;
             }
         }
 
         // Tính toán trước khi lưu (ThanhTien = SL * DonGia + VAT)
         // Lưu ý: Tùy vào cách tính VAT (số tiền hay %) mà điều chỉnh công thức này
 
-        if (ctDAO.insert(ct)) {
+        if (ctDAO.inSert(conn,ct)) {
             listCTPX.add(ct);
-            return "Thêm chi tiết phiếu xuất thành công!";
+            return true;
         }
-        return "Thêm thất bại!";
+        return false;
     }
 
 

@@ -58,6 +58,27 @@ public class ChiTietPX_DAO {
             return false;
         }
     }
+
+    public boolean inSert(Connection conn,ChiTiet_PhieuXuat ct){
+        String sql=
+                "INSERT INTO CHITIET_PHIEU_XUAT(ma_px,ma_sku,sl,don_gia,thanh_tien,thue_vat) VALUES (?, ?, ?,?,?,?)";
+        try (
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1,ct.getPhieuXuat().getMaPX());
+            ps.setString(2,ct.getSanPham().getMaSP());
+            ps.setInt(3,ct.getSoLuong());
+            ps.setDouble(4,ct.getDonGia());
+            ps.setLong(5,ct.getThanhTien());
+            ps.setFloat(6,ct.getThueVAT());
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean update(ChiTiet_PhieuXuat ct){
         String sql=
                 "UPDATE CHITIET_PHIEU_XUAT SET sl=?,don_gia=?,thanh_tien=?,thue_vat=? WHERE ma_px=? AND ma_sku=?";

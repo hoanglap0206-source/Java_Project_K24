@@ -20,6 +20,7 @@ public class SanPham_BUS {
 
     public SanPham_BUS() {
         spDAO = new SanPham_DAO();
+        kkBUS = new KeKho_BUS();
         listSP = spDAO.getAllSanPham(); // thêm để load data listSP
     }
 
@@ -42,7 +43,6 @@ public class SanPham_BUS {
     }
 
     public boolean updateSP(Connection conn, DefaultTableModel model) {
-        kkBUS = new KeKho_BUS();
         for (int i = 0; i < model.getRowCount(); i++) {
 
             String maSP = model.getValueAt(i, 1).toString();
@@ -90,10 +90,37 @@ public class SanPham_BUS {
         return true;
     }
 
+
+    public boolean updateSPPX(Connection conn, DefaultTableModel model) {
+        for (int i=0;i<model.getRowCount();i++){
+            String maSP = model.getValueAt(i, 1).toString();
+            int sL = Integer.parseInt(model.getValueAt(i, 3).toString());
+            String maKe = findMaKe(maSP);
+            int sLMoi = tinhSLuongConLai(maSP,sL);
+            int khoangTrong = timKhoangTrongKK(maKe,sL);
+            if (!spDAO.updateSP(conn,sLMoi,maKe,maSP)){
+                return  false;
+            }
+            if (!kkBUS.updateKKtheoKT(conn,maKe,khoangTrong)){
+                return false;
+            }
+        }
+        listSP = spDAO.getAllSanPham();
+        return true;
+    }
+
     public int tinhSLuong(String maSP,int soLuong){
         for (SanPham sp : listSP){
             if (sp.getMaSP().equalsIgnoreCase(maSP)){
                 int sLMoi = sp.getSoLuong()+soLuong;
+                return sLMoi;
+            }
+        }return 0;
+    }
+    public int tinhSLuongConLai(String maSP,int soLuong){
+        for (SanPham sp : listSP){
+            if (sp.getMaSP().equalsIgnoreCase(maSP)){
+                int sLMoi = sp.getSoLuong()-soLuong;
                 return sLMoi;
             }
         }return 0;
@@ -106,6 +133,13 @@ public class SanPham_BUS {
             }
         }
         return null;
+    }
+    public int timKhoangTrongKK(String maKe,int SL){
+        for (KeKho kk : kkBUS.getListKK()){
+            if (kk.getMaKe().equalsIgnoreCase(maKe)){
+                return kk.getSucChua() + SL;
+            }
+        }return 0;
     }
     public boolean updateSoLuong(String maSP, int soLuongThayDoi) {
         for (int i = 0; i < listSP.size(); i++) {

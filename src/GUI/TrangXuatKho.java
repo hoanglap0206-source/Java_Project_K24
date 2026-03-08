@@ -1,6 +1,11 @@
 package GUI;
 
+import BUS.KhachHang_BUS;
+import BUS.PhieuXuat_BUS;
 import BUS.SanPham_BUS;
+import Model.KhachHang;
+import Model.NhanVien;
+import Model.PhieuXuat;
 import Model.SanPham;
 import UI.GiaoDienChinh_Main;
 
@@ -15,11 +20,13 @@ import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class TrangXuatKho extends JPanel {
     private SanPham_BUS spBus = new SanPham_BUS();
-
+    private PhieuXuat_BUS pxBUS = new PhieuXuat_BUS();
+    private KhachHang_BUS khBUS = new KhachHang_BUS();
     private DefaultTableModel tableModel;
     private JTable table;
 
@@ -220,8 +227,42 @@ public class TrangXuatKho extends JPanel {
         panel.add(txtID);
 
         panel.add(new JLabel("Khách hàng:"));
-        txtKH = new JTextField("Tên Khách hàng");
-        panel.add(txtKH);
+        txtKH = new JTextField("");
+
+        String[] itemLoc = new String[khBUS.getListKH().size()];
+        itemLoc[0] = "Mã Khách hàng";
+        for (int i = 1; i < khBUS.getListKH().size(); i++) {
+            itemLoc[i] = khBUS.getListKH().get(i).getMaKH();
+        }
+        JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
+        comboBoxLoc.setBackground(new Color(214, 238, 253));
+        comboBoxLoc.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        comboBoxLoc.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        comboBoxLoc.setSelectedIndex(0);
+
+        comboBoxLoc.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(
+                    JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
+
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+
+                lbl.setHorizontalAlignment(SwingConstants.CENTER);
+
+                if (index == -1 && comboBoxLoc.getSelectedIndex() == -1) {
+                    lbl.setText("Mã Khách hàng ");
+                    lbl.setForeground(Color.GRAY);
+                }
+                return lbl;
+            }
+        });
+        comboBoxLoc.addActionListener(e -> {
+            txtKH.setText(comboBoxLoc.getSelectedItem().toString());
+        });
+
+        panel.add(comboBoxLoc);
 
         panel.add(new JLabel("Người tạo phiếu:"));
         txtNTP = new JTextField(maNV);
@@ -557,5 +598,32 @@ public class TrangXuatKho extends JPanel {
     public void bTnRightEvent(){
         btnXoa.addActionListener(e -> deleteSP());
         UpdateSP();
+    }
+
+    public void xuatKho(){
+        DateTimeFormatter date_form =
+                DateTimeFormatter.ofPattern("ddMMyyyy");
+        String ngayXuat = LocalDate.now().format(date_form);
+        String maPX = "PX" + maNV + ngayXuat;
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        String MaKH = txtKH.getText().trim();
+        KhachHang kh = new KhachHang();
+        kh.setMaKH(MaKH);
+        if(MaKH.isEmpty() || MaKH.equalsIgnoreCase("Mã Khách hàng")){
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn mã Khách hàng");
+            return;
+        }
+        NhanVien nv = new NhanVien();
+        nv.setMaNV(maNV);
+        PhieuXuat px = new PhieuXuat(maPX,dateTime,kh,nv);
+        if (pxBUS.taoPX(px,tableModelRight)){
+            JOptionPane.showMessageDialog(this, "Thêm phiếu thành công");
+            return;
+        }else{
+            JOptionPane.showMessageDialog(this, "Thêm phiếu thất bại");
+            return;
+        }
+
     }
 }
