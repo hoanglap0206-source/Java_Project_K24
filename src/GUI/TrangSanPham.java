@@ -11,6 +11,12 @@ import javax.swing.table.*;
 public class TrangSanPham extends JPanel {
     private JTable table;
     private DefaultTableModel model;
+    private JButton btnAdd;
+    private JButton btnEdit;
+    private JButton btnDelete;
+    private JSplitPane splitPane;
+    private JPanel panelForm;
+    private JPanel panelTableWrapper;
 
     private SanPham_BUS spBus = new SanPham_BUS();
 
@@ -21,6 +27,7 @@ public class TrangSanPham extends JPanel {
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
         loadTableData();
+        addEvents();
     }
 
     private JPanel taoThanhCongCu() {
@@ -118,11 +125,11 @@ public class TrangSanPham extends JPanel {
 
 
         // Các nút khác
-        JButton btnEdit = new JButton("Chỉnh sửa");
+        btnEdit = new JButton("Chỉnh sửa");
         Style.styleButton(btnEdit);
-        JButton btnDelete = new JButton("Xóa");
+        btnDelete = new JButton("Xóa");
         Style.styleButton(btnDelete);
-        JButton btnAdd = new JButton("+ Thêm");
+        btnAdd = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
@@ -141,15 +148,57 @@ public class TrangSanPham extends JPanel {
     }
 
     private JPanel taoNoiDung() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(10, 25, 20, 25));
 
         panel.add(taoTieuDe(), BorderLayout.NORTH);
-        panel.add(taoBang(), BorderLayout.CENTER);
 
+        // ===== LEFT: bảng =====
+        panelTableWrapper = new JPanel(new BorderLayout());
+        panelTableWrapper.add(taoBang(), BorderLayout.CENTER);
+
+        // ===== RIGHT: form (ẩn ban đầu) =====
+        panelForm = taoPanelForm();
+        panelForm.setVisible(false);
+
+        // ===== SPLIT =====
+        splitPane = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                panelTableWrapper,
+                panelForm
+        );
+        splitPane.setResizeWeight(1.0);
+        splitPane.setDividerSize(6);
+        splitPane.setBorder(null);
+
+        panel.add(splitPane, BorderLayout.CENTER);
         return panel;
+    }
+
+    private JPanel taoPanelForm() {
+        JPanel pnl = new JPanel();
+        pnl.setPreferredSize(new Dimension(320, 0));
+        pnl.setBackground(Color.WHITE);
+        pnl.setBorder(new LineBorder(new Color(200,200,200)));
+
+        pnl.setLayout(new BorderLayout());
+
+        JLabel lbl = new JLabel("FORM SẢN PHẨM", SwingConstants.CENTER);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+        pnl.add(lbl, BorderLayout.NORTH);
+
+        // sau này bạn nhét JTextField vào đây
+
+        return pnl;
+    }
+
+    private void showFormPanel() {
+        panelForm.setVisible(true);
+        splitPane.setDividerLocation(
+                getWidth() - 320
+        );
     }
 
     private JPanel taoTieuDe() {
@@ -266,5 +315,115 @@ public class TrangSanPham extends JPanel {
                     trangThai
             });
         }
+    }
+    private void addEvents() {
+        btnAdd.addActionListener(e -> handleAdd());
+        btnEdit.addActionListener(e -> handleEdit());
+        btnDelete.addActionListener(e -> handleDelete());
+        btnAdd.addActionListener(e -> showFormPanel());
+        btnEdit.addActionListener(e -> showFormPanel());
+    }
+    private void handleAdd() {
+        String maSP = JOptionPane.showInputDialog(this, "Nhập mã SP:");
+        if (maSP == null || maSP.trim().isEmpty()) return;
+
+        String tenSP = JOptionPane.showInputDialog(this, "Nhập tên SP:");
+        if (tenSP == null || tenSP.trim().isEmpty()) return;
+
+        String dvt = JOptionPane.showInputDialog(this, "Đơn vị tính:");
+        String slStr = JOptionPane.showInputDialog(this, "Số lượng:");
+        String giaStr = JOptionPane.showInputDialog(this, "Giá nhập:");
+
+        int soLuong;
+        float gia;
+
+        try {
+            soLuong = Integer.parseInt(slStr);
+            gia = Float.parseFloat(giaStr);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ");
+            return;
+        }
+
+        SanPham sp = new SanPham();
+        sp.setMaSP(maSP);
+        sp.setTenSP(tenSP);
+        sp.setDonViTinh(dvt);
+        sp.setSoLuong(soLuong);
+        sp.setGiaTien(gia);
+
+        String msg = spBus.addSanPham(sp);
+        JOptionPane.showMessageDialog(this, msg);
+        loadTableData();
+    }
+    private void handleEdit() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần sửa");
+            return;
+        }
+
+        String maSP = model.getValueAt(row, 1).toString();
+
+        String tenMoi = JOptionPane.showInputDialog(
+                this,
+                "Tên mới:",
+                model.getValueAt(row, 2)
+        );
+
+        String slMoiStr = JOptionPane.showInputDialog(
+                this,
+                "Số lượng mới:",
+                model.getValueAt(row, 4)
+        );
+
+        String giaMoiStr = JOptionPane.showInputDialog(
+                this,
+                "Giá mới:",
+                model.getValueAt(row, 5)
+        );
+
+        int slMoi;
+        float giaMoi;
+
+        try {
+            slMoi = Integer.parseInt(slMoiStr);
+            giaMoi = Float.parseFloat(giaMoiStr.replace("đ","").replace(",",""));
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ");
+            return;
+        }
+
+        SanPham sp = new SanPham();
+        sp.setMaSP(maSP);
+        sp.setTenSP(tenMoi);
+        sp.setSoLuong(slMoi);
+        sp.setGiaTien(giaMoi);
+
+        String msg = spBus.updateSanPham(sp);
+        JOptionPane.showMessageDialog(this, msg);
+        loadTableData();
+    }
+    private void handleDelete() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần xóa");
+            return;
+        }
+
+        String maSP = model.getValueAt(row, 1).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc muốn xóa?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        String msg = spBus.deleteSanPham(maSP);
+        JOptionPane.showMessageDialog(this, msg);
+        loadTableData();
     }
 }
