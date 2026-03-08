@@ -2,17 +2,36 @@ package GUI;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+
+import BUS.PhanQuyen_BUS;
+import Model.ChucNang;
+import Model.NhanVien;
+import Model.PhanQuyen;
 
 public class TrangPhanQuyen extends JPanel {
+    private JTextField txtMaNV;
+    private DefaultTableModel model;
+    private JTable table;
+    private PhanQuyen_BUS pqBUS;
+    private boolean isUpdatingTable = false; // Khóa event khi đang tải data
+
     public TrangPhanQuyen() {
+        pqBUS = new PhanQuyen_BUS();
+
         setLayout(new BorderLayout(0, 10));
         setBackground(Color.WHITE);
         setBorder(new EmptyBorder(20,20,20,20));
 
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
+        setupTableListener();
+        loadDataToTable(""); //Load toàn bộ chức năng ngay khi khởi tạo (truyền chuỗi rỗng)
     }
 
     private JPanel taoThanhCongCu() {
@@ -139,56 +158,84 @@ public class TrangPhanQuyen extends JPanel {
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         top.setBackground(Color.WHITE);
 
-        JLabel phanQuyenCho = new JLabel("Phân quyền cho: ");
+        JLabel phanQuyenCho = new JLabel("Mã nhân viên: ");
         phanQuyenCho.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-        JTextField tenTaiKhoan = new JTextField("Ten tài khoản");
-        tenTaiKhoan.setPreferredSize(new Dimension(200, 28));
-        tenTaiKhoan.setEditable(false);
+        this.txtMaNV = new JTextField();
+        this.txtMaNV.setPreferredSize(new Dimension(200, 28));
+        this.txtMaNV.setBackground(Color.WHITE);
+        this.txtMaNV.setBorder(new CompoundBorder(
+                new LineBorder(new Color(214,238,253), 2),
+                new EmptyBorder(0,5,0,5)
+        ));
+
+        this.txtMaNV.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_ENTER)
+                    loadDataToTable(txtMaNV.getText().trim());
+            }
+        });
 
         top.add(phanQuyenCho);
-        top.add(tenTaiKhoan);
+        top.add(txtMaNV);
 
         // Tạo bảng
-        String[] columnNames = {
-                "Chức năng", "Thêm", "Sửa", "Xóa", "Xem"
-        };
+        String[] columnNames = {"Mã chức năng", "Tên chức năng", "Thêm", "Sửa", "Xóa", "Xem"};
 
-        Object[][] data = {
-                {"Quản lý sản phẩm", true, false, false, true},
-                {"Quản lý nhà cung cấp", false, true, true, false},
-                {"Quản lý khách hàng", true, false, true, true},
-                {"Quản lý kệ kho", false, false, false, true},
-                {"Nhập kho", false, true, false, true},
-        };
-
-        DefaultTableModel model = new DefaultTableModel(data, columnNames) {
+        this.model = new DefaultTableModel(null, columnNames){
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 0)
-                    return String.class;
-                return Boolean.class;
+                return (columnIndex < 2) ? String.class : Boolean.class;
             }
-
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column != 0; // không cho sửa tên chức năng
+                return column >= 2;
             }
         };
 
         JTable table = new JTable(model);
-        table.setRowHeight(35);
+        table.setRowHeight(40);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
         table.getTableHeader().setBackground(new Color(231,242,245));
 
-        // Căn giữa checkbox
-        table.setDefaultRenderer(Boolean.class, (table1, value, isSelected, hasFocus, row, column) -> {
-            JCheckBox checkBox = new JCheckBox();
-            checkBox.setHorizontalAlignment(SwingConstants.CENTER);
-            checkBox.setSelected(Boolean.TRUE.equals(value));
-            checkBox.setBackground(Color.WHITE);
-            return checkBox;
+        // Ẩn cột Mã CN (Cột số 0)
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setPreferredWidth(0);
+
+        //Tô màu xanh cho ô vuông nhỏ
+        table.setDefaultRenderer(Boolean.class, new TableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                boolean isChecked = (value != null && (boolean) value);
+
+                // 1. Tạo Panel bao ngoài (giữ màu nền của bảng)
+                JPanel container = new JPanel(new GridBagLayout());
+                container.setBackground(isSelected ? table.getSelectionBackground() : Color.WHITE);
+
+                // 2. Tạo Ô vuông nhỏ
+                JLabel box = new JLabel();
+                box.setOpaque(true);
+                box.setPreferredSize(new Dimension(18, 18)); // Kích thước ô nhỏ
+                box.setHorizontalAlignment(SwingConstants.CENTER);
+                box.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+                if (isChecked) {
+                    box.setBackground(new Color(40, 167, 69)); // Xanh lá
+                    box.setForeground(Color.WHITE);            // Dấu tích màu trắng
+                    box.setText("✓");
+                    box.setBorder(new LineBorder(new Color(30, 130, 60), 1));
+                } else {
+                    box.setBackground(Color.WHITE);
+                    box.setText("");
+                    box.setBorder(new LineBorder(Color.GRAY, 1));
+                }
+
+                container.add(box);
+                return container;
+            }
         });
 
         // Bọc JScrollPane
@@ -199,5 +246,61 @@ public class TrangPhanQuyen extends JPanel {
         panel.add(scrollPane, BorderLayout.CENTER);
 
         return panel;
+    }
+
+    private void loadDataToTable(String maNV){
+        isUpdatingTable = true;
+        this.model.setRowCount(0); // Xóa dữ liệu cũ
+
+        ArrayList<PhanQuyen> list = pqBUS.getBangPhanQuyen(maNV);
+
+        for(PhanQuyen pq : list){
+            this.model.addRow(new Object[]{
+                    pq.getChucNang().getMaCN(),
+                    pq.getChucNang().getTenCN(),
+                    pq.isXem(),
+                    pq.isThem(),
+                    pq.isSua(),
+                    pq.isXoa()
+            });
+        }
+        this.isUpdatingTable = false;
+    }
+
+    // Hàm bắt sự kiện check/uncheck
+    private void setupTableListener(){
+        this.model.addTableModelListener(e ->{
+            if(this.isUpdatingTable) return;
+
+            // lắng nghe hành động click checkbox
+            if(e.getType() == TableModelEvent.UPDATE){
+                int row = e.getFirstRow();
+                String maNV = this.txtMaNV.getText().trim();
+
+                // Nếu chưa nhập mã NV thì không cho lưu vào SQL để tránh lỗi dữ liệu trống
+                if (maNV.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Vui lòng nhập Mã nhân viên trước khi phân quyền!");
+                    loadDataToTable(""); // Reset lại bảng
+                    return;
+                }
+
+                // Lấy thông dữ liệu từ các phần tử
+                String maCN = this.model.getValueAt(row, 0).toString();
+                boolean xem = (boolean) model.getValueAt(row, 2);
+                boolean them = (boolean) model.getValueAt(row, 3);
+                boolean sua = (boolean) model.getValueAt(row, 4);
+                boolean xoa = (boolean) model.getValueAt(row, 5);
+
+                NhanVien nv = new NhanVien();
+                nv.setMaNV(maNV);
+
+                ChucNang cn = new ChucNang();
+                cn.setMaCN(maCN);
+
+                PhanQuyen pq = new PhanQuyen(nv, cn, xem, xoa, sua, them);
+
+                pqBUS.LuuThayDoiPQ(pq);
+            }
+        });
     }
 }

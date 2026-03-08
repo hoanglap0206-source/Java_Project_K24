@@ -43,7 +43,6 @@ public class PhanQuyen_BUS {
         return "Phân quyền thất bại!";
     }
 
-
     public String updatePhanQuyen(PhanQuyen pq) {
         if (pqDAO.update(pq)) {
             for (int i = 0; i < listPQ.size(); i++) {
@@ -68,7 +67,6 @@ public class PhanQuyen_BUS {
         return "Xóa thất bại!";
     }
 
-
     public boolean checkQuyen(String maNV, String maCN, String action) {
         for (PhanQuyen pq : listPQ) {
             if (pq.getNhanVien().getMaNV().equals(maNV) && pq.getChucNang().getMaCN().equals(maCN)) {
@@ -85,12 +83,28 @@ public class PhanQuyen_BUS {
 
     public void refeshData(){this.listPQ=pqDAO.getAllPhanQuyen();}
 
-
     public ArrayList<PhanQuyen> getDSQuyenCaNhan(String maNhanVien){
         pqDAO = new PhanQuyen_DAO();
         if(maNhanVien == null || maNhanVien.isEmpty())
             return new ArrayList<>();
         ArrayList<PhanQuyen> ds = pqDAO.getListQuyenCaNhan(maNhanVien);
         return ds == null ? new ArrayList<>() : ds;
+    }
+
+    public ArrayList<PhanQuyen> getBangPhanQuyen(String maNV){
+        return pqDAO.getAllChucNang_QuyenCuaNV(maNV);
+    }
+
+    // Lưu ngay khi người dùng click checkbox
+    public void LuuThayDoiPQ(PhanQuyen pq){
+        // Nếu tất cả quyền đều false thì Xóa khỏi database để không hiển thị
+        if (!pq.isXem() && !pq.isThem() && !pq.isSua() && !pq.isXoa())
+            pqDAO.delete(pq.getNhanVien().getMaNV(), pq.getChucNang().getMaCN());
+        else // Nếu đã tồn tại quyền thì Cập nhật, nếu chưa có thì Thêm mới
+            if(pqDAO.checkExists(pq.getNhanVien().getMaNV(), pq.getChucNang().getMaCN()))
+                pqDAO.update(pq);
+            else
+                pqDAO.insert(pq);
+        refeshData();
     }
 }

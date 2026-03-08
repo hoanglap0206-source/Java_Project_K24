@@ -5,6 +5,7 @@ import Model.ChucNang;
 import Model.NhanVien;
 import Model.PhanQuyen;
 
+import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -135,5 +136,64 @@ public class PhanQuyen_DAO{
             e.printStackTrace();
         }
         return ListPhanQuyen;
+    }
+
+    // Ktra xem các button có trong sql hay chưa
+    public boolean checkExists (String maNv, String maCN){
+        String sql = "SELECT 1 FROM phan_quyen WHERE ma_nhan_vien = ?, AND ma_chuc_nang = ?";
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)){
+
+            ps.setString(1, maNv);
+            ps.setString(2, maCN);
+
+            try(ResultSet rs = ps.executeQuery()){
+                return rs.next();
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Lấy tất cả chức năng có trong sql và quyền của 1 người
+    public ArrayList<PhanQuyen> getAllChucNang_QuyenCuaNV(String maNV){
+        ArrayList<PhanQuyen> list = new ArrayList<>();
+
+        String sql = "SELECT cn.ma_chuc_nang, cn.ten_chuc_nang, " +
+                "IFNULL(pq.duoc_xem, 0) as duoc_xem, " +
+                "IFNULL(pq.duoc_xoa, 0) as duoc_xoa, " +
+                "IFNULL(pq.duoc_sua, 0) as duoc_sua, " +
+                "IFNULL(pq.duoc_them, 0) as duoc_them " +
+                "FROM DM_CHUC_NANG cn " +
+                "LEFT JOIN PHAN_QUYEN pq ON cn.ma_chuc_nang = pq.ma_chuc_nang AND pq.ma_nhan_vien = ? " +
+                "ORDER BY cn.ma_chuc_nang ASC";
+
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)){
+
+            ps.setString(1, maNV);
+
+            try (ResultSet rs = ps.executeQuery()){
+                while (rs.next()){
+                    NhanVien nv = new NhanVien();
+                    nv.setMaNV(maNV);
+
+                    ChucNang cn = new ChucNang();
+                    cn.setMaCN(rs.getString("ma_chuc_nang"));
+                    cn.setTenCN(rs.getString("ten_chuc_nang"));
+
+                    boolean xem = rs.getBoolean("duoc_xem");
+                    boolean xoa = rs.getBoolean("duoc_xoa");
+                    boolean sua = rs.getBoolean("duoc_sua");
+                    boolean them = rs.getBoolean("duoc_them");
+
+                    list.add(new PhanQuyen(nv, cn, xem, xoa, sua, them));
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
     }
 }
