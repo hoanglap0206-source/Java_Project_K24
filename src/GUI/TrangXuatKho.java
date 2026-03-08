@@ -41,7 +41,7 @@ public class TrangXuatKho extends JPanel {
     private Timer searchTimer;
 
     private JTextField txtSoLuongRight;
-    private JButton btnXuat, btnXoa, btnSua;
+    private JButton btnXuat, btnXoa, btnSua,btnXuatKho;
     private boolean isEditMode = false;
 
     private JTextField txtID, txtNTP,txtKH;
@@ -378,12 +378,19 @@ public class TrangXuatKho extends JPanel {
         leftWrapper.add(lblTongTien);
         leftWrapper.add(txtTongTien);
 
-        JButton btnNhap = new JButton("Xuất kho");
-        Style.styleButton(btnNhap);
+        btnXuatKho = new JButton("Xuất kho");
+        Style.styleButton(btnXuatKho);
 
         panel.add(leftWrapper, BorderLayout.WEST);
-        panel.add(btnNhap, BorderLayout.EAST);
+        panel.add(btnXuatKho, BorderLayout.EAST);
 
+        btnXuatKho.addActionListener(e ->{
+            if (tableModelRight.getRowCount()==0){
+                JOptionPane.showMessageDialog(this, "Không có sản phẩm để Xuất ");
+                return;
+            }
+            TaoPX();
+        });
         return panel;
     }
 
@@ -600,7 +607,7 @@ public class TrangXuatKho extends JPanel {
         UpdateSP();
     }
 
-    public void xuatKho(){
+    public void TaoPX(){
         DateTimeFormatter date_form =
                 DateTimeFormatter.ofPattern("ddMMyyyy");
         String ngayXuat = LocalDate.now().format(date_form);
