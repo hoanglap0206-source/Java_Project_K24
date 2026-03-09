@@ -188,6 +188,13 @@ public class TrangXuatKho extends JPanel {
         table.getTableHeader().setBackground(new Color(210,230,255));
         table.getTableHeader().setReorderingAllowed(false);
 
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                txtSoLuongRight.requestFocus();
+            }
+        });
+
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -431,7 +438,7 @@ public class TrangXuatKho extends JPanel {
                     return;
                 }
                 tableModelRight.setValueAt(slCu + soLuong, i, 3);
-                tongTien += soLuong * donGia;
+                tongTien += soLuong * donGia + (10/100)*soLuong*donGia;
                 txtTongTien.setText(String.valueOf(tongTien));
                 txtSoLuong.setText("");
                 return;
@@ -543,7 +550,7 @@ public class TrangXuatKho extends JPanel {
             );
 //                        Cập nhật STT sau khi xóa dòng
             tableModelRight.setValueAt(i+1,i,0);
-            sumMoney += quantity * money;
+            sumMoney += quantity * money +(10/100)*quantity*money;
         }
         txtTongTien.setText(String.valueOf(sumMoney));
     }
@@ -596,7 +603,7 @@ public class TrangXuatKho extends JPanel {
                 double money = Double.parseDouble(
                         tableModelRight.getValueAt(i, 4).toString()
                 );
-                sumMoney += quantity * money;
+                sumMoney += quantity * money + (10/100)*quantity*money;
             }
             txtTongTien.setText(String.valueOf(sumMoney));
         });
