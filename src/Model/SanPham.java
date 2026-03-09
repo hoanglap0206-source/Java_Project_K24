@@ -9,6 +9,7 @@ public class SanPham {
     private KeKho keKho;
 
     public SanPham() {
+        this.keKho=new KeKho();
     }
     public SanPham(String maSP, String tenSP, String donViTinh, int soLuong, float giaTien, KeKho keKho) {
         this.maSP = maSP;
@@ -66,4 +67,17 @@ public class SanPham {
     public void setKeKho(KeKho keKho) {
         this.keKho = keKho;
     }
+    public String getMaKe() {
+        if (this.keKho != null) {
+            return this.keKho.getMaKe();
+        }
+        return ""; // Trả về chuỗi rỗng nếu chưa có kệ, chống văng app
+    }
+    public void setMaKe(String maKe) {
+        if (this.keKho == null) {
+            this.keKho = new KeKho();
+        }
+        this.keKho.setMaKe(maKe);
+    }
 }
+

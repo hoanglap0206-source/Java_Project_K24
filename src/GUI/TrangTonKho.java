@@ -42,7 +42,7 @@
 
 
 
-            String[] columnNames = {"Mã SP", "Tên SP", "Đơn vị tính", "Số lượng", "Đơn giá", "Ngày nhập", "Ngày hết hạn", "Mã kệ"};
+            String[] columnNames = {"Mã SP", "Tên SP", "Đơn vị tính", "Số lượng", "Đơn giá", "Số ngày hết hạn", "Mã kệ"};
 
 
             //hàm không cho thay đổi data//
@@ -57,6 +57,7 @@
             table.setRowHeight(30);
             table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
             table.getTableHeader().setBackground(new Color(230, 230, 230));
+            table.getTableHeader().setReorderingAllowed(false);
 
             JScrollPane scrollPane = new JScrollPane(table);
             add(scrollPane, BorderLayout.CENTER);
@@ -74,7 +75,8 @@
                         tk.getsLTon(),
                         tk.getSanPham().getGiaTien(),
                         tk.getCanhBaoHH(),
-                        tk.getSanPham().getKeKho(),
+
+                        tk.getSanPham().getMaKe(),
                 };
                 model.addRow(row);
             }

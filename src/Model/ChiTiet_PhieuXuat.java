@@ -6,7 +6,7 @@ public class ChiTiet_PhieuXuat {
     private int soLuong;
     private double donGia;
     private long thanhTien;
-    private float thueVAT;
+    private float thueVAT = 10/100;
 
     public ChiTiet_PhieuXuat() {
     }

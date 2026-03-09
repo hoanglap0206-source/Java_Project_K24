@@ -29,7 +29,7 @@ public class ButtonEditor extends DefaultCellEditor{
            JTable table= (JTable) SwingUtilities.getAncestorOfClass(JTable.class,JB);
            int row= table.getEditingRow();
 
-           if(row !=1){
+           if(row !=-1){
                String ma= table.getValueAt(row,1).toString();
                String ten= table.getValueAt(row,2).toString();
                String sdt= table.getValueAt(row,3).toString();

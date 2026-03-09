@@ -57,6 +57,25 @@ public class PhieuXuat_DAO {
             return false;
         }
     }
+
+    public boolean inSert(Connection conn,PhieuXuat px){
+        String sql =
+                "INSERT INTO PHIEU_XUAT(ma_px,ngay_ct,ma_kh,ma_nhan_vien) VALUES (?, ?, ?,?)";
+        try (
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1,px.getMaPX());
+            ps.setTimestamp(2, Timestamp.valueOf(px.getNgay_ct()));
+            ps.setString(3,px.getKhachHang().getMaKH());
+            ps.setString(4,px.getNhanVien().getMaNV());
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean update(PhieuXuat px){
         String sql =
                 "UPDATE PHIEU_XUAT SET ngay_ct=?,ma_kh=?,ma_nhan_vien=? WHERE ma_px=?";
