@@ -29,12 +29,8 @@ public class TrangKhachHang extends JPanel {
         wrapper.setBorder(new EmptyBorder(15,20,5,20));
 
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,12,8));
-        panel.setBackground(new Color(231,242,245));
-        panel.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198,226,255), 2),
-                new EmptyBorder(2,12,2,12)
-        ));
-
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(4,10,4,10));
 
         // Thanh tìm kiếm
         JTextField txtSearch = new JTextField("Tìm kiếm");

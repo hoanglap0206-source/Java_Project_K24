@@ -451,16 +451,6 @@ public class TrangKeKho extends JPanel {
             soDoKe.add(taoTheKe(ke.getMaKe(), percent));
         }
 
-        int soKe = soDoKe.getComponentCount();
-        int soDong = (int) Math.ceil(soKe / 5.0);
-
-        int cardHeight = 60;   // chiều cao card
-        int gap = 15;          // khoảng cách grid
-
-        int height = soDong * cardHeight + (soDong - 1) * gap + 20;
-
-        soDoKe.setPreferredSize(new Dimension(0, height));
-
         soDoKe.revalidate();
         soDoKe.repaint();
     }
