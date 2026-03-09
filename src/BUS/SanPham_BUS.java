@@ -20,7 +20,7 @@ public class SanPham_BUS {
 
     public SanPham_BUS() {
         spDAO = new SanPham_DAO();
-        kkBUS = new KeKho_BUS();
+        //kkBUS = new KeKho_BUS();
         listSP = spDAO.getAllSanPham(); // thêm để load data listSP
     }
 

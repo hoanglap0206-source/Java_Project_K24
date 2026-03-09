@@ -57,6 +57,7 @@
             table.setRowHeight(30);
             table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
             table.getTableHeader().setBackground(new Color(230, 230, 230));
+            table.getTableHeader().setReorderingAllowed(false);
 
             JScrollPane scrollPane = new JScrollPane(table);
             add(scrollPane, BorderLayout.CENTER);
