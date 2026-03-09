@@ -25,7 +25,7 @@ public class ChiTietNCC_GUI extends JFrame {
 
     private void initGUI() {
 
-        this.setUndecorated(true);
+        this.setUndecorated(true); // tắt thanh công cụ trên phần mặc định
         //setTitle("Hồ Sơ Chi Tiết Nhà Cung Cấp");
         setSize(1000, 700);
         setLocationRelativeTo(null);
