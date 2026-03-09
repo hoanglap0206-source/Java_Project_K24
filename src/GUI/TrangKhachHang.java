@@ -2,6 +2,7 @@ package GUI;
 
 import BUS.KhachHang_BUS;
 import Model.KhachHang;
+import org.apache.poi.xwpf.usermodel.TableRowHeightRule;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -13,6 +14,7 @@ public class TrangKhachHang extends JPanel {
     private JTable table;
     private DefaultTableModel model;
     private KhachHang_BUS khBUS = new KhachHang_BUS();
+    private TableRowSorter<DefaultTableModel> sorter; // Thêm dòng này ở đầu class
 
     public TrangKhachHang() {
         setLayout(new BorderLayout());
@@ -33,7 +35,9 @@ public class TrangKhachHang extends JPanel {
         panel.setBorder(new EmptyBorder(4,10,4,10));
 
         // Thanh tìm kiếm
-        JTextField txtSearch = new JTextField("Tìm kiếm");
+        String place ="Tìm kiếm (VD:KH01)";
+        JTextField txtSearch = new JTextField(place);
+
         txtSearch.setColumns(15);
         txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
         txtSearch.setForeground(Color.GRAY);
@@ -59,7 +63,7 @@ public class TrangKhachHang extends JPanel {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
                 // Khi người dùng click vào ô
-                if (txtSearch.getText().equals("Tìm kiếm")) {
+                if (txtSearch.getText().equals(place)) {
                     txtSearch.setText("");           // Xóa chữ "Tìm kiếm"
                     txtSearch.setForeground(Color.BLACK); // Đổi màu chữ sang đen để người dùng nhập
                 }
@@ -70,14 +74,46 @@ public class TrangKhachHang extends JPanel {
                 // Khi người dùng click ra chỗ khác mà không nhập gì
                 if (txtSearch.getText().isEmpty()) {
                     txtSearch.setForeground(Color.GRAY);
-                    txtSearch.setText("Tìm kiếm");    // Hiện lại chữ gợi ý
+                    txtSearch.setText(place);    // Hiện lại chữ gợi ý
                 }
             }
+        });
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener(){
+            private void  filter(){
+                SwingUtilities.invokeLater(()->{
+                    {
+                        String text = txtSearch.getText();
+                        if (text.equals(place) || text.trim().isEmpty()) {
+                            if (sorter != null) sorter.setRowFilter(null);
+                        } else {
+                            if (sorter != null)
+                                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 1));
+                        }
+                    }
+                });
+
+
+            }
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e){filter();}
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e){filter();}
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e){filter();}
         });
 
 
         // Nút làm mới
         JButton btnLamMoi = new JButton("↻ Làm mới");
+//        btnLamMoi.setPreferredSize(new Dimension(120,35));
+//        btnLamMoi.setMinimumSize(new Dimension(120,35));
+        btnLamMoi.addActionListener(e->{
+            txtSearch.setText(place);
+            txtSearch.setForeground(Color.GRAY);
+            if(sorter !=null) sorter.setRowFilter(null);
+
+            fillToTable();// cập nhật lại bảng
+            this.revalidate();
+            this.repaint();
+            JOptionPane.showMessageDialog(this,"Dữ liệu được cập nhật thành công!");
+        });
         Style.styleButton(btnLamMoi);
 
 
@@ -190,6 +226,8 @@ public class TrangKhachHang extends JPanel {
         panel.add(taoTieuDe(), BorderLayout.NORTH);
         panel.add(taoBang(), BorderLayout.CENTER);
 
+        sorter = new TableRowSorter<>(model);
+        table.setRowSorter(sorter);
         return panel;
     }
 
@@ -238,7 +276,11 @@ public class TrangKhachHang extends JPanel {
     }
 
     public void fillToTable(){
+        if(table.isEditing()){
+            table.getCellEditor().stopCellEditing();
+        }
         model.setRowCount(0);
+        khBUS.refeshData();
         ArrayList<KhachHang> list = khBUS.getListKH();
         int stt = 1;
 

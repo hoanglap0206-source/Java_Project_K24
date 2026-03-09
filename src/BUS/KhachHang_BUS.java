@@ -46,5 +46,8 @@ public class KhachHang_BUS {
         }
         return"Xoá Khách hàng thất bại!";
     }
+    public void refreshList() {
+        this.listKH = khDAO.getAllKhachHang(); // Quét lại toàn bộ DB
+    }
     public void refeshData(){this.listKH=khDAO.getAllKhachHang();}
 }
