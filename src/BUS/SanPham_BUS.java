@@ -20,19 +20,18 @@ public class SanPham_BUS {
 
     public SanPham_BUS() {
         spDAO = new SanPham_DAO();
-        //kkBUS = new KeKho_BUS();
-        listSP = spDAO.getAllSanPham(); // thêm để load data listSP
+        kkBUS = new KeKho_BUS();
+        listSP = spDAO.getAllSanPham();
     }
 
     public ArrayList<SanPham> getAll() {
-        spDAO = new SanPham_DAO();
         return spDAO.getAllSanPham();
     }
 
     public ArrayList<SanPham> gettSPByKeyWord(String input){
-        spDAO = new SanPham_DAO();
         return spDAO.getSpByKey(input);
     }
+
     public int getSoLuongTon(String maSP) {
         for (SanPham sp : listSP) {
             if (sp.getMaSP().equalsIgnoreCase(maSP)) {

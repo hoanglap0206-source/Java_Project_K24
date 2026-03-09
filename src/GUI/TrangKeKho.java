@@ -32,6 +32,7 @@ public class TrangKeKho extends JPanel {
     private JLabel lblViTri;
     private JLabel lblSucChua;
     private JLabel lblHienTai;
+    private JLabel ltlTongSpTrongKho;
     private KeKho_BUS bus = new KeKho_BUS();
     private JButton btnAdd;
     private JButton btnEdit;
@@ -51,6 +52,7 @@ public class TrangKeKho extends JPanel {
         add(taoBody(), BorderLayout.CENTER);
     }
 
+    // TẠO GIAO DIỆN
     private JPanel taoThanhCongCu() {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(Color.WHITE);
@@ -103,7 +105,7 @@ public class TrangKeKho extends JPanel {
             }
         });
 
-        btnSearchIcon.addActionListener(e -> timKe());
+        btnSearchIcon.addActionListener(e -> timKiem());
 
         // Nút làm mới
         btnLamMoi = new JButton("⟳");
@@ -188,39 +190,41 @@ public class TrangKeKho extends JPanel {
 
         JLabel lblTitle = new JLabel("SƠ ĐỒ KHO TỔNG");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD,18));
-        JLabel ltlTongSpTrongKho = new JLabel("Tổng số sản phẩm trong kho:");
-        ltlTongSpTrongKho.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
+        ltlTongSpTrongKho = new JLabel("Tổng số sản phẩm trong kho:");
+        ltlTongSpTrongKho.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(Color.WHITE);
         titlePanel.add(lblTitle, BorderLayout.WEST);
-
+        titlePanel.add(ltlTongSpTrongKho, BorderLayout.EAST);
 
         // Panel chứa grid + bảng
         JPanel content = new JPanel(new BorderLayout(0,20));
         content.setBackground(Color.WHITE);
 
-        content.add(taoSoDoKe(), BorderLayout.CENTER);
+        content.add(taoSoDoKe(), BorderLayout.NORTH);
         content.add(taoBang(), BorderLayout.SOUTH);
 
         main.add(titlePanel, BorderLayout.NORTH);
         main.add(content, BorderLayout.CENTER);
 
+        capNhatTongSanPham();
+
         return main;
     }
 
-    // Bọc Scroll
     private JScrollPane taoSoDoKe() {
-        soDoKe = new JPanel(new GridLayout(0, 5, 15, 15));
+        // Tạo panel chính với BoxLayout theo chiều dọc
+        soDoKe = new JPanel();
+        soDoKe.setLayout(new BoxLayout(soDoKe, BoxLayout.Y_AXIS));
         soDoKe.setBorder(new EmptyBorder(10,10,10,10));
         soDoKe.setBackground(new Color(231,242,245));
 
         loadSoDo();
 
         JScrollPane scroll = new JScrollPane(soDoKe);
-        scroll.getVerticalScrollBar().setUnitIncrement(16); // Tăng tốc cuộn chuột
-
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
         scroll.setPreferredSize(new Dimension(0, 250));
 
         return scroll;
@@ -230,9 +234,11 @@ public class TrangKeKho extends JPanel {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(new LineBorder(new Color(200,200,200), 1, true));
-        card.setPreferredSize(new Dimension(150,70));
 
-        // panel chứa label + progress nằm ngang
+        card.setPreferredSize(new Dimension(170,80));
+        card.setMaximumSize(new Dimension(170,80));
+        card.setMinimumSize(new Dimension(170,80));
+
         JPanel content = new JPanel(new BorderLayout(10,0));
         content.setBackground(Color.WHITE);
         content.setBorder(new EmptyBorder(15,10,15,10));
@@ -250,9 +256,7 @@ public class TrangKeKho extends JPanel {
 
         content.add(lbl, BorderLayout.WEST);
         content.add(bar, BorderLayout.CENTER);
-
         card.add(content, BorderLayout.CENTER);
-
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         MouseAdapter hover = new MouseAdapter() {
@@ -328,6 +332,7 @@ public class TrangKeKho extends JPanel {
 
         panel.add(taoThongTinKe(), BorderLayout.EAST);
 
+        capNhatBang("A1");
         return panel;
     }
 
@@ -355,27 +360,38 @@ public class TrangKeKho extends JPanel {
         return panel;
     }
 
-    private void timKe() {
-        String keyword = txtSearch.getText().trim();
 
+    // XỬ LÝ SỰ KIỆN
+    private void timKiem() {
+        String keyword = txtSearch.getText().trim().toLowerCase();
         if (keyword.isEmpty() || keyword.equals("Tìm kiếm")) {
             loadSoDo();
             return;
         }
 
-        soDoKe.removeAll();
-
         ArrayList<KeKho> listKe = bus.getListKK();
+        ArrayList<KeKho> listKeTim = new ArrayList<>();
+
+        ArrayList<SanPham> allSP = bus.getAllSanPham();
 
         for (KeKho ke : listKe) {
-            if (ke.getMaKe().toLowerCase().contains(keyword.toLowerCase())) {
-                int percent = bus.tinhPhanTramTheoKe(ke.getMaKe());
-                soDoKe.add(taoTheKe(ke.getMaKe(), percent));
+            if (ke.getMaKe().toLowerCase().contains(keyword)) {
+                listKeTim.add(ke);
+                continue;
+            }
+
+            for (SanPham sp : allSP) {
+                if (sp.getKeKho() != null &&
+                        sp.getKeKho().getMaKe().equals(ke.getMaKe()) &&
+                        (sp.getMaSP().toLowerCase().contains(keyword) ||
+                                sp.getTenSP().toLowerCase().contains(keyword))) {
+                    listKeTim.add(ke);
+                    break;
+                }
             }
         }
 
-        soDoKe.revalidate();
-        soDoKe.repaint();
+        veSoDoTheoDanhSach(listKeTim);
     }
 
     private void themKe(){
@@ -392,8 +408,10 @@ public class TrangKeKho extends JPanel {
         try{
             int sucChua = Integer.parseInt(suc);
             KeKho ke = new KeKho(ma.trim(), sucChua, viTri.trim(),khoangTrong);
-            JOptionPane.showMessageDialog(null, bus.addKK(ke)); // ?
-            loadSoDo();
+            String result = bus.addKK(ke);
+            JOptionPane.showMessageDialog(null, result);
+            if (result.contains("thành công"))
+                loadSoDo();
         }catch(Exception ex){
             JOptionPane.showMessageDialog(null,"Sức chứa phải là số!");
         }
@@ -441,20 +459,6 @@ public class TrangKeKho extends JPanel {
         }
     }
 
-    private void loadSoDo(){
-        soDoKe.removeAll();
-
-        ArrayList<KeKho> listKe = bus.getListKK();
-
-        for (KeKho ke : listKe) {
-            int percent = bus.tinhPhanTramTheoKe(ke.getMaKe());
-            soDoKe.add(taoTheKe(ke.getMaKe(), percent));
-        }
-
-        soDoKe.revalidate();
-        soDoKe.repaint();
-    }
-
     private void inDanhSach(){
         if(table.getRowCount() == 0){
             JOptionPane.showMessageDialog(null,"Không có dữ liệu để in!");
@@ -484,33 +488,27 @@ public class TrangKeKho extends JPanel {
         }
     }
 
-//    public void xuatExcelTuBang(JTable table) {
-//        try {
-//            Workbook workbook = new XSSFWorkbook();
-//            Sheet sheet = workbook.createSheet("Data");
-//
-//            for (int i = 0; i < table.getRowCount(); i++) {
-//                Row row = sheet.createRow(i);
-//                for (int j = 0; j < table.getColumnCount(); j++) {
-//                    row.createCell(j).setCellValue(
-//                            table.getValueAt(i, j).toString()
-//                    );
-//                }
-//            }
-//
-//            FileOutputStream fos = new FileOutputStream("Data.xlsx");
-//            workbook.write(fos);
-//            fos.close();
-//            workbook.close();
-//
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        }
-//    }
-
     public void xuatExcelTuBang(JTable table) {
-        try {
-            Workbook workbook = new XSSFWorkbook();
+        if (table.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Không có dữ liệu!");
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setSelectedFile(new File("DanhSachSanPham.xlsx"));
+
+        if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File file = fileChooser.getSelectedFile();
+        if (!file.getName().endsWith(".xlsx")) {
+            file = new File(file.getAbsolutePath() + ".xlsx");
+        }
+
+        try (Workbook workbook = new XSSFWorkbook();
+             FileOutputStream fos = new FileOutputStream(file)) {
+
             Sheet sheet = workbook.createSheet("Data");
 
             // Header
@@ -524,7 +522,7 @@ public class TrangKeKho extends JPanel {
                 Row row = sheet.createRow(i + 1);
                 for (int j = 0; j < table.getColumnCount(); j++) {
                     Object value = table.getValueAt(i, j);
-                    row.createCell(j).setCellValue(value == null ? "" : value.toString());
+                    row.createCell(j).setCellValue(value != null ? value.toString() : "");
                 }
             }
 
@@ -533,64 +531,93 @@ public class TrangKeKho extends JPanel {
                 sheet.autoSizeColumn(i);
             }
 
-            FileOutputStream fos = new FileOutputStream("DanhSachSanPham.xlsx");
             workbook.write(fos);
+            JOptionPane.showMessageDialog(this, "Xuất Excel thành công!");
 
-            fos.close();
-            workbook.close();
-
-            JOptionPane.showMessageDialog(null, "Xuất Excel thành công!");
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi: " + e.getMessage());
         }
     }
 
-    private void locKeTheoPhanTram(String value){
-        soDoKe.removeAll();
 
+    // XỬ LÝ DỮ LIỆU
+    private void loadSoDo() {
+        bus.refreshData();
         ArrayList<KeKho> listKe = bus.getListKK();
+        veSoDoTheoDanhSach(listKe);
+        selectedCard = null; // đảm bảo không còn tham chiếu đến card cũ
+        capNhatTongSanPham();
+    }
 
+    private void locKeTheoPhanTram(String value) {
+        ArrayList<KeKho> listKe = bus.getListKK();
+        ArrayList<KeKho> listKeLoc = new ArrayList<>();
+
+        // Lọc các kệ theo điều kiện
         for (KeKho ke : listKe) {
-            int percent = bus.tinhPhanTramTheoKe(ke.getMaKe());
+            int percent = bus.tinhPhanTramTheoKe(ke);
 
             switch (value) {
                 case "< 50%":
-                    if (percent < 50) {
-                        soDoKe.add(taoTheKe(ke.getMaKe(), percent));
-                    }
+                    if (percent < 50) listKeLoc.add(ke);
                     break;
-
                 case "50 - 80%":
-                    if (percent >= 50 && percent <= 80) {
-                        soDoKe.add(taoTheKe(ke.getMaKe(), percent));
-                    }
+                    if (percent >= 50 && percent <= 80) listKeLoc.add(ke);
                     break;
-
                 case "> 80%":
-                    if (percent > 80) {
-                        soDoKe.add(taoTheKe(ke.getMaKe(), percent));
-                    }
+                    if (percent > 80) listKeLoc.add(ke);
                     break;
-
                 default: // "Lọc"
-                    soDoKe.add(taoTheKe(ke.getMaKe(), percent));
+                    listKeLoc.add(ke);
             }
         }
+
+        // Vẽ lại sơ đồ với danh sách đã lọc
+        veSoDoTheoDanhSach(listKeLoc);
+    }
+
+    private void veSoDoTheoDanhSach(ArrayList<KeKho> danhSachKe) {
+        soDoKe.removeAll();
+
+        int cols = 5;
+        JPanel currentRow = null;
+
+        for (int i = 0; i < danhSachKe.size(); i++) {
+            // Tạo hàng mới khi bắt đầu hàng hoặc đủ 5 cột
+            if (i % cols == 0) {
+                // Thêm hàng cũ vào (nếu có)
+                if (currentRow != null) {
+                    soDoKe.add(currentRow);
+                    soDoKe.add(Box.createVerticalStrut(10));
+                }
+                // Tạo hàng mới
+                currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+                currentRow.setBackground(new Color(231,242,245));
+                currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+            }
+
+            KeKho ke = danhSachKe.get(i);
+            int percent = bus.tinhPhanTramTheoKe(ke);
+            JPanel card = taoTheKe(ke.getMaKe(), percent);
+            currentRow.add(card);
+        }
+
+        // Thêm hàng cuối cùng
+        if (currentRow != null && currentRow.getComponentCount() > 0) {
+            soDoKe.add(currentRow);
+            soDoKe.add(Box.createVerticalStrut(10));
+        }
+
+        // Thêm glue để đẩy lên trên
+        soDoKe.add(Box.createVerticalGlue());
 
         soDoKe.revalidate();
         soDoKe.repaint();
     }
 
-    private Color mauTheoPhanTram(int p){
-        if(p<50) return new Color(40,200,100);
-        if(p<80) return new Color(255,170,0);
-        return new Color(230,50,50);
-    }
-
     private void capNhatBang(String maKe) {
         lblTenKe.setText("Kệ " + maKe);
-        model.setRowCount(0);
+        model.setRowCount(0); // Xóa dữ liệu cũ
 
         ArrayList<SanPham> listSP = bus.laySanPhamTheoKe(maKe);
 
@@ -612,5 +639,20 @@ public class TrangKeKho extends JPanel {
             lblSucChua.setText("Sức chứa tối đa: " + ke.getSucChua());
             lblHienTai.setText("Hiện đang chứa: " + tong);
         }
+    }
+
+    private Color mauTheoPhanTram(int p){
+        if(p<50) return new Color(40,200,100);
+        if(p<80) return new Color(255,170,0);
+        return new Color(230,50,50);
+    }
+
+    private void capNhatTongSanPham() {
+        ArrayList<SanPham> allSP = bus.getAllSanPham();
+        int tong = 0;
+        for (SanPham sp : allSP) {
+            tong += sp.getSoLuong();
+        }
+        ltlTongSpTrongKho.setText("Tổng số sản phẩm trong kho: " + tong);
     }
 }

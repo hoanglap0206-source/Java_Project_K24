@@ -6,120 +6,120 @@ import Model.KeKho;
 import Model.SanPham;
 
 import java.sql.Connection;
-import java.util.*;
+import java.util.ArrayList;
 
 public class KeKho_BUS {
     private ArrayList<KeKho> listKK;
+    private ArrayList<SanPham> listAllSP; // Cache tất cả sản phẩm
     private KeKho_DAO kkDAO;
     private SanPham_DAO spDAO;
-    private SanPham_BUS sanPhamBUS;
 
     public KeKho_BUS(){
-        kkDAO= new KeKho_DAO();
+        kkDAO = new KeKho_DAO();
         spDAO = new SanPham_DAO();
-        sanPhamBUS = new SanPham_BUS();
-        this.listKK=kkDAO.getAllKeKho();
+        loadAllData(); // Load 1 lần khi khởi tạo
+    }
+
+    // Load tất cả dữ liệu 1 lần
+    private void loadAllData() {
+        listKK = kkDAO.getAllKeKho();
+        listAllSP = spDAO.getAllSanPham();
+    }
+
+    public void refreshData() {
+        loadAllData();
     }
 
     public ArrayList<KeKho> getListKK(){
-//        return this.listKK; // load dữ liệu 1 lần, không dùng được cho sửa thêm xóa
-        return kkDAO.getAllKeKho(); //
+        return listKK; // Trả về cache, không query lại
     }
 
     public ArrayList<KeKho> getlistkK(Connection conn){
-//        return this.listKK; // load dữ liệu 1 lần, không dùng được cho sửa thêm xóa
-        return kkDAO.getListKK(conn); //
+        return kkDAO.getListKK(conn);
+    }
+
+    public ArrayList<SanPham> getAllSanPham() {
+        return listAllSP;
     }
 
     public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
-        return sanPhamBUS.laySanPhamTheoKe(maKe);
+        ArrayList<SanPham> result = new ArrayList<>();
+        for (SanPham sp : listAllSP) {
+            if (sp.getKeKho() != null && maKe.equals(sp.getKeKho().getMaKe())) {
+                result.add(sp);
+            }
+        }
+        return result;
     }
 
     public KeKho getKeTheoMa(String maKe){
-        return kkDAO.getKeTheoMa(maKe);
+        for (KeKho ke : listKK) {
+            if (ke.getMaKe().equals(maKe)) {
+                return ke;
+            }
+        }
+        return null;
     }
 
     public int tinhTongSoLuongTheoKe(String maKe) {
-        ArrayList<SanPham> list = laySanPhamTheoKe(maKe);
         int tong = 0;
-
-        for (SanPham sp : list) {
-            tong += sp.getSoLuong();
+        for (SanPham sp : listAllSP) {
+            if (sp.getKeKho() != null && maKe.equals(sp.getKeKho().getMaKe())) {
+                tong += sp.getSoLuong();
+            }
         }
-
         return tong;
     }
 
-    public int tinhPhanTramTheoKe(String maKe) {
-        KeKho ke = getKeTheoMa(maKe);
-        if (ke == null) return 0;
-
-        int tong = tinhTongSoLuongTheoKe(maKe);
+    public int tinhPhanTramTheoKe(KeKho ke) {
+        int tong = tinhTongSoLuongTheoKe(ke.getMaKe());
         int sucChua = ke.getSucChua();
-
-        if (sucChua == 0) return 0;
-
-        return (int)((double) tong / sucChua * 100);
+        return (sucChua == 0) ? 0 : (int)((double) tong / sucChua * 100);
     }
 
     public String addKK(KeKho kk){
-        if(kk.getMaKe().trim().isEmpty()) return "Mã kệ không được để trống!"; // ?
-        if(kk.getSucChua()<=0) return "Sức chứa phải lớn hơn 0!";
+        if(kk.getMaKe().trim().isEmpty()) return "Mã kệ không được để trống!";
+        if(kk.getSucChua() <= 0) return "Sức chứa phải lớn hơn 0!";
 
-        if(kkDAO.insert(kk)){ // insert ?
-          listKK.add(kk);
-          return "Thêm kệ kho thành công!";
+        if(kkDAO.insert(kk)) {
+            listKK.add(kk);
+            return "Thêm kệ kho thành công!";
         }
         return "Thêm thất bại!";
     }
 
     public boolean updateKK(KeKho kk){
-        if(kkDAO.update(kk)){
-            for(int i=0;i<listKK.size();i++){
-                if(listKK.get(i).getMaKe().equals(kk.getMaKe()))
-                {
-                    listKK.set(i,kk);
-                    break;
-                }
-            }
+        if(kkDAO.update(kk)) {
+            refreshData();
             return true;
         }
         return false;
     }
 
-    public boolean updatekK(Connection conn,KeKho kk){
-        if(kkDAO.updateKK(conn,kk)){
-            for(int i=0;i<listKK.size();i++){
-                if(listKK.get(i).getMaKe().equals(kk.getMaKe()))
-                {
-                    listKK.set(i,kk);
-                    break;
-                }
-            }
+    public boolean updatekK(Connection conn, KeKho kk){
+        if(kkDAO.updateKK(conn, kk)) {
+            refreshData();
             return true;
         }
         return false;
     }
 
-    public boolean updateKKtheoKT(Connection conn,String maKe,int khoangTrong){
-        if (kkDAO.updateKhoangTrong(conn,maKe,khoangTrong)){
-            listKK = kkDAO.getAllKeKho();
+    public boolean updateKKtheoKT(Connection conn, String maKe, int khoangTrong){
+        if(kkDAO.updateKhoangTrong(conn, maKe, khoangTrong)) {
+            refreshData();
             return true;
         }
         return false;
     }
 
     public String deleteKK(String maKe){
-        // Kiểm tra còn sản phẩm không
         if(spDAO.countByMaKe(maKe) > 0){
             return "Không thể xoá! Kệ vẫn còn sản phẩm.";
         }
-
-        if(kkDAO.delete(maKe)){
-            listKK.removeIf(kk -> kk.getMaKe().equals(maKe));
+        if(kkDAO.delete(maKe)) {
+            listKK.removeIf(k -> k.getMaKe().equals(maKe));
             return "Xoá kệ kho thành công!";
         }
-
         return "Xoá thất bại!";
     }
 }
