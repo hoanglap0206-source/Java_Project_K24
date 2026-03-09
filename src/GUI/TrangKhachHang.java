@@ -123,6 +123,7 @@ public class TrangKhachHang extends JPanel {
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
 
+
         // Thêm vào panel
         panel.add(pnlSearchInput);
         panel.add(btnLamMoi);
@@ -132,8 +133,52 @@ public class TrangKhachHang extends JPanel {
         panel.add(btnAdd);
         panel.add(btnExcel);
 
+
+        btnAdd.addActionListener(e -> {
+            new FormKhachHang(this, "THEM", null).setVisible(true);
+        });
+        btnDelete.addActionListener(e->{
+            int row = table.getSelectedRow();
+            if(row==-1){
+                JOptionPane.showMessageDialog(this,"Vui lòng chọn khách hàng cần xoá từ bảng!");
+                return;
+            }
+            String maKH=table.getValueAt(row,1).toString();
+            String tenKH=table.getValueAt(row,2).toString();
+
+            //hộp thoại để tránh bấm nhầm
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    "Bạn có chắc chắn muốn xoá khách hàng"+maKH+"?",
+                    "Xác nhận",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if(choice== JOptionPane.YES_OPTION){
+                String result = khBUS.deleteKH(maKH);
+                JOptionPane.showMessageDialog(this,result);
+
+                if(result.contains("Thành công!")){
+                    fillToTable();
+                }
+            }
+
+        });
+        btnEdit.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần sửa!");
+                return;
+            }
+            // Lấy dữ liệu dòng đang chọn từ table để truyền qua form
+            KhachHang kh = khBUS.getListKH().get(row);
+            new FormKhachHang(this, "SUA", kh).setVisible(true);
+        });
         wrapper.add(panel, BorderLayout.CENTER);
         return wrapper;
+
+
     }
 
     private JPanel taoNoiDung() {
