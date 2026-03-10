@@ -177,6 +177,29 @@ public class TrangPhieuXuat extends JPanel {
             }
         });
 
+        // Thiết kế sự kiện click chuột cho bảng
+        table.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+
+                // Kiểm tra nếu click vào hàng hợp lệ và đúng cột Xem
+                if (row >= 0 && col == 6) {
+                    String maPX = model.getValueAt(row, 1).toString();
+                    String ngay = model.getValueAt(row, 2).toString();
+                    String khach = model.getValueAt(row, 3).toString();
+                    String tongTien = model.getValueAt(row, 4).toString();
+
+                    // Mở Dialog chi tiết
+                    JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuXuat.this);
+                    ChiTietPhieuXuat_GUI dialog = new ChiTietPhieuXuat_GUI(parent, maPX, ngay, khach, tongTien);
+                    dialog.setVisible(true);
+                }
+            }
+        });
+
         JScrollPane scroll = new JScrollPane(table);
         panel.add(scroll, BorderLayout.CENTER);
 
@@ -206,7 +229,7 @@ public class TrangPhieuXuat extends JPanel {
                     px.getKhachHang().getMaKH(), // Mã khách hàng ngẫu nhiên KHxx
                     String.format("%,dđ", tongTien), // Định dạng tiền tệ
                     "Đã xuất kho",
-                    "Xem"
+                    "<html><font color='blue'><u>Xem</u></font></html>"
             });
         }
     }

@@ -11,6 +11,15 @@ public class ChiTiet_PhieuXuat {
     public ChiTiet_PhieuXuat() {
     }
 
+    public ChiTiet_PhieuXuat(PhieuXuat phieuXuat, SanPham sanPham, int soLuong, double donGia, long thanhTien, float thueVAT) {
+        this.phieuXuat = phieuXuat;
+        this.sanPham = sanPham;
+        this.soLuong = soLuong;
+        this.donGia = donGia;
+        this.thanhTien = thanhTien;
+        this.thueVAT = thueVAT;
+    }
+
     public PhieuXuat getPhieuXuat() {
         return phieuXuat;
     }
@@ -56,15 +65,6 @@ public class ChiTiet_PhieuXuat {
     }
 
     public void setThueVAT(float thueVAT) {
-        this.thueVAT = thueVAT;
-    }
-
-    public ChiTiet_PhieuXuat(PhieuXuat phieuXuat, SanPham sanPham, int soLuong, double donGia, long thanhTien, float thueVAT) {
-        this.phieuXuat = phieuXuat;
-        this.sanPham = sanPham;
-        this.soLuong = soLuong;
-        this.donGia = donGia;
-        this.thanhTien = thanhTien;
         this.thueVAT = thueVAT;
     }
 }

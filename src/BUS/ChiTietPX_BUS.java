@@ -1,6 +1,7 @@
 package BUS;
 
 import DAO.ChiTietPX_DAO;
+import Model.ChiTiet_PhieuNhap;
 import Model.ChiTiet_PhieuXuat;
 import Model.SanPham;
 
@@ -85,4 +86,9 @@ public class ChiTietPX_BUS {
 
 
     public void refeshData(){listCTPX=ctDAO.getAllCtPX();}
+
+    public ArrayList<ChiTiet_PhieuXuat> getChiTietByMaPx_DB(String maPx){
+        return this.ctDAO.getChiTietPXByMaPX(maPx);
+    }
+
 }

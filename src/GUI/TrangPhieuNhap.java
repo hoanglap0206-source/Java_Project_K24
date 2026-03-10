@@ -190,6 +190,29 @@ public class TrangPhieuNhap extends JPanel {
             }
         });
 
+        table.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Đổi con trỏ chuột thành hình bàn tay
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+
+                // Nếu click vào hàng hợp lệ và đúng cột
+                if (row >= 0 && col == 6) {
+                    // Lấy các thông tin cần thiết từ dòng đang chọn
+                    String maPN = model.getValueAt(row, 1).toString();
+                    String ngayNhap = model.getValueAt(row, 2).toString();
+                    String ncc = model.getValueAt(row, 3).toString();
+                    String tongTien = model.getValueAt(row, 4).toString();
+
+                    // Hiển thị Dialog
+                    JFrame frameDialog = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuNhap.this);
+                    ChiTietPhieuNhap_GUI dialog = new ChiTietPhieuNhap_GUI(frameDialog, maPN, ngayNhap, ncc, tongTien);
+                    dialog.setVisible(true);
+                }
+            }
+        });
+
         JScrollPane scroll = new JScrollPane(table);
         panel.add(scroll, BorderLayout.CENTER);
 
@@ -221,7 +244,7 @@ public class TrangPhieuNhap extends JPanel {
                     (pn.getNhaCC() != null) ? pn.getNhaCC().getMaNCC() : "N/A", // Lấy mã hoặc tên NCC
                     df.format(tongTien), // Hiển thị số tiền thực tế
                     "Đã nhập hàng",
-                    "Xem"
+                    "<html><font color='blue'><u>Xem</u></font></html>"
             });
         }
     }

@@ -1,6 +1,7 @@
 package DAO;
 
 import DataBase.DBConnection;
+import Model.ChiTiet_PhieuXuat;
 import Model.KhachHang;
 import Model.NhanVien;
 import Model.PhieuXuat;
@@ -109,4 +110,5 @@ public class PhieuXuat_DAO {
             return false;
         }
     }
+
 }

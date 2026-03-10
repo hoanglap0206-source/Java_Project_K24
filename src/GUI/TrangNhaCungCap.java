@@ -180,6 +180,7 @@ public class TrangNhaCungCap extends JPanel {
         table.getTableHeader().setBackground(new Color(210,230,255));
         table.getTableHeader().setReorderingAllowed(false);
 
+        //hàm gọi class ButtonEditor và ButtonRender chạy chitietNCC
         table.getColumnModel().getColumn(5).setCellRenderer(new buttonRender());
         table.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox()));
 
