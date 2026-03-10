@@ -11,6 +11,7 @@
     import javax.swing.border.EmptyBorder;
     import javax.swing.border.LineBorder;
     import javax.swing.table.DefaultTableModel;
+    import javax.swing.table.TableRowSorter;
     import java.awt.*;
     import java.awt.event.ActionEvent;
     import java.awt.event.ActionListener;
@@ -21,6 +22,7 @@
         private JTable table;
         private DefaultTableModel model;
         private BaoCaoTonKho_BUS bus;
+        private TableRowSorter<DefaultTableModel> rowSorter;
         public TrangTonKho() {
             bus= new BaoCaoTonKho_BUS();
             setLayout(new BorderLayout());
@@ -58,6 +60,9 @@
             table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
             table.getTableHeader().setBackground(new Color(230, 230, 230));
             table.getTableHeader().setReorderingAllowed(false);
+
+            rowSorter = new TableRowSorter<>(model);
+            table.setRowSorter(rowSorter);
 
             JScrollPane scrollPane = new JScrollPane(table);
             add(scrollPane, BorderLayout.CENTER);
@@ -159,6 +164,29 @@
                     }
                 }
             });
+            txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener(){
+                @Override
+                        public void insertUpdate(javax.swing.event.DocumentEvent e){
+                    thuchientimkiem();
+                }
+                @Override
+                        public void removeUpdate(javax.swing.event.DocumentEvent e){
+                    thuchientimkiem();
+                }
+                @Override
+                        public void changedUpdate(javax.swing.event.DocumentEvent e){
+                    thuchientimkiem();
+                }
+                private void thuchientimkiem(){
+                    String text=txtSearch.getText();
+                    if(text.trim().length()==0||text.equals("Tìm kiếm")){
+                        rowSorter.setRowFilter(null);
+                    }
+                    else{
+                        rowSorter.setRowFilter(RowFilter.regexFilter("(?i)"+text));
+                    }
+                }
+            });
 
 
             // Nút làm mới
@@ -172,7 +200,7 @@
 
 
             // Combobox Lọc
-            String[] itemLoc = {"Lọc", "1", "2", "3", "4", "5"};
+            String[] itemLoc = {"Lọc", "A-Z","Z-A"};
             JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
 
             // Style cơ bản
@@ -201,7 +229,25 @@
                     return lbl;
                 }
             });
+        comboBoxLoc.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                java.util.List<RowSorter.SortKey> sortKeys=new ArrayList<>();
+                int luachon=comboBoxLoc.getSelectedIndex();
+                if(luachon==1){
+                    sortKeys.add(new RowSorter.SortKey(1,SortOrder.ASCENDING));
+                }
+                else if(luachon==2){
+                    sortKeys.add(new RowSorter.SortKey(1,SortOrder.DESCENDING));
+                }
+                else {
+                    sortKeys.add(new RowSorter.SortKey(0,SortOrder.ASCENDING));
+                }
 
+                rowSorter.setSortKeys(sortKeys);
+                rowSorter.sort();
+            }
+        });
 
             // Các nút khác
             JButton btnEdit = new JButton("Chỉnh sửa");
