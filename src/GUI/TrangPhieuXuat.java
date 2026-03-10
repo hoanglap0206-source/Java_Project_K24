@@ -454,8 +454,96 @@ public class TrangPhieuXuat extends JPanel {
 
         JButton btnExcel = new JButton("Xuất excel");
         btnExcel.setBackground(new Color(220, 240, 220));
+        btnExcel.addActionListener(e -> xuatExcel());
         panel.add(btnExcel);
 
         return panel;
+    }
+
+    //Hàm xuất file excel
+    private void xuatExcel(){
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu file Excel");
+        fileChooser.setSelectedFile(new java.io.File("DanhSachPhieuXuat.xlsx"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Excel file (*.xlsx)", "xlsx"));
+
+        int chon = fileChooser.showSaveDialog(this);
+        if(chon != JFileChooser.APPROVE_OPTION) return;
+
+        java.io.File file = fileChooser.getSelectedFile();
+
+        if(!file.getName().endsWith(".xlsx"))
+            file = new java.io.File(file.getAbsolutePath() + ".xlsx");
+
+        try(org.apache.poi.xssf.usermodel.XSSFWorkbook workbook =
+                    new org.apache.poi.xssf.usermodel.XSSFWorkbook()){
+
+            org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Danh sách phiếu xuất");
+
+            //Tiêu đề
+            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
+
+            headerFont.setBold(true);
+            headerFont.setFontHeightInPoints((short) 12);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(
+                    new org.apache.poi.xssf.usermodel.XSSFColor(
+                            new byte[]{(byte) 200, (byte) 200, (byte) 240}, null));
+            headerStyle.setFillPattern(
+                    org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(
+                    org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            headerStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            // --- Style dữ liệu ---
+            org.apache.poi.ss.usermodel.CellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            dataStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            //Ghi dòng tiêu đề lấy từ cột của JTable
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+            String[] cols = {"STT", "Mã phiếu xuất", "Ngày xuất",
+                    "Khách hàng", "Tổng tiền", "Trạng thái"};
+            for (int i = 0; i < cols.length; i++) {
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                cell.setCellValue(cols[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Ghi dữ liệu từ model
+            for (int r = 0; r < model.getRowCount(); r++) {
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(r + 1);
+                for (int c = 0; c < 6; c++) { // chỉ lấy 6 cột đầu
+                    org.apache.poi.ss.usermodel.Cell cell = row.createCell(c);
+                    Object val = model.getValueAt(r, c);
+                    cell.setCellValue(val != null ? val.toString() : "");
+                    cell.setCellStyle(dataStyle);
+                }
+            }
+
+            for (int i = 0; i < cols.length; i++)
+                sheet.autoSizeColumn(i);
+
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+                workbook.write(fos);
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thành công!\nFile: " + file.getAbsolutePath(),
+                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thất bại: " + ex.getMessage(),
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
