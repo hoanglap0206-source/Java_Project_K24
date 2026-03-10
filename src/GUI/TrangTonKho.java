@@ -47,7 +47,7 @@
             String[] columnNames = {"Mã SP", "Tên SP", "Đơn vị tính", "Số lượng", "Đơn giá", "Số ngày hết hạn", "Mã kệ"};
 
 
-            //hàm không cho thay đổi data//ull
+
              model=new DefaultTableModel(columnNames,0){
                 @Override
                 public boolean isCellEditable(int row,int column){

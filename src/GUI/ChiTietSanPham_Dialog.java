@@ -56,10 +56,11 @@ public class ChiTietSanPham_Dialog extends JDialog {
             columns = new String[]{"Mã Phiếu", "Ngày Giờ", "Khách Hàng", "Nhân Viên", "Số Lượng", "Đơn Giá", "Thành Tiền"};
         }
 
+
         modelHistory = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Khóa không cho sửa
+                return false;
             }
         };
 
@@ -68,6 +69,8 @@ public class ChiTietSanPham_Dialog extends JDialog {
         tableHistory.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         tableHistory.getTableHeader().setBackground(new Color(187, 219, 243));
         tableHistory.getTableHeader().setOpaque(true);
+        tableHistory.getTableHeader().setReorderingAllowed(false); // không đổi vị trí cột
+        tableHistory.getTableHeader().setResizingAllowed(false);
 
         JScrollPane scrollPane = new JScrollPane(tableHistory);
         scrollPane.setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
