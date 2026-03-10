@@ -179,7 +179,7 @@ public class TrangBaoCao extends JPanel {
                         table, value, isSelected, hasFocus, row, column);
 
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
-                lbl.setBackground(new Color(147, 211, 255)); // màu xanh
+                lbl.setBackground(new Color(210,230,255)); // màu xanh
                 lbl.setForeground(Color.BLACK);
                 lbl.setOpaque(true);
                 lbl.setBorder(BorderFactory.createMatteBorder(0,0,2,1,Color.BLACK));
