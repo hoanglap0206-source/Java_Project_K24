@@ -5,12 +5,14 @@
     import Model.BaoCaoTonKho;
     import Model.SanPham;
     import BUS.SanPham_BUS;
-
+    import javax.swing.table.DefaultTableCellRenderer;
+    import javax.swing.SwingConstants;
     import javax.swing.*;
     import javax.swing.border.CompoundBorder;
     import javax.swing.border.EmptyBorder;
     import javax.swing.border.LineBorder;
     import javax.swing.table.DefaultTableModel;
+    import javax.swing.table.JTableHeader;
     import javax.swing.table.TableRowSorter;
     import java.awt.*;
     import java.awt.event.ActionEvent;
@@ -56,10 +58,48 @@
             };
 
              table = new JTable(model);
+            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+            centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+            }
+
+
             table.setRowHeight(30);
             table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+
+            table.getTableHeader().setPreferredSize(new Dimension(0,35));
+
             table.getTableHeader().setBackground(new Color(230, 230, 230));
             table.getTableHeader().setReorderingAllowed(false);
+            table.setShowGrid(true);
+            table.setGridColor(Color.BLACK);
+            table.setShowVerticalLines(true);
+            table.setShowHorizontalLines(true);
+
+
+            JTableHeader header = table.getTableHeader();
+
+            header.setDefaultRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(
+                        JTable table, Object value, boolean isSelected,
+                        boolean hasFocus, int row, int column) {
+
+                    JLabel lbl = (JLabel) super.getTableCellRendererComponent(
+                            table, value, isSelected, hasFocus, row, column);
+
+                    lbl.setHorizontalAlignment(SwingConstants.CENTER);
+                    lbl.setBackground(new Color(147, 211, 255)); // màu xanh
+                    lbl.setForeground(Color.BLACK);
+                    lbl.setOpaque(true);
+                    lbl.setBorder(BorderFactory.createMatteBorder(0,0,2,1,Color.BLACK));
+
+                    return lbl;
+                }
+            });
+
 
             rowSorter = new TableRowSorter<>(model);
             table.setRowSorter(rowSorter);
