@@ -45,7 +45,7 @@
             String[] columnNames = {"Mã SP", "Tên SP", "Đơn vị tính", "Số lượng", "Đơn giá", "Số ngày hết hạn", "Mã kệ"};
 
 
-            //hàm không cho thay đổi data//
+            //hàm không cho thay đổi data//ull
              model=new DefaultTableModel(columnNames,0){
                 @Override
                 public boolean isCellEditable(int row,int column){
@@ -207,9 +207,22 @@
             JButton btnEdit = new JButton("Chỉnh sửa");
             Style.styleButton(btnEdit);
             JButton btnDelete = new JButton("Xóa");
+            btnDelete.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    xulyxoa();
+                }
+            });
+
             Style.styleButton(btnDelete);
             JButton btnAdd = new JButton("+ Thêm");
             Style.styleButton(btnAdd);
+            btnAdd.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    xulythem();
+                }
+            });
             JButton btnExcel = new JButton("Xuất excel");
             Style.styleButton(btnExcel);
 
@@ -321,7 +334,89 @@
             }
         }
         public void xulythem(){
+            JTextField txtMaSP=new JTextField();
+            JTextField txtTenSP=new JTextField();
+            JComboBox<String> DVTs=new JComboBox<>(new String[]{"Lon","Chai","Thùng"});
+            JTextField txtSL=new JTextField("0");
+            JTextField txtDG=new JTextField("0");
+            JTextField txtCanhBao=new JTextField("10");
+            JTextField txtMake=new JTextField();
+            Object[] formMessage = {
+                    "Mã Sản Phẩm (VD: SP05):", txtMaSP,
+                    "Tên Sản Phẩm:", txtTenSP,
+                    "Đơn Vị Tính:", DVTs,
+                    "Số Lượng Khởi Tạo:", txtSL,
+                    "Đơn Giá (VNĐ):", txtDG,
+                    "Mức Cảnh Báo Sắp Hết Hàng:", txtCanhBao,
+                    "Mã Kệ (Ví dụ: K01):", txtMake
+            };
+            int option = JOptionPane.showConfirmDialog(this, formMessage, "Thêm Sản Phẩm Mới", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (option==JOptionPane.OK_OPTION){
+                try{
+                    String ma=txtMaSP.getText().trim();
+                    String ten=txtTenSP.getText().trim();
+                    String dvt=DVTs.getSelectedItem().toString();
+                    String make=txtMake.getText().trim();
 
+                    int sl=Integer.parseInt(txtSL.getText().trim());
+                    float gia=Float.parseFloat(txtDG.getText().trim());
+                    int canhbao=Integer.parseInt(txtCanhBao.getText().trim());
+                    if(ma.isEmpty()||ten.isEmpty()){
+                        JOptionPane.showMessageDialog(this,"Mã và tên không được để trống");
+                        return;
+                    }
+                    SanPham sp=new SanPham();
+                    sp.setMaSP(ma);
+                    sp.setTenSP(ten);
+                    sp.setDonViTinh(dvt);
+                    sp.setGiaTien(gia);
+                    sp.setMaKe(make);
+
+                    BaoCaoTonKho bc=new BaoCaoTonKho();
+                    bc.setMaBC(ma);
+                    bc.setsLTon(sl);
+                    bc.setCanhBaoHH(canhbao);
+                    bc.setSanPham(sp);
+
+                    String ketqua=bus.addBaoCao(bc);
+                    JOptionPane.showMessageDialog(this,ketqua);
+
+                    if (ketqua.contains("thành công")) {
+                        loadDataToTable();
+                    }
+
+                }
+                catch (NumberFormatException ex){
+                    JOptionPane.showMessageDialog(this, "Số lượng, Đơn giá và Cảnh báo phải là số hợp lệ!", "Lỗi nhập liệu", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+        }
+        public void xulyxoa(){
+            int row =table.getSelectedRow();
+            if(row==-1){
+                JOptionPane.showMessageDialog(this,"Vui lòng chọn sản phẩm cần xoá");
+                return;
+            }
+            Object objma=table.getValueAt(row,0);
+            Object objten=table.getValueAt(row,1);
+            String masp=(objma!=null)?objma.toString():"";
+            String tensp=(objten!=null)?objten.toString():"";
+            int xacNhan = JOptionPane.showConfirmDialog(this,
+                    "Bạn có chắc chắn muốn xóa sản phẩm:\n" + masp + " - " + tensp + " không?",
+                    "Xác nhận xóa",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+            if(xacNhan==JOptionPane.YES_OPTION){
+                String thongbao=bus.deleteBaoCao(masp);
+                if(thongbao.contains("thành công")){
+                    JOptionPane.showMessageDialog(this,thongbao);
+                    loadDataToTable();
+                }
+                else{
+                    JOptionPane.showMessageDialog(this,thongbao,"Lỗi",JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
         public static void main(String[]  args){
             SwingUtilities.invokeLater(()->

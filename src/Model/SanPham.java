@@ -71,7 +71,7 @@ public class SanPham {
         if (this.keKho != null) {
             return this.keKho.getMaKe();
         }
-        return ""; // Trả về chuỗi rỗng nếu chưa có kệ, chống văng app
+        return "";
     }
     public void setMaKe(String maKe) {
         if (this.keKho == null) {
