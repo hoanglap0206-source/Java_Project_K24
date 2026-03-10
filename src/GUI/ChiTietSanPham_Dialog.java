@@ -1,71 +1,108 @@
 package GUI;
 
-
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class ChiTietSanPham_Dialog extends JDialog {
+    private JTable tableHistory;
+    private DefaultTableModel modelHistory;
+    private String loaiBaoCao;
 
+    // Constructor nhận vào cửa sổ cha, Mã SP, Tên SP và Loại báo cáo (Nhập hay Xuất)
+    public ChiTietSanPham_Dialog(Window parent, String maSP, String tenSP, String loaiBaoCao) {
+        super(parent, "Chi Tiết Giao Dịch Sản Phẩm", Dialog.ModalityType.APPLICATION_MODAL);
+        this.loaiBaoCao = loaiBaoCao;
 
-    public  ChiTietSanPham_Dialog(Window parent, String mabc, String dvt, String soluong, String dongia) {
-
-        super(parent, "Chi tiết sản phẩm", ModalityType.APPLICATION_MODAL);
-        setSize(500,280);
-        setLocationRelativeTo(parent);
+        setSize(750, 450);
+        setLocationRelativeTo(parent); // Căn giữa so với màn hình chính
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
-        JPanel pnlmain=new JPanel(new BorderLayout(20,10));
-        pnlmain.setBackground(new Color(255, 255, 255));
-        pnlmain.setBorder(new EmptyBorder(20,20,10,20));
+        // ================= 1. PHẦN HEADER (THÔNG TIN CHUNG) =================
+        JPanel pnlHeader = new JPanel(new BorderLayout());
+        pnlHeader.setBackground(new Color(230, 245, 255)); // Màu xanh nhạt đồng bộ
+        pnlHeader.setBorder(new EmptyBorder(15, 20, 15, 20));
 
-        JPanel pnlInfo = new JPanel(new GridLayout(4, 1, 0, 5));
-        pnlInfo.setBackground(new Color(255, 255, 255));
+        JLabel lblTenSP = new JLabel(tenSP);
+        lblTenSP.setFont(new Font("Arial", Font.BOLD, 22));
+        lblTenSP.setForeground(new Color(30, 144, 255)); // Chữ màu xanh biển nhấn mạnh
 
+        JLabel lblMaSP = new JLabel("Mã Sản Phẩm: " + maSP + "   |   Phân loại: Báo cáo " + loaiBaoCao.toLowerCase());
+        lblMaSP.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblMaSP.setForeground(Color.DARK_GRAY);
 
-        pnlInfo.add(createInfoRow("Mã báo cáo",mabc));
+        pnlHeader.add(lblTenSP, BorderLayout.NORTH);
+        pnlHeader.add(lblMaSP, BorderLayout.SOUTH);
+        add(pnlHeader, BorderLayout.NORTH);
 
-        pnlInfo.add(createInfoRow("Đơn vị tính:", dvt));
-        pnlInfo.add(createInfoRow("Số lượng:", soluong));
-        pnlInfo.add(createInfoRow("Đơn giá:", dongia + " VNĐ"));
+        // ================= 2. PHẦN CENTER (BẢNG LỊCH SỬ GIAO DỊCH) =================
+        JPanel pnlCenter = new JPanel(new BorderLayout());
+        pnlCenter.setBackground(Color.WHITE);
+        pnlCenter.setBorder(new EmptyBorder(10, 15, 10, 15));
 
-        pnlmain.add(pnlInfo, BorderLayout.CENTER);
-        add(pnlmain, BorderLayout.CENTER);
+        JLabel lblTitleTable = new JLabel("Lịch sử các đợt " + loaiBaoCao.toLowerCase() + ":");
+        lblTitleTable.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTitleTable.setBorder(new EmptyBorder(0, 0, 10, 0));
+        pnlCenter.add(lblTitleTable, BorderLayout.NORTH);
 
+        // Đổi cột linh hoạt: Nhập thì hiện Nhà cung cấp, Xuất thì hiện Khách hàng
+        String[] columns;
+        if (loaiBaoCao.equalsIgnoreCase("Nhập hàng")) {
+            columns = new String[]{"Mã Phiếu", "Ngày Giờ", "Nhà Cung Cấp", "Nhân Viên", "Số Lượng", "Đơn Giá", "Thành Tiền"};
+        } else {
+            columns = new String[]{"Mã Phiếu", "Ngày Giờ", "Khách Hàng", "Nhân Viên", "Số Lượng", "Đơn Giá", "Thành Tiền"};
+        }
 
-        JPanel pnlBottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        pnlBottom.setBackground(Color.WHITE);
-        pnlBottom.setBorder(new EmptyBorder(0, 0, 10, 20));
+        modelHistory = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Khóa không cho sửa
+            }
+        };
+
+        tableHistory = new JTable(modelHistory);
+        tableHistory.setRowHeight(28);
+        tableHistory.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        tableHistory.getTableHeader().setBackground(new Color(187, 219, 243));
+        tableHistory.getTableHeader().setOpaque(true);
+
+        JScrollPane scrollPane = new JScrollPane(tableHistory);
+        scrollPane.setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
+
+        pnlCenter.add(scrollPane, BorderLayout.CENTER);
+        add(pnlCenter, BorderLayout.CENTER);
+
+        // ================= 3. PHẦN SOUTH (NÚT ĐÓNG) =================
+        JPanel pnlSouth = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pnlSouth.setBackground(Color.WHITE);
+        pnlSouth.setBorder(new EmptyBorder(5, 15, 15, 15));
 
         JButton btnClose = new JButton("Đóng");
-        btnClose.setBackground(new Color(210,230,255));
+        btnClose.setFont(new Font("Arial", Font.BOLD, 12));
+        btnClose.setPreferredSize(new Dimension(100, 35));
+        btnClose.setBackground(new Color(220, 53, 69)); // Nút đỏ giống thiết kế
+        btnClose.setForeground(Color.WHITE);
         btnClose.setFocusPainted(false);
-        btnClose.setPreferredSize(new Dimension(90, 30));
+        btnClose.addActionListener(e -> dispose()); // Lệnh tắt cửa sổ này đi
 
-        btnClose.addActionListener(e -> dispose());
+        pnlSouth.add(btnClose);
+        add(pnlSouth, BorderLayout.SOUTH);
 
-        pnlBottom.add(btnClose);
-        add(pnlBottom, BorderLayout.SOUTH);
-
-
+        // Tạm gọi dữ liệu giả để test vẽ UI
+        loadDummyData();
     }
-    private JPanel createInfoRow(String label, String value) {
-        JPanel pnl = new JPanel(new BorderLayout());
-        pnl.setBackground(Color.WHITE);
 
-        JLabel lblTitle = new JLabel(label);
-        lblTitle.setPreferredSize(new Dimension(100, 20)); // Cố định chiều rộng cột tiêu đề
-        lblTitle.setFont(new Font("Arial", Font.BOLD, 14));
-
-        JLabel lblValue = new JLabel(value);
-        lblValue.setFont(new Font("Arial", Font.PLAIN, 14));
-        lblValue.setForeground(Color.DARK_GRAY);
-
-        pnl.add(lblTitle, BorderLayout.WEST);
-        pnl.add(lblValue, BorderLayout.CENTER);
-        return pnl;
+    // TODO: Sau này bạn thay hàm này bằng việc gọi DAO lấy dữ liệu thật từ SQL
+    private void loadDummyData() {
+        if (loaiBaoCao.equalsIgnoreCase("Nhập hàng")) {
+            modelHistory.addRow(new Object[]{"PN01", "2026-03-01 16:20", "NCC05", "NV02", "10", "150,000", "1,500,000"});
+            modelHistory.addRow(new Object[]{"PN05", "2026-03-15 09:10", "NCC01", "NV01", "10", "150,000", "1,500,000"});
+        } else {
+            modelHistory.addRow(new Object[]{"PX02", "2026-01-02 10:00", "KH10", "NV01", "5", "180,000", "900,000"});
+            modelHistory.addRow(new Object[]{"PX07", "2026-02-07 14:30", "KH07", "NV02", "7", "180,000", "1,260,000"});
+        }
     }
 }
