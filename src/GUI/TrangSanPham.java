@@ -2,6 +2,7 @@ package GUI;
 
 import BUS.SanPham_BUS;
 import Model.SanPham;
+import Model.KeKho;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -11,12 +12,20 @@ import javax.swing.table.*;
 public class TrangSanPham extends JPanel {
     private JTable table;
     private DefaultTableModel model;
+
     private JButton btnAdd;
     private JButton btnEdit;
     private JButton btnDelete;
+
     private JSplitPane splitPane;
     private JPanel panelForm;
     private JPanel panelTableWrapper;
+
+    private JTextField txtMaSP;
+    private JTextField txtTenSP;
+    private JTextField txtDVT;
+    private JTextField txtSoLuong;
+    private JTextField txtGia;
 
     private SanPham_BUS spBus = new SanPham_BUS();
 
@@ -173,19 +182,65 @@ public class TrangSanPham extends JPanel {
     }
 
     private JPanel taoPanelForm() {
+
         JPanel pnl = new JPanel();
         pnl.setPreferredSize(new Dimension(320, 0));
         pnl.setBackground(Color.WHITE);
-        pnl.setBorder(new LineBorder(new Color(200,200,200)));
+        pnl.setBorder(new EmptyBorder(20,20,20,20));
 
-        pnl.setLayout(new BorderLayout());
+        pnl.setLayout(new BoxLayout(pnl, BoxLayout.Y_AXIS));
 
-        JLabel lbl = new JLabel("FORM SẢN PHẨM", SwingConstants.CENTER);
+        JLabel lbl = new JLabel("THÊM SẢN PHẨM");
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        pnl.add(lbl, BorderLayout.NORTH);
+        pnl.add(lbl);
+        pnl.add(Box.createVerticalStrut(20));
 
-        // sau này bạn nhét JTextField vào đây
+        txtMaSP = new JTextField();
+        txtTenSP = new JTextField();
+        txtDVT = new JTextField();
+        txtSoLuong = new JTextField();
+        txtSoLuong.setText("0");
+        txtSoLuong.setEditable(false);
+        txtGia = new JTextField();
+
+        pnl.add(new JLabel("Mã SP"));
+        pnl.add(txtMaSP);
+
+        pnl.add(Box.createVerticalStrut(10));
+
+        pnl.add(new JLabel("Tên SP"));
+        pnl.add(txtTenSP);
+
+        pnl.add(Box.createVerticalStrut(10));
+
+        pnl.add(new JLabel("Đơn vị tính"));
+        pnl.add(txtDVT);
+
+        pnl.add(Box.createVerticalStrut(10));
+
+        pnl.add(new JLabel("Số lượng"));
+        pnl.add(txtSoLuong);
+
+        pnl.add(Box.createVerticalStrut(10));
+
+        pnl.add(new JLabel("Giá nhập"));
+        pnl.add(txtGia);
+
+        pnl.add(Box.createVerticalStrut(20));
+
+        JButton btnSave = new JButton("Lưu");
+        JButton btnCancel = new JButton("Hủy");
+
+        btnSave.addActionListener(e -> saveSanPham());
+        btnCancel.addActionListener(e -> hideFormPanel());
+
+        JPanel pnlBtn = new JPanel();
+        pnlBtn.add(btnSave);
+        pnlBtn.add(btnCancel);
+
+        pnl.add(pnlBtn);
 
         return pnl;
     }
@@ -320,37 +375,8 @@ public class TrangSanPham extends JPanel {
         btnEdit.addActionListener(e -> showFormPanel());
     }
     private void handleAdd() {
-        String maSP = JOptionPane.showInputDialog(this, "Nhập mã SP:");
-        if (maSP == null || maSP.trim().isEmpty()) return;
-
-        String tenSP = JOptionPane.showInputDialog(this, "Nhập tên SP:");
-        if (tenSP == null || tenSP.trim().isEmpty()) return;
-
-        String dvt = JOptionPane.showInputDialog(this, "Đơn vị tính:");
-        String slStr = JOptionPane.showInputDialog(this, "Số lượng:");
-        String giaStr = JOptionPane.showInputDialog(this, "Giá nhập:");
-
-        int soLuong;
-        float gia;
-
-        try {
-            soLuong = Integer.parseInt(slStr);
-            gia = Float.parseFloat(giaStr);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ");
-            return;
-        }
-
-        SanPham sp = new SanPham();
-        sp.setMaSP(maSP);
-        sp.setTenSP(tenSP);
-        sp.setDonViTinh(dvt);
-        sp.setSoLuong(soLuong);
-        sp.setGiaTien(gia);
-
-        String msg = spBus.addSanPham(sp);
-        JOptionPane.showMessageDialog(this, msg);
-        loadTableData();
+        clearForm();
+        showFormPanel();
     }
     private void handleEdit() {
         int row = table.getSelectedRow();
@@ -421,5 +447,48 @@ public class TrangSanPham extends JPanel {
         String msg = spBus.deleteSanPham(maSP);
         JOptionPane.showMessageDialog(this, msg);
         loadTableData();
+    }
+    private void saveSanPham() {
+
+        String ma = txtMaSP.getText().trim();
+        String ten = txtTenSP.getText().trim();
+        String dvt = txtDVT.getText().trim();
+
+        int sl;
+        float gia;
+
+        try {
+            sl = Integer.parseInt(txtSoLuong.getText().trim());
+            gia = Float.parseFloat(txtGia.getText().trim());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,"Số lượng hoặc giá không hợp lệ");
+            return;
+        }
+
+        SanPham sp = new SanPham();
+        sp.setMaSP(ma);
+        sp.setTenSP(ten);
+        sp.setDonViTinh(dvt);
+        sp.setSoLuong(sl);
+        sp.setGiaTien(gia);
+
+        String msg = spBus.addSanPham(sp);
+        JOptionPane.showMessageDialog(this,msg);
+
+        loadTableData();
+        clearForm();
+        hideFormPanel();
+    }
+
+    private void clearForm() {
+        txtMaSP.setText("");
+        txtTenSP.setText("");
+        txtDVT.setText("");
+        txtSoLuong.setText("0");
+        txtGia.setText("");
+    }
+
+    private void hideFormPanel() {
+        panelForm.setVisible(false);
     }
 }

@@ -158,19 +158,27 @@ public class SanPham_BUS {
     }
 
     public String addSanPham(SanPham sp) {
-        //Kiểm tra thêm sản phẩm có đúng đinh dạng không
+
         if(!Check.isValidSP(sp.getMaSP()))
-            return "Thêm mã sản phẩm không đúng định dạng (Phải là SPxx ví dụ SP01)";
+            return "Mã sản phẩm không đúng định dạng";
 
-        for (SanPham item : listSP)
-            if (item.getMaSP().equalsIgnoreCase(sp.getMaSP()))
-                return "Mã sản phẩm đã tồn tại!";
+        for(SanPham item : listSP)
+            if(item.getMaSP().equalsIgnoreCase(sp.getMaSP()))
+                return "Mã sản phẩm đã tồn tại";
 
-        if (spDAO.insert(sp)) {
-            listSP.add(sp);
-            return "Thêm sản phẩm thành công!";
+        // nếu chưa có kệ thì gán mặc định A1
+        if(sp.getKeKho() == null){
+            KeKho kk = new KeKho();
+            kk.setMaKe("A1");
+            sp.setKeKho(kk);
         }
-        return "Thêm thất bại!";
+
+        if(spDAO.insert(sp)){
+            listSP.add(sp);
+            return "Thêm sản phẩm thành công";
+        }
+
+        return "Thêm sản phẩm thất bại";
     }
 
 
