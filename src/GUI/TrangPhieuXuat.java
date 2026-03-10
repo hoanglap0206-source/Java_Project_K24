@@ -1,247 +1,459 @@
 package GUI;
 
+import BUS.ChiTietPX_BUS;
+import BUS.KhachHang_BUS;
+import BUS.PhieuXuat_BUS;
+import Model.ChiTiet_PhieuXuat;
+import Model.KhachHang;
+import Model.PhieuXuat;
+
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
 import java.awt.*;
-import BUS.PhieuXuat_BUS;
-import BUS.ChiTietPX_BUS;
-import Model.PhieuXuat;
-import Model.ChiTiet_PhieuXuat;
-import java.util.ArrayList;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 
 public class TrangPhieuXuat extends JPanel {
 
     private DefaultTableModel model;
     private JTable table;
 
-    private PhieuXuat_BUS pxBus = new PhieuXuat_BUS();
+    private PhieuXuat_BUS pxBus   = new PhieuXuat_BUS();
     private ChiTietPX_BUS ctpxBus = new ChiTietPX_BUS();
+    private KhachHang_BUS khBus   = new KhachHang_BUS();
+
+    private DecimalFormat df  = new DecimalFormat("#,### VNĐ");
+    private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private DateTimeFormatter dtfFull = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+    // ===== Component lọc =====
+    private JTextField   txtSearch;
+    private JTextField   tfFrom;
+    private JTextField   tfTo;
+    private JComboBox<String> cbKhachHang;
+    private JComboBox<String> cbTrangThai;
+    private Timer        searchTimer;
+
+    // Flag ngăn focusLost kích applyFilter khi đang reset
+    private boolean isResetting = false;
+
+    // Dữ liệu gốc để lọc không cần reload DB
+    private ArrayList<Object[]> allRows = new ArrayList<>();
 
     public TrangPhieuXuat() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-        setBorder(new EmptyBorder(15,20,20,20));
+        setBorder(new EmptyBorder(15, 20, 20, 20));
 
-        add(taoTieuDe(), BorderLayout.NORTH);
-        add(taoNoiDung(), BorderLayout.CENTER);
-        add(taoFooter(), BorderLayout.SOUTH);
+        add(taoTieuDe(),   BorderLayout.NORTH);
+        add(taoNoiDung(),  BorderLayout.CENTER);
+        add(taoFooter(),   BorderLayout.SOUTH);
+
+        // Timer debounce 500ms
+        searchTimer = new Timer(500, e -> applyFilter());
+        searchTimer.setRepeats(false);
+
+        // DocumentListener cho ô tìm kiếm
+        txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e)  { restartTimer(); }
+            @Override public void removeUpdate(DocumentEvent e)  { restartTimer(); }
+            @Override public void changedUpdate(DocumentEvent e) { }
+        });
     }
+
+    // ==================== TIÊU ĐỀ + THANH CÔNG CỤ ====================
 
     private JPanel taoTieuDe() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
 
-        JLabel lblTitle = new JLabel("DANH SÁCH PHIẾU NHẬP");
+        JLabel lblTitle = new JLabel("DANH SÁCH PHIẾU XUẤT");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
 
         panel.add(lblTitle, BorderLayout.WEST);
         panel.add(taoThanhCongCu(), BorderLayout.SOUTH);
-
         return panel;
     }
 
     private JPanel taoThanhCongCu() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,10,10));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         panel.setOpaque(false);
 
-        // Thanh tìm kiếm
-        JTextField txtSearch = new JTextField("Tìm kiếm");
+        // ===== Ô TÌM KIẾM =====
+        txtSearch = new JTextField("Tìm kiếm...");
         txtSearch.setColumns(15);
-        txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
+        txtSearch.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         txtSearch.setForeground(Color.GRAY);
 
-        JPanel PXlSearchInput = new JPanel(new BorderLayout());
-        PXlSearchInput.setBackground(Color.WHITE);
-        PXlSearchInput.setPreferredSize(new Dimension(260,30));
-        PXlSearchInput.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198,226,255), 2, true),
-                new EmptyBorder(0,2,0,0)
+        JPanel pnlSearchInput = new JPanel(new BorderLayout());
+        pnlSearchInput.setBackground(Color.WHITE);
+        pnlSearchInput.setPreferredSize(new Dimension(260, 35));
+        pnlSearchInput.setBorder(new CompoundBorder(
+                new LineBorder(new Color(198, 226, 255), 2, true),
+                new EmptyBorder(0, 2, 0, 0)
         ));
 
         JButton btnSearchIcon = new JButton("🔍");
-        btnSearchIcon.setBackground(new Color(214,238,253));
+        btnSearchIcon.setBackground(new Color(214, 238, 253));
         btnSearchIcon.setBorderPainted(false);
         btnSearchIcon.setFocusPainted(false);
         btnSearchIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnSearchIcon.addActionListener(e -> applyFilter());
 
-        PXlSearchInput.add(txtSearch, BorderLayout.CENTER);
-        PXlSearchInput.add(btnSearchIcon, BorderLayout.EAST);
+        pnlSearchInput.add(txtSearch, BorderLayout.CENTER);
+        pnlSearchInput.add(btnSearchIcon, BorderLayout.EAST);
 
-        txtSearch.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusGained(java.awt.event.FocusEvent e) { // Khi người dùng click vào ô
-                if (txtSearch.getText().equals("Tìm kiếm")) {
-                    txtSearch.setText("");           // Xóa chữ "Tìm kiếm"
-                    txtSearch.setForeground(Color.BLACK); // Đổi màu chữ sang đen để người dùng nhập
+        txtSearch.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) {
+                if (txtSearch.getText().equals("Tìm kiếm...")) {
+                    txtSearch.setText("");
+                    txtSearch.setForeground(Color.BLACK);
                 }
             }
-
-            @Override
-            public void focusLost(java.awt.event.FocusEvent e) { // Khi người dùng click ra chỗ khác mà không nhập gì
+            @Override public void focusLost(FocusEvent e) {
                 if (txtSearch.getText().isEmpty()) {
+                    txtSearch.setText("Tìm kiếm...");
                     txtSearch.setForeground(Color.GRAY);
-                    txtSearch.setText("Tìm kiếm");    // Hiện lại chữ gợi ý
                 }
             }
         });
 
+        // ===== NÚT LÀM MỚI =====
         JButton btnReload = new JButton("⟳ Làm mới");
-        Style.styleButton(btnReload);
-
-        JTextField txtFrom = new JTextField("Từ ngày");
-        txtFrom.setPreferredSize(new Dimension(100,30));
-
-        JTextField txtTo = new JTextField("Đến ngày");
-        txtTo.setPreferredSize(new Dimension(100,30));
-
-        JComboBox<String> cbNCC = new JComboBox<>(new String[]{
-                "Khách hàng"
+        btnReload.setBackground(new Color(214, 238, 253));
+        btnReload.setBorder(new CompoundBorder(
+                new LineBorder(new Color(198, 226, 255), 2, true),
+                new EmptyBorder(4, 10, 4, 10)
+        ));
+        btnReload.setFocusPainted(false);
+        btnReload.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnReload.addActionListener(e -> {
+            isResetting = true;
+            txtSearch.setText("Tìm kiếm...");
+            txtSearch.setForeground(Color.GRAY);
+            resetPlaceholder(tfFrom, "dd/MM/yyyy");
+            resetPlaceholder(tfTo,   "dd/MM/yyyy");
+            cbTrangThai.setSelectedIndex(0);
+            isResetting = false;
+            // Refresh từ DB
+            pxBus.refeshData();
+            ctpxBus.refeshData();
+            khBus.refeshData();
+            // Cập nhật lại danh sách KH trong combobox (phòng trường hợp có KH mới)
+            reloadComboKH();
+            loadDataToTable();
         });
-        cbNCC.setBackground(new Color(204, 227, 253));
 
-        JComboBox<String> cbTrangThai = new JComboBox<>(new String[]{
-                "Trạng thái"
+        // ===== Ô NGÀY TỪ =====
+        JLabel lblFrom = new JLabel("Từ ngày:");
+        lblFrom.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+
+        tfFrom = new JTextField();
+        tfFrom.setPreferredSize(new Dimension(110, 35));
+        tfFrom.setHorizontalAlignment(JTextField.CENTER);
+        tfFrom.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tfFrom.setBorder(new CompoundBorder(
+                new LineBorder(new Color(198, 226, 255), 2, true),
+                new EmptyBorder(0, 5, 0, 5)
+        ));
+        setPlaceholder(tfFrom, "dd/MM/yyyy");
+        tfFrom.addFocusListener(new FocusAdapter() {
+            @Override public void focusLost(FocusEvent e) {
+                if (!isResetting) applyFilter();
+            }
         });
-        cbNCC.setBackground(new Color(204, 227, 253));
 
-        cbNCC.setPreferredSize(new Dimension(130,30));
-        cbTrangThai.setPreferredSize(new Dimension(120,30));
+        // ===== Ô NGÀY ĐẾN =====
+        JLabel lblTo = new JLabel("Đến ngày:");
+        lblTo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
-        panel.add(PXlSearchInput);
+        tfTo = new JTextField();
+        tfTo.setPreferredSize(new Dimension(110, 35));
+        tfTo.setHorizontalAlignment(JTextField.CENTER);
+        tfTo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tfTo.setBorder(new CompoundBorder(
+                new LineBorder(new Color(198, 226, 255), 2, true),
+                new EmptyBorder(0, 5, 0, 5)
+        ));
+        setPlaceholder(tfTo, "dd/MM/yyyy");
+        tfTo.addFocusListener(new FocusAdapter() {
+            @Override public void focusLost(FocusEvent e) {
+                if (!isResetting) applyFilter();
+            }
+        });
+
+        // ===== COMBOBOX KHÁCH HÀNG =====
+        // Lấy danh sách mã KH từ BUS để điền vào combobox
+        ArrayList<String> dsKH = new ArrayList<>();
+        dsKH.add("Tất cả KH");
+        for (KhachHang kh : khBus.getListKH()) {
+            dsKH.add(kh.getMaKH());
+        }
+        cbKhachHang = new JComboBox<>(dsKH.toArray(new String[0]));
+        cbKhachHang.setPreferredSize(new Dimension(130, 35));
+        cbKhachHang.setBackground(new Color(214, 238, 253));
+        cbKhachHang.setBorder(new LineBorder(new Color(198, 226, 255), 2, true));
+        cbKhachHang.addActionListener(e -> {
+            if (!isResetting) applyFilter();
+        });
+
+        // ===== COMBOBOX TRẠNG THÁI =====
+        cbTrangThai = new JComboBox<>(new String[]{
+                "Tất cả", "Đã xuất kho", "Chờ xuất kho"
+        });
+        cbTrangThai.setPreferredSize(new Dimension(130, 35));
+        cbTrangThai.setBackground(new Color(214, 238, 253));
+        cbTrangThai.setBorder(new LineBorder(new Color(198, 226, 255), 2, true));
+        cbTrangThai.addActionListener(e -> {
+            if (!isResetting) applyFilter();
+        });
+
+        panel.add(pnlSearchInput);
         panel.add(btnReload);
-        panel.add(txtFrom);
-        panel.add(txtTo);
-        panel.add(cbNCC);
+        panel.add(lblFrom);
+        panel.add(tfFrom);
+        panel.add(lblTo);
+        panel.add(tfTo);
+        panel.add(cbKhachHang);
         panel.add(cbTrangThai);
 
         return panel;
     }
 
+    // ==================== NỘI DUNG BẢNG ====================
+
     private JPanel taoNoiDung() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
-        panel.setBorder(new LineBorder(new Color(200,200,200)));
+        panel.setBorder(new LineBorder(new Color(200, 200, 200)));
 
         String[] columns = {
-                "STT","Mã phiếu nhập","Ngày nhập",
-                "Khách hàng","Tổng tiền","Trạng thái","Thao tác"
+                "STT", "Mã phiếu xuất", "Ngày xuất",
+                "Khách hàng", "Tổng tiền", "Trạng thái", "Thao tác"
         };
 
-        model = new DefaultTableModel(columns,0){
+        model = new DefaultTableModel(columns, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(model);
 
         table.setRowHeight(30);
-        table.getTableHeader().setFont(new Font("Segoe UI",Font.BOLD,13));
-        table.setFont(new Font("Segoe UI",Font.PLAIN,13));
-        table.getTableHeader().setBackground(new Color(200,220,240));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.getTableHeader().setBackground(new Color(200, 220, 240));
+        table.getTableHeader().setReorderingAllowed(false);
 
         // Căn giữa toàn bộ
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
-
-        for (int i = 0; i < table.getColumnCount(); i++) {
+        for (int i = 0; i < columns.length; i++) {
             table.getColumnModel().getColumn(i).setCellRenderer(center);
         }
 
-        // ===== Render màu trạng thái =====
+        // Renderer màu trạng thái
         table.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(
-                    JTable table, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int column) {
-
+                    JTable t, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int col) {
                 JLabel lbl = (JLabel) super.getTableCellRendererComponent(
-                        table, value, isSelected, hasFocus, row, column);
-
+                        t, value, isSelected, hasFocus, row, col);
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
-
                 if (value != null) {
-                    String status = value.toString();
-
-                    if (status.equals("Đã xuất kho")) {
-                        lbl.setForeground(new Color(61, 130, 72));
-                    } else if (status.equals("Đã hủy")) {
-                        lbl.setForeground(new Color(206, 0, 3));
-                    } else if (status.equals("Chờ duyệt")) {
-                        lbl.setForeground(new Color(0, 24, 209));
+                    switch (value.toString()) {
+                        case "Đã xuất kho"  -> lbl.setForeground(new Color(61, 130, 72));
+                        case "Chờ xuất kho" -> lbl.setForeground(new Color(0, 24, 209));
+                        case "Đã hủy"       -> lbl.setForeground(new Color(206, 0, 3));
+                        default             -> lbl.setForeground(Color.BLACK);
                     }
                 }
                 return lbl;
             }
         });
 
-        // Thiết kế sự kiện click chuột cho bảng
+        // Click cột Thao tác mở dialog chi tiết
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int row = table.rowAtPoint(e.getPoint());
                 int col = table.columnAtPoint(e.getPoint());
-
-                // Kiểm tra nếu click vào hàng hợp lệ và đúng cột Xem
                 if (row >= 0 && col == 6) {
-                    String maPX = model.getValueAt(row, 1).toString();
-                    String ngay = model.getValueAt(row, 2).toString();
-                    String khach = model.getValueAt(row, 3).toString();
+                    String maPX     = model.getValueAt(row, 1).toString();
+                    String ngay     = model.getValueAt(row, 2).toString();
+                    String khach    = model.getValueAt(row, 3).toString();
                     String tongTien = model.getValueAt(row, 4).toString();
 
-                    // Mở Dialog chi tiết
                     JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuXuat.this);
-                    ChiTietPhieuXuat_GUI dialog = new ChiTietPhieuXuat_GUI(parent, maPX, ngay, khach, tongTien);
+                    ChiTietPhieuXuat_GUI dialog = new ChiTietPhieuXuat_GUI(
+                            parent, maPX, ngay, khach, tongTien);
                     dialog.setVisible(true);
                 }
             }
         });
 
-        JScrollPane scroll = new JScrollPane(table);
-        panel.add(scroll, BorderLayout.CENTER);
-
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
         loadDataToTable();
-
         return panel;
     }
 
-    public void loadDataToTable() {
-        model.setRowCount(0); // Xóa sạch bảng cũ
-        ArrayList<PhieuXuat> dsPX = pxBus.getListPX(); // Lấy danh sách từ BUS
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    // ==================== LOAD + LỌC DỮ LIỆU ====================
 
+    public void loadDataToTable() {
+        allRows.clear();
+        model.setRowCount(0);
+
+        ArrayList<PhieuXuat> dsPX = pxBus.getListPX();
         int stt = 1;
         for (PhieuXuat px : dsPX) {
-            // Tính tổng tiền cho mỗi phiếu bằng cách duyệt chi tiết
             long tongTien = 0;
-            ArrayList<ChiTiet_PhieuXuat> dsCT = ctpxBus.getListByMaPX(px.getMaPX());
-            for (ChiTiet_PhieuXuat ct : dsCT) {
+            for (ChiTiet_PhieuXuat ct : ctpxBus.getListByMaPX(px.getMaPX())) {
                 tongTien += ct.getThanhTien();
             }
 
-            model.addRow(new Object[]{
+            // Ngày chỉ lấy dd/MM/yyyy để lọc được; hiển thị đầy đủ giờ:phút
+            String ngayHienThi = px.getNgay_ct().format(dtf);
+
+            Object[] row = {
                     stt++,
                     px.getMaPX(),
-                    px.getNgay_ct().format(formatter), // Định dạng ngày giờ 2026
-                    px.getKhachHang().getMaKH(), // Mã khách hàng ngẫu nhiên KHxx
-                    String.format("%,dđ", tongTien), // Định dạng tiền tệ
-                    "Đã xuất kho",
+                    ngayHienThi,
+                    (px.getKhachHang() != null) ? px.getKhachHang().getMaKH() : "N/A",
+                    df.format(tongTien),
+                    "Đã xuất kho",   // Trạng thái mặc định — thay bằng field thật nếu model có
                     "<html><font color='blue'><u>Xem</u></font></html>"
-            });
+            };
+            allRows.add(row);
+            model.addRow(row);
         }
     }
+
+    private void applyFilter() {
+        // --- Từ khoá ---
+        String keyword = txtSearch.getText().trim();
+        if (keyword.equalsIgnoreCase("Tìm kiếm...")) keyword = "";
+
+        // --- Ngày ---
+        String fromText = tfFrom.getText().trim();
+        String toText   = tfTo.getText().trim();
+        if (fromText.equalsIgnoreCase("dd/MM/yyyy")) fromText = "";
+        if (toText.equalsIgnoreCase("dd/MM/yyyy"))   toText   = "";
+
+        LocalDate fromDate = null, toDate = null;
+        try { if (!fromText.isEmpty()) fromDate = LocalDate.parse(fromText, dtf); }
+        catch (DateTimeParseException ignored) { }
+        try { if (!toText.isEmpty())   toDate   = LocalDate.parse(toText,   dtf); }
+        catch (DateTimeParseException ignored) { }
+
+        // --- Khách hàng ---
+        String selKH = (String) cbKhachHang.getSelectedItem();
+        boolean filterKH = selKH != null && !selKH.equals("Tất cả KH");
+
+        // --- Trạng thái ---
+        String selTT = (String) cbTrangThai.getSelectedItem();
+        boolean filterTT = selTT != null && !selTT.equals("Tất cả");
+
+        model.setRowCount(0);
+        int counter = 1;
+
+        for (Object[] row : allRows) {
+            String sttStr  = row[0].toString();
+            String maPX    = row[1].toString().toLowerCase();
+            String ngayStr = row[2].toString(); // "dd/MM/yyyy HH:mm:ss"
+            String khStr   = row[3].toString();
+            String ttStr   = row[5].toString();
+
+            // Lọc từ khoá: STT, Mã phiếu xuất, Ngày xuất, Khách hàng
+            if (!keyword.isEmpty()) {
+                String kw = keyword.toLowerCase();
+                boolean match = sttStr.contains(kw)
+                        || maPX.contains(kw)
+                        || ngayStr.contains(kw)
+                        || khStr.toLowerCase().contains(kw);
+                if (!match) continue;
+            }
+
+            // Lọc khoảng ngày
+            if (fromDate != null || toDate != null) {
+                try {
+                    LocalDate ngay = LocalDate.parse(ngayStr, dtf);
+                    if (fromDate != null && ngay.isBefore(fromDate)) continue;
+                    if (toDate   != null && ngay.isAfter(toDate))    continue;
+                } catch (Exception ignored) { }
+            }
+
+            // Lọc khách hàng
+            if (filterKH && !khStr.equalsIgnoreCase(selKH)) continue;
+
+            // Lọc trạng thái
+            if (filterTT && !ttStr.equalsIgnoreCase(selTT)) continue;
+
+            Object[] displayRow = row.clone();
+            displayRow[0] = counter++;
+            model.addRow(displayRow);
+        }
+    }
+
+    // ==================== HELPER ====================
+
+    private void restartTimer() {
+        if (searchTimer.isRunning()) searchTimer.restart();
+        else searchTimer.start();
+    }
+
+    private void setPlaceholder(JTextField field, String placeholder) {
+        field.setText(placeholder);
+        field.setForeground(Color.GRAY);
+        field.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) {
+                if (field.getText().equals(placeholder)) {
+                    field.setText("");
+                    field.setForeground(Color.BLACK);
+                }
+            }
+            @Override public void focusLost(FocusEvent e) {
+                if (field.getText().isEmpty()) {
+                    field.setText(placeholder);
+                    field.setForeground(Color.GRAY);
+                }
+            }
+        });
+    }
+
+    private void resetPlaceholder(JTextField field, String placeholder) {
+        field.setText(placeholder);
+        field.setForeground(Color.GRAY);
+    }
+
+    /** Cập nhật lại danh sách KH trong combobox sau khi refresh DB */
+    private void reloadComboKH() {
+        isResetting = true;
+        cbKhachHang.removeAllItems();
+        cbKhachHang.addItem("Tất cả KH");
+        for (KhachHang kh : khBus.getListKH()) {
+            cbKhachHang.addItem(kh.getMaKH());
+        }
+        cbKhachHang.setSelectedIndex(0);
+        isResetting = false;
+    }
+
+    // ==================== FOOTER ====================
 
     private JPanel taoFooter() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panel.setBackground(Color.WHITE);
-        panel.setOpaque(true);
 
         JButton btnExcel = new JButton("Xuất excel");
-        btnExcel.setBackground(new Color(220,240,220));
-
+        btnExcel.setBackground(new Color(220, 240, 220));
         panel.add(btnExcel);
 
         return panel;

@@ -71,15 +71,23 @@ public class ChiTietPhieuNhap_GUI extends JDialog {
         add(pnlTable, BorderLayout.CENTER);
 
         // Phần Footer
-        JPanel pnlFooter = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel pnlFooter = new JPanel(new BorderLayout());
         pnlFooter.setBackground(Color.WHITE);
-        pnlFooter.setBorder(new EmptyBorder(10, 20, 20, 20));
+        pnlFooter.setBorder(new EmptyBorder(15, 30, 30, 30));
 
-        JLabel lblTongTien = new JLabel("Tổng cộng: " + tongTien);
-        lblTongTien.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTongTien.setForeground(new Color(38, 195, 106));
-        pnlFooter.add(lblTongTien);
+        JLabel lblTongCongText = new JLabel("TỔNG CỘNG: ");
+        lblTongCongText.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
+        JLabel lblValue = new JLabel(tongTien);
+        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblValue.setForeground(new Color(38, 195, 106));
+
+        JPanel pnlTotal = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pnlTotal.setOpaque(false);
+        pnlTotal.add(lblTongCongText);
+        pnlTotal.add(lblValue);
+
+        pnlFooter.add(pnlTotal, BorderLayout.EAST);
         add(pnlFooter, BorderLayout.SOUTH);
 
         // Tải dữ liệu vào bảng

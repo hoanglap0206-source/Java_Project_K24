@@ -82,7 +82,7 @@ public class ChiTietPhieuXuat_GUI extends JDialog {
         pnlTable.add(scroll, BorderLayout.CENTER);
         add(pnlTable, BorderLayout.CENTER);
 
-        // --- PANEL TỔNG TIỀN (SOUTH) ---
+        // PANEL TỔNG TIỀN (SOUTH)
         JPanel pnlFooter = new JPanel(new BorderLayout());
         pnlFooter.setBackground(Color.WHITE);
         pnlFooter.setBorder(new EmptyBorder(15, 30, 30, 30));
@@ -92,7 +92,7 @@ public class ChiTietPhieuXuat_GUI extends JDialog {
 
         JLabel lblValue = new JLabel(tongTien);
         lblValue.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblValue.setForeground(new Color(38, 195, 106)); // Màu đỏ đậm
+        lblValue.setForeground(new Color(38, 195, 106));
 
         JPanel pnlTotal = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         pnlTotal.setOpaque(false);
