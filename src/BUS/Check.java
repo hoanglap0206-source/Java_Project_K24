@@ -27,13 +27,13 @@ public class Check {
 
     public static boolean isValidPN(String pn){
         if(pn == null) return false;
-        String laPN = "^PN\\d{2}$";
+        String laPN = "^PN\\d{14}$";
         return pn.matches(laPN);
     }
 
     public static boolean isValidPX(String px){
         if(px == null) return false;
-        String laPX = "^PX\\d{2}$";
+        String laPX = "^PX\\d{14}$";
         return px.matches(laPX);
     }
 }

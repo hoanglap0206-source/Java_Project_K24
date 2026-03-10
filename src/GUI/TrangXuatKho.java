@@ -614,29 +614,44 @@ public class TrangXuatKho extends JPanel {
         UpdateSP();
     }
 
+    private void resetForm() {
+        txtKH.setText("");
+        tableModelRight.setRowCount(0);
+        txtTongTien.setText("0");
+
+    }
+
     public void TaoPX(){
-        DateTimeFormatter date_form =
-                DateTimeFormatter.ofPattern("ddMMyyyy");
-        String ngayXuat = LocalDate.now().format(date_form);
-        String maPX = "PX" + maNV + ngayXuat;
         LocalDateTime dateTime = LocalDateTime.now();
 
+        String maPX = "PX" + dateTime
+                .format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
         String MaKH = txtKH.getText().trim();
-        KhachHang kh = new KhachHang();
-        kh.setMaKH(MaKH);
         if(MaKH.isEmpty() || MaKH.equalsIgnoreCase("Mã Khách hàng")){
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn mã Khách hàng");
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn mã Khách hàng","Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
+        KhachHang kh = new KhachHang();
+        kh.setMaKH(MaKH);
         NhanVien nv = new NhanVien();
         nv.setMaNV(maNV);
         PhieuXuat px = new PhieuXuat(maPX,dateTime,kh,nv);
         if (pxBUS.taoPX(px,tableModelRight)){
-            JOptionPane.showMessageDialog(this, "Thêm phiếu thành công");
-            return;
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Thêm phiếu thành công",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            resetForm();
         }else{
-            JOptionPane.showMessageDialog(this, "Thêm phiếu thất bại");
-            return;
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Thêm phiếu thất bại",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
         }
 
     }
