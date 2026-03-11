@@ -2,7 +2,6 @@ package GUI;
 
 import BUS.SanPham_BUS;
 import Model.SanPham;
-import Model.KeKho;
 
 import javax.swing.*;
 import javax.swing.border.*;
