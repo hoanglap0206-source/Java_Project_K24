@@ -16,10 +16,12 @@ public class TrangSanPham extends JPanel {
     private JButton btnAdd;
     private JButton btnEdit;
     private JButton btnDelete;
+    private JButton btnRefresh;
 
     private JSplitPane splitPane;
     private JPanel panelForm;
     private JPanel panelTableWrapper;
+    private JLabel lblFormTitle;
 
     private JTextField txtMaSP;
     private JTextField txtTenSP;
@@ -91,12 +93,6 @@ public class TrangSanPham extends JPanel {
             }
         });
 
-
-        // Nút làm mới
-        JButton btnLamMoi = new JButton("↻ Làm mới");
-        Style.styleButton(btnLamMoi);
-
-
         // Combobox Lọc
         String[] itemLoc = {"Lọc", "1", "2", "3", "4", "5"};
         JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
@@ -136,12 +132,14 @@ public class TrangSanPham extends JPanel {
         Style.styleButton(btnDelete);
         btnAdd = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
+        btnRefresh = new JButton("↻ Làm mới");
+        Style.styleButton(btnRefresh);
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
 
         // Thêm vào panel
         panel.add(pnlSearchInput);
-        panel.add(btnLamMoi);
+        panel.add(btnRefresh);
         panel.add(comboBoxLoc);
         panel.add(btnEdit);
         panel.add(btnDelete);
@@ -190,11 +188,11 @@ public class TrangSanPham extends JPanel {
 
         pnl.setLayout(new BoxLayout(pnl, BoxLayout.Y_AXIS));
 
-        JLabel lbl = new JLabel("THÊM SẢN PHẨM");
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblFormTitle = new JLabel("THÊM SẢN PHẨM");
+        lblFormTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblFormTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        pnl.add(lbl);
+        pnl.add(lblFormTitle);
         pnl.add(Box.createVerticalStrut(20));
 
         txtMaSP = new JTextField();
@@ -371,60 +369,38 @@ public class TrangSanPham extends JPanel {
         btnAdd.addActionListener(e -> handleAdd());
         btnEdit.addActionListener(e -> handleEdit());
         btnDelete.addActionListener(e -> handleDelete());
-        btnAdd.addActionListener(e -> showFormPanel());
-        btnEdit.addActionListener(e -> showFormPanel());
+        btnRefresh.addActionListener(e -> handleRefresh());
     }
     private void handleAdd() {
         clearForm();
         showFormPanel();
     }
     private void handleEdit() {
+
         int row = table.getSelectedRow();
+
         if (row == -1) {
             JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần sửa");
             return;
         }
 
-        String maSP = model.getValueAt(row, 1).toString();
+        lblFormTitle.setText("SỬA SẢN PHẨM");
 
-        String tenMoi = JOptionPane.showInputDialog(
-                this,
-                "Tên mới:",
-                model.getValueAt(row, 2)
-        );
+        txtMaSP.setText(model.getValueAt(row,1).toString());
+        txtTenSP.setText(model.getValueAt(row,2).toString());
+        txtDVT.setText(model.getValueAt(row,3).toString());
+        txtSoLuong.setText(model.getValueAt(row,4).toString());
 
-        String slMoiStr = JOptionPane.showInputDialog(
-                this,
-                "Số lượng mới:",
-                model.getValueAt(row, 4)
-        );
+        String gia = model.getValueAt(row,5).toString()
+                .replace("đ","")
+                .replace(",","");
 
-        String giaMoiStr = JOptionPane.showInputDialog(
-                this,
-                "Giá mới:",
-                model.getValueAt(row, 5)
-        );
+        txtGia.setText(gia);
 
-        int slMoi;
-        float giaMoi;
+        txtMaSP.setEditable(false);   // không cho sửa mã
+        txtSoLuong.setEditable(false); // không cho sửa số lượng
 
-        try {
-            slMoi = Integer.parseInt(slMoiStr);
-            giaMoi = Float.parseFloat(giaMoiStr.replace("đ","").replace(",",""));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ");
-            return;
-        }
-
-        SanPham sp = new SanPham();
-        sp.setMaSP(maSP);
-        sp.setTenSP(tenMoi);
-        sp.setSoLuong(slMoi);
-        sp.setGiaTien(giaMoi);
-
-        String msg = spBus.updateSanPham(sp);
-        JOptionPane.showMessageDialog(this, msg);
-        loadTableData();
+        showFormPanel();
     }
     private void handleDelete() {
         int row = table.getSelectedRow();
@@ -447,6 +423,16 @@ public class TrangSanPham extends JPanel {
         String msg = spBus.deleteSanPham(maSP);
         JOptionPane.showMessageDialog(this, msg);
         loadTableData();
+    }
+    private void handleRefresh() {
+
+        loadTableData();   // load lại bảng
+
+        clearForm();       // reset form
+
+        hideFormPanel();   // ẩn panel thêm/sửa
+
+        table.clearSelection(); // bỏ chọn dòng
     }
     private void saveSanPham() {
 
@@ -472,7 +458,13 @@ public class TrangSanPham extends JPanel {
         sp.setSoLuong(sl);
         sp.setGiaTien(gia);
 
-        String msg = spBus.addSanPham(sp);
+        String msg;
+
+        if(lblFormTitle.getText().equals("THÊM SẢN PHẨM")){
+            msg = spBus.addSanPham(sp);
+        }else{
+            msg = spBus.updateSanPham(sp);
+        }
         JOptionPane.showMessageDialog(this,msg);
 
         loadTableData();
@@ -486,6 +478,11 @@ public class TrangSanPham extends JPanel {
         txtDVT.setText("");
         txtSoLuong.setText("0");
         txtGia.setText("");
+
+        txtMaSP.setEditable(true);
+        txtSoLuong.setEditable(false);
+
+        lblFormTitle.setText("THÊM SẢN PHẨM");
     }
 
     private void hideFormPanel() {
