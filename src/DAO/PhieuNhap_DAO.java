@@ -93,16 +93,43 @@ public class PhieuNhap_DAO {
         }
     }
     public boolean delete(String maPN){
-        String sql = "DELETE FROM PHIEU_NHAP WHERE ma_pn=?";
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setString(1, maPN);
-            return ps.executeUpdate() > 0;
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            //Xóa chi tiết phiếu nhập trước bắt buộc trước khi xóa phiếu nhập
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "DELETE FROM CHITIET_PHIEU_NHAP WHERE ma_pn=?");
+            ps1.setString(1, maPN);
+            ps1.executeUpdate();
+            ps1.close();
+
+            //Sau khi chi tiết đã xóa xong mới xóa phiếu nhập
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "DELETE FROM PHIEU_NHAP WHERE ma_pn=?");
+            ps2.setString(1, maPN);
+            int rows = ps2.executeUpdate();
+            ps2.close();
+
+            if (rows == 0) {
+                conn.rollback();
+                return false;
+            }
+            conn.commit();
+            return true;
+
         } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
             e.printStackTrace();
             return false;
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (Exception ignored) {}
         }
     }
 

@@ -259,6 +259,41 @@ public class TrangPhieuXuat extends JPanel {
             table.getColumnModel().getColumn(i).setCellRenderer(center);
         }
 
+        // Renderer 2 nút cho cột Thao tác
+        table.getColumnModel().getColumn(6).setCellRenderer(new TableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable t, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int col) {
+                JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 3));
+                pnl.setBackground(isSelected ? t.getSelectionBackground() : Color.WHITE);
+
+                JButton btnXem = new JButton("Xem");
+                btnXem.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                btnXem.setForeground(new Color(0, 100, 220));
+                btnXem.setBackground(new Color(214, 238, 253));
+                btnXem.setBorder(new CompoundBorder(
+                        new LineBorder(new Color(150, 200, 255), 1, true),
+                        new EmptyBorder(2, 8, 2, 8)));
+                btnXem.setFocusPainted(false);
+
+                JButton btnXoa = new JButton("Xóa");
+                btnXoa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                btnXoa.setForeground(Color.WHITE);
+                btnXoa.setBackground(new Color(220, 60, 60));
+                btnXoa.setBorder(new CompoundBorder(
+                        new LineBorder(new Color(190, 40, 40), 1, true),
+                        new EmptyBorder(2, 8, 2, 8)));
+                btnXoa.setFocusPainted(false);
+
+                pnl.add(btnXem);
+                pnl.add(btnXoa);
+                return pnl;
+            }
+        });
+        table.getColumnModel().getColumn(6).setPreferredWidth(150);
+
+
         // Renderer màu trạng thái
         table.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
@@ -287,16 +322,43 @@ public class TrangPhieuXuat extends JPanel {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int row = table.rowAtPoint(e.getPoint());
                 int col = table.columnAtPoint(e.getPoint());
-                if (row >= 0 && col == 6) {
-                    String maPX     = model.getValueAt(row, 1).toString();
-                    String ngay     = model.getValueAt(row, 2).toString();
-                    String khach    = model.getValueAt(row, 3).toString();
-                    String tongTien = model.getValueAt(row, 4).toString();
 
-                    JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuXuat.this);
+                java.awt.Rectangle cellRect = table.getCellRect(row, col, false);
+                int xInCell = e.getX() - cellRect.x;
+                int cellWidth = cellRect.width;
+
+                String maPX = model.getValueAt(row, 1).toString();
+                String ngay = model.getValueAt(row, 2).toString();
+                String khach = model.getValueAt(row, 3).toString();
+                String tongTien = model.getValueAt(row, 4).toString();
+
+                if (xInCell < cellWidth / 2) {
+                    // Nút XEM
+                    JFrame frameDialog = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuXuat.this);
                     ChiTietPhieuXuat_GUI dialog = new ChiTietPhieuXuat_GUI(
-                            parent, maPX, ngay, khach, tongTien);
+                            frameDialog, maPX, ngay, khach, tongTien);
                     dialog.setVisible(true);
+                } else {
+                    // Nút XÓA
+                    int confirm = JOptionPane.showConfirmDialog(
+                            TrangPhieuXuat.this,
+                            "Bạn có chắc muốn xóa phiếu xuất " + maPX + "?",
+                            "Xác nhận xóa",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE);
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        boolean ok = pxBus.deletePX(maPX);
+                        if (ok) {
+                            JOptionPane.showMessageDialog(TrangPhieuXuat.this,
+                                    "Xóa phiếu xuất thành công!",
+                                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                            loadDataToTable();
+                        } else {
+                            JOptionPane.showMessageDialog(TrangPhieuXuat.this,
+                                    "Xóa thất bại! Vui lòng thử lại.",
+                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
                 }
             }
         });
