@@ -32,7 +32,7 @@ public class TrangKeKho extends JPanel {
     private JLabel lblViTri;
     private JLabel lblSucChua;
     private JLabel lblHienTai;
-    private JLabel ltlTongSpTrongKho;
+    private JLabel ltlTongSpTrongKho,lblKhoangTrong;
     private KeKho_BUS bus = new KeKho_BUS();
     private JButton btnAdd;
     private JButton btnEdit;
@@ -346,16 +346,20 @@ public class TrangKeKho extends JPanel {
         lblViTri = new JLabel("Vị trí: ");
         lblSucChua = new JLabel("Sức chứa tối đa: ");
         lblHienTai = new JLabel("Hiện đang chứa: ");
+        lblKhoangTrong = new JLabel("Khoảng trống còn lại: ");
 
         lblViTri.setFont(new Font("Segoe UI", Font.BOLD,13));
         lblSucChua.setFont(new Font("Segoe UI", Font.BOLD,13));
         lblHienTai.setFont(new Font("Segoe UI", Font.BOLD,13));
+        lblKhoangTrong.setFont(new Font("Segoe UI", Font.BOLD,13));
 
         panel.add(lblViTri);
         panel.add(Box.createVerticalStrut(10));
         panel.add(lblSucChua);
         panel.add(Box.createVerticalStrut(10));
         panel.add(lblHienTai);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(lblKhoangTrong);
 
         return panel;
     }
@@ -407,7 +411,7 @@ public class TrangKeKho extends JPanel {
 
         try{
             int sucChua = Integer.parseInt(suc);
-            KeKho ke = new KeKho(ma.trim(), sucChua, viTri.trim(),khoangTrong);
+            KeKho ke = new KeKho(ma.trim(), sucChua, viTri.trim());
             String result = bus.addKK(ke);
             JOptionPane.showMessageDialog(null, result);
             if (result.contains("thành công"))
@@ -634,10 +638,12 @@ public class TrangKeKho extends JPanel {
 
         KeKho ke = bus.getKeTheoMa(maKe);
         int tong = bus.tinhTongSoLuongTheoKe(maKe);
+        int khoangTrong = ke.getSucChua() - tong;
         if (ke != null) {
             lblViTri.setText("Vị trí: " + ke.getViTri());
             lblSucChua.setText("Sức chứa tối đa: " + ke.getSucChua());
             lblHienTai.setText("Hiện đang chứa: " + tong);
+            lblKhoangTrong.setText("Khoảng trống còn lại: "+ khoangTrong);
         }
     }
 

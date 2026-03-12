@@ -43,6 +43,7 @@ public class TrangNhapKho extends JPanel {
     private Timer searchTimer;
     private JTextField txtNTP,txtID,txtNCC;
     private String maNV = ManHinhChinh.currentMaNV;
+    private JComboBox<String> comboBoxLoc;
     public TrangNhapKho() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -219,7 +220,7 @@ public class TrangNhapKho extends JPanel {
         for (int i = 1; i < nccBus.getListNCC().size(); i++) {
            itemLoc[i] = nccBus.getListNCC().get(i).getMaNCC();
         }
-        JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
+        comboBoxLoc = new JComboBox<>(itemLoc);
         comboBoxLoc.setBackground(new Color(214, 238, 253));
         comboBoxLoc.setFont(new Font("Segoe UI", Font.BOLD, 13));
         comboBoxLoc.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -366,6 +367,7 @@ public class TrangNhapKho extends JPanel {
                 return;
             }
             taoPN();
+            spBus.refeshdata();
         });
 
         panel.add(leftWrapper, BorderLayout.WEST);
@@ -570,7 +572,7 @@ public class TrangNhapKho extends JPanel {
         txtNCC.setText("");
         tableModelRight.setRowCount(0);
         txtTongTien.setText("0");
-
+        comboBoxLoc.setSelectedIndex(0);
     }
 
     public void taoPN(){

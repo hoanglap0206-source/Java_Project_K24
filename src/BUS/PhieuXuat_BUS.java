@@ -48,8 +48,10 @@ public class PhieuXuat_BUS {
 
     public boolean insertPX(Connection conn, PhieuXuat px, DefaultTableModel model){
         if(!pxDAO.inSert(conn,px)){
+            System.out.println("→ Thất bại khi insert PhieuXuat chính (pxDAO.inSert)");
             return false;
         }
+        System.out.println("→ Insert PhieuXuat chính thành công");
         for (int i=0;i<model.getRowCount();i++){
             PhieuXuat pX = new PhieuXuat();
             pX.setMaPX(px.getMaPX());
@@ -60,18 +62,21 @@ public class PhieuXuat_BUS {
 
             int soLuong = Integer.parseInt(model.getValueAt(i,3).toString());
 
-            double donGia = Double.parseDouble(model.getValueAt(i,5).toString());
+            double donGia = Double.parseDouble(model.getValueAt(i,4).toString());
 
-            float thueVAT = 10/100;
+            System.out.println("  Đang xử lý dòng " + (i + 1) + " | maSP: " + maSP + " | SL: " + soLuong + " | Đơn giá: " + donGia);
+            float thueVAT = 0.1f;
 
             long thanhTien =0;
-            thanhTien += soLuong*donGia + thueVAT*soLuong*donGia;
+            thanhTien += (long) (soLuong * donGia + thueVAT * soLuong * donGia);
 
             ChiTiet_PhieuXuat ctPX = new ChiTiet_PhieuXuat(pX,sp,soLuong,donGia,thanhTien,thueVAT);
             if (!ctpxBUS.addCTPX(conn,ctPX)){
+                System.out.println("  → Thất bại khi add CTPX cho maSP: " + maSP);
                 return false;
             }
-        }return true;
+        }System.out.println("insertPX hoàn tất thành công");
+        return true;
     }
 
     public boolean taoPX(PhieuXuat px, DefaultTableModel model){
@@ -81,10 +86,12 @@ public class PhieuXuat_BUS {
             conn.setAutoCommit(false);
 
             if (!insertPX(conn,px,model)) {
+                System.out.println("Lỗi insert PhieuXuat");
                 throw new SQLException("Thêm PX thất bại");
             }
 
             if (!spBUS.updateSPPX(conn,model)) {
+                System.out.println("Lỗi updateSPPX - kiểm tra số lượng tồn / khoảng trống kệ");
                 throw new SQLException("Lỗi cập nhật sản phẩm");
             }
 
@@ -92,6 +99,7 @@ public class PhieuXuat_BUS {
             return true;
 
         } catch (Exception e) {
+            e.printStackTrace();
             try {
                 if (conn != null) conn.rollback();
             } catch (Exception ignored) {}

@@ -49,6 +49,7 @@ public class TrangXuatKho extends JPanel {
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private String maNV = ManHinhChinh.currentMaNV;
 
+    private JComboBox<String> comboBoxLoc;
     public TrangXuatKho() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -191,7 +192,7 @@ public class TrangXuatKho extends JPanel {
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
-                txtSoLuongRight.requestFocus();
+                txtSoLuong.requestFocus();
             }
         });
 
@@ -241,7 +242,7 @@ public class TrangXuatKho extends JPanel {
         for (int i = 1; i < khBUS.getListKH().size(); i++) {
             itemLoc[i] = khBUS.getListKH().get(i).getMaKH();
         }
-        JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
+        comboBoxLoc = new JComboBox<>(itemLoc);
         comboBoxLoc.setBackground(new Color(214, 238, 253));
         comboBoxLoc.setFont(new Font("Segoe UI", Font.BOLD, 13));
         comboBoxLoc.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -397,6 +398,7 @@ public class TrangXuatKho extends JPanel {
                 return;
             }
             TaoPX();
+            spBus.refeshdata();
         });
         return panel;
     }
@@ -618,7 +620,7 @@ public class TrangXuatKho extends JPanel {
         txtKH.setText("");
         tableModelRight.setRowCount(0);
         txtTongTien.setText("0");
-
+        comboBoxLoc.setSelectedIndex(0);
     }
 
     public void TaoPX(){
