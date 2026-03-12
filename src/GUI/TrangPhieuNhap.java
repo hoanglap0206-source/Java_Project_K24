@@ -219,12 +219,46 @@ public class TrangPhieuNhap extends JPanel {
         table.getTableHeader().setBackground(new Color(200, 220, 240));
         table.getTableHeader().setReorderingAllowed(false);
 
-        // Căn giữa toàn bộ cột
+        // Căn giữa toàn bộ cột (trừ cột Thao tác)
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
-        for (int i = 0; i < columns.length; i++) {
+        for (int i = 0; i < columns.length - 1; i++) {
             table.getColumnModel().getColumn(i).setCellRenderer(center);
         }
+
+        // Renderer 2 nút cho cột Thao tác
+        table.getColumnModel().getColumn(6).setCellRenderer(new TableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable t, Object value, boolean isSelected,
+                    boolean hasFocus, int row, int col) {
+                JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 3));
+                pnl.setBackground(isSelected ? t.getSelectionBackground() : Color.WHITE);
+
+                JButton btnXem = new JButton("Xem");
+                btnXem.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                btnXem.setForeground(new Color(0, 100, 220));
+                btnXem.setBackground(new Color(214, 238, 253));
+                btnXem.setBorder(new CompoundBorder(
+                        new LineBorder(new Color(150, 200, 255), 1, true),
+                        new EmptyBorder(2, 8, 2, 8)));
+                btnXem.setFocusPainted(false);
+
+                JButton btnXoa = new JButton("Xóa");
+                btnXoa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                btnXoa.setForeground(Color.WHITE);
+                btnXoa.setBackground(new Color(220, 60, 60));
+                btnXoa.setBorder(new CompoundBorder(
+                        new LineBorder(new Color(190, 40, 40), 1, true),
+                        new EmptyBorder(2, 8, 2, 8)));
+                btnXoa.setFocusPainted(false);
+
+                pnl.add(btnXem);
+                pnl.add(btnXoa);
+                return pnl;
+            }
+        });
+        table.getColumnModel().getColumn(6).setPreferredWidth(150);
 
         // Renderer màu cho cột Trạng thái
         table.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
@@ -247,23 +281,51 @@ public class TrangPhieuNhap extends JPanel {
             }
         });
 
-        // Click cột "Thao tác" mở dialog chi tiết
+        // Click cột "Thao tác" — phân biệt nút Xem / Xóa
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int row = table.rowAtPoint(e.getPoint());
                 int col = table.columnAtPoint(e.getPoint());
-                if (row >= 0 && col == 6) {
-                    String maPN     = model.getValueAt(row, 1).toString();
-                    String ngayNhap = model.getValueAt(row, 2).toString();
-                    String ncc      = model.getValueAt(row, 3).toString();
-                    String tongTien = model.getValueAt(row, 4).toString();
+                if (row < 0 || col != 6) return;
 
+                java.awt.Rectangle cellRect = table.getCellRect(row, col, false);
+                int xInCell = e.getX() - cellRect.x;
+                int cellWidth = cellRect.width;
+
+                String maPN = model.getValueAt(row, 1).toString();
+                String ngayNhap = model.getValueAt(row, 2).toString();
+                String ncc = model.getValueAt(row, 3).toString();
+                String tongTien = model.getValueAt(row, 4).toString();
+
+                if (xInCell < cellWidth / 2) {
+                    // Nút XEM
                     JFrame frameDialog = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuNhap.this);
                     ChiTietPhieuNhap_GUI dialog = new ChiTietPhieuNhap_GUI(
                             frameDialog, maPN, ngayNhap, ncc, tongTien);
                     dialog.setVisible(true);
+                } else {
+                    // Nút XÓA
+                    int confirm = JOptionPane.showConfirmDialog(
+                            TrangPhieuNhap.this,
+                            "Bạn có chắc muốn xóa phiếu nhập " + maPN + "?",
+                            "Xác nhận xóa",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE);
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        boolean ok = pnBus.deletePN(maPN);
+                        if (ok) {
+                            JOptionPane.showMessageDialog(TrangPhieuNhap.this,
+                                    "Xóa phiếu nhập thành công!",
+                                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                            loadDataToTable();
+                        } else {
+                            JOptionPane.showMessageDialog(TrangPhieuNhap.this,
+                                    "Xóa thất bại! Vui lòng thử lại.",
+                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
                 }
             }
         });

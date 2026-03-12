@@ -109,15 +109,16 @@ public class PhieuNhap_BUS {
         return "Cập nhật thất bại!";
     }
 
-    public String deletePN(String maPN){
-        if(maPN==null||maPN.trim().isEmpty())
-            return "Mã phiếu nhập không hợp lệ!";
-        if(pnDAO.delete(maPN))
-        {
-            listPN.removeIf(bc->bc.getMaPN().equalsIgnoreCase(maPN));
-            return "Xoá phiếu nhập thành công!";
+    public boolean deletePN(String maPN){
+        if(maPN == null || maPN.trim().isEmpty())
+            return false;
+        if(pnDAO.delete(maPN)) {
+            listPN.removeIf(bc -> bc.getMaPN().equalsIgnoreCase(maPN));
+            // Làm mới cache chi tiết phiếu nhập
+            ctPN_Bus.refeshData();
+            return true;
         }
-        return "Xoá phiếu nhập thất bại!";
+        return false;
     }
     public void refeshData(){this.listPN=pnDAO.getAllPhieuNhap();}
 

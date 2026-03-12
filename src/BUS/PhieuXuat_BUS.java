@@ -119,12 +119,16 @@ public class PhieuXuat_BUS {
         return "Cập nhật thất bại!";
     }
 
-    public String deletePhieuXuat(String maPX) {
-        if (pxDAO.delete(maPX)) {
-            listPX.removeIf(px -> px.getMaPX().equals(maPX)); // Cập nhật RAM
-            return "Xóa phiếu xuất thành công!";
+    public boolean deletePX(String maPX) {
+        if(maPX== null || maPX.trim().isEmpty())
+            return false;
+        if(pxDAO.delete(maPX)) {
+            listPX.removeIf(bc -> bc.getMaPX().equalsIgnoreCase(maPX));
+            // Làm mới cache chi tiết phiếu nhập
+            ctpxBUS.refeshData();
+            return true;
         }
-        return "Xóa thất bại !";
+        return false;
     }
 
     public ArrayList<PhieuXuat> search(String keyword) {

@@ -2,7 +2,7 @@ package GUI;
 
 import BUS.KhachHang_BUS;
 import Model.KhachHang;
-import org.apache.poi.xwpf.usermodel.TableRowHeightRule;
+//import org.apache.poi.xwpf.usermodel.TableRowHeightRule;
 
 import javax.swing.*;
 import javax.swing.border.*;
