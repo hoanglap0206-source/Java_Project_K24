@@ -1,6 +1,7 @@
 package GUI;
 
 import BUS.NCC_BUS;
+import Model.KhachHang;
 import Model.NhaCungCap;
 
 import javax.swing.*;
@@ -14,6 +15,7 @@ public class TrangNhaCungCap extends JPanel {
     private JTable table;
     private DefaultTableModel model;
     private NCC_BUS nccBUS = new NCC_BUS();
+    private TableRowSorter<DefaultTableModel> sorter;
 
     public TrangNhaCungCap() {
         setLayout(new BorderLayout());
@@ -35,7 +37,8 @@ public class TrangNhaCungCap extends JPanel {
 
 
         // Thanh tìm kiếm
-        JTextField txtSearch = new JTextField("Tìm kiếm");
+        String place="Tìm kiếm (VD:NCC01)";
+        JTextField txtSearch = new JTextField(place);
         txtSearch.setColumns(15);
         txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
         txtSearch.setForeground(Color.GRAY);
@@ -61,7 +64,7 @@ public class TrangNhaCungCap extends JPanel {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
                 // Khi người dùng click vào ô
-                if (txtSearch.getText().equals("Tìm kiếm")) {
+                if (txtSearch.getText().equals(place)) {
                     txtSearch.setText("");           // Xóa chữ "Tìm kiếm"
                     txtSearch.setForeground(Color.BLACK); // Đổi màu chữ sang đen để người dùng nhập
                 }
@@ -72,14 +75,46 @@ public class TrangNhaCungCap extends JPanel {
                 // Khi người dùng click ra chỗ khác mà không nhập gì
                 if (txtSearch.getText().isEmpty()) {
                     txtSearch.setForeground(Color.GRAY);
-                    txtSearch.setText("Tìm kiếm");    // Hiện lại chữ gợi ý
+                    txtSearch.setText(place);    // Hiện lại chữ gợi ý
                 }
             }
+        });
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener(){
+            private void  filter(){
+                SwingUtilities.invokeLater(()->{
+                    {
+                        String text = txtSearch.getText();
+                        if (text.equals(place) || text.trim().isEmpty()) {
+                            if (sorter != null) sorter.setRowFilter(null);
+                        } else {
+                            if (sorter != null)
+                                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 1));
+                        }
+                    }
+                });
+
+
+            }
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e){filter();}
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e){filter();}
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e){filter();}
         });
 
 
         // Nút làm mới
         JButton btnLamMoi = new JButton("↻ Làm mới");
+        btnLamMoi.addActionListener(e->{
+            txtSearch.setText(place);
+            txtSearch.setForeground(Color.GRAY);
+            if(sorter!=null)  sorter.setRowFilter(null);
+
+            fillToTable();
+
+            nccBUS.refeshData();
+            this.revalidate();
+            this.repaint();
+            JOptionPane.showMessageDialog(this,"Dữ Liệu được cập thành công!");
+        });
         Style.styleButton(btnLamMoi);
 
 
@@ -134,6 +169,59 @@ public class TrangNhaCungCap extends JPanel {
         panel.add(btnAdd);
         panel.add(btnExcel);
 
+        btnAdd.addActionListener(e -> {
+            new FormNCC(this, "THEM", null).setVisible(true);
+        });
+        btnDelete.addActionListener(e->{
+            int row = table.getSelectedRow();
+            if(row==-1){
+                JOptionPane.showMessageDialog(this,"Vui lòng chọn nhà cung cấp cần xoá từ bảng!");
+                return;
+            }
+            int modelRow= table.convertRowIndexToModel(row);
+            String maNCC=table.getValueAt(modelRow,1).toString();
+            //String tenNCC=table.getValueAt(row,2).toString();
+
+            //hộp thoại để tránh bấm nhầm
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    "Bạn có chắc chắn muốn xoá nhà cung cấp"+maNCC+"?",
+                    "Xác nhận",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if(choice== JOptionPane.YES_OPTION){
+                String result = nccBUS.deleteNCC(maNCC);
+                if(result.toLowerCase().contains("thành công!")){
+                    JOptionPane.showMessageDialog(this,result);
+                    fillToTable();
+
+                }
+                else {
+                    JOptionPane.showMessageDialog(this, "Lỗi: " + result);
+            }
+            }
+
+        });
+        btnEdit.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần sửa!");
+                return;
+            }
+            // Lấy dữ liệu dòng đang chọn từ table để truyền qua form
+          int modelRow= table.convertRowIndexToModel(row);
+            String ma =table.getModel().getValueAt(modelRow,1).toString();
+            String ten=table.getModel().getValueAt(modelRow,2).toString();
+            String sdt=table.getModel().getValueAt(modelRow,3).toString();
+            String dc=table.getModel().getValueAt(modelRow,4).toString();
+
+            NhaCungCap ncc=new NhaCungCap(ma,ten,sdt,dc);
+
+            new FormNCC(this,"SUA",ncc).setVisible(true);
+        });
+
         wrapper.add(panel, BorderLayout.CENTER);
         return wrapper;
     }
@@ -147,6 +235,8 @@ public class TrangNhaCungCap extends JPanel {
         panel.add(taoTieuDe(), BorderLayout.NORTH);
         panel.add(taoBang(), BorderLayout.CENTER);
 
+        sorter=new TableRowSorter<>(model);
+        table.setRowSorter(sorter);
         return panel;
     }
 
@@ -199,6 +289,9 @@ public class TrangNhaCungCap extends JPanel {
     }
 
     public void fillToTable(){
+        if(table.isEditing()){
+            table.getCellEditor().stopCellEditing();
+        }
         model.setRowCount(0);
         ArrayList<NhaCungCap> list = nccBUS.getListNCC();
         int stt = 1;
@@ -214,7 +307,10 @@ public class TrangNhaCungCap extends JPanel {
             };
             model.addRow(row);
         }
+        model.fireTableDataChanged();
     }
 
-
+    public NCC_BUS getNccBUS() {
+        return this.nccBUS;
+    }
 }

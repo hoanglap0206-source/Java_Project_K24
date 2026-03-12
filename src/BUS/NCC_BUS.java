@@ -36,8 +36,14 @@ public class NCC_BUS {
     }
 
     public String updateNCC(NhaCungCap NCC){
-        if(nccDAO.update(NCC))
+        if(nccDAO.update(NCC)){
+            for(int i=0;i< listNCC.size();i++){
+                if(listNCC.get(i).getMaNCC().equalsIgnoreCase(NCC.getMaNCC()))
+                    listNCC.set(i,NCC);
+            }
             return "Cập nhật thành công!";
+        }
+
         return "Cập nhật thất bại!";
     }
 
@@ -45,8 +51,10 @@ public class NCC_BUS {
         if(maNCC==null||maNCC.trim().isEmpty())
             return"Mã NCC không hợp lệ!";
         if(nccDAO.delete(maNCC)){
-            listNCC.removeIf(bc->bc.getTenNCC().equalsIgnoreCase(maNCC));
+            listNCC.removeIf(bc->bc.getMaNCC().equalsIgnoreCase(maNCC));
+
             return "Xoá Nhà Cung Cấp Thành Công!";
+
         }
         return "Xoá Thất bại!";
     }

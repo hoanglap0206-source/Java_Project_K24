@@ -179,8 +179,9 @@ public class TrangKhachHang extends JPanel {
                 JOptionPane.showMessageDialog(this,"Vui lòng chọn khách hàng cần xoá từ bảng!");
                 return;
             }
-            String maKH=table.getValueAt(row,1).toString();
-            String tenKH=table.getValueAt(row,2).toString();
+            int modelRow= table.convertRowIndexToModel(row);
+            String maKH=table.getValueAt(modelRow,1).toString();
+            //String tenKH=table.getValueAt(row,2).toString();
 
             //hộp thoại để tránh bấm nhầm
             int choice = JOptionPane.showConfirmDialog(
@@ -193,10 +194,12 @@ public class TrangKhachHang extends JPanel {
 
             if(choice== JOptionPane.YES_OPTION){
                 String result = khBUS.deleteKH(maKH);
-                JOptionPane.showMessageDialog(this,result);
 
                 if(result.contains("Thành công!")){
+                    JOptionPane.showMessageDialog(this,result);
                     fillToTable();
+                }else{
+                    JOptionPane.showMessageDialog(this,"Lỗi"+result);
                 }
             }
 
@@ -295,5 +298,8 @@ public class TrangKhachHang extends JPanel {
             };
             model.addRow(row);
         }
+    }
+    public KhachHang_BUS get_khBUS(){
+        return this.khBUS;
     }
 }
