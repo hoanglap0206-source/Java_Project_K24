@@ -55,7 +55,7 @@ public class TonKho_DAO {
         boolean ketQua = false;
         // Vì dữ liệu nằm ở 2 bảng, ta cần 2 lệnh INSERT
         String sqlSP = "INSERT INTO SAN_PHAM (ma_sku, ten_sp, dvt, sl, gia, ma_ke) VALUES (?, ?, ?, ?, ?, ?)";
-        String sqlBC = "INSERT INTO bao_cao_ton_kho (ma_bc, ton, canh_bao_hh) VALUES (?, ?, ?)";
+        String sqlBC = "INSERT INTO bao_cao_ton_kho (ma_bc, ton, canh_bao_hh,ma_sku) VALUES (?, ?, ?,?)";
 
         Connection conn = null;
         try {
@@ -80,6 +80,7 @@ public class TonKho_DAO {
                 psBC.setString(1, bc.getMaTonKho());
                 psBC.setInt(2, bc.getsLTon());
                 psBC.setInt(3, bc.getCanhBaoHH());
+                psBC.setString(4, bc.getSanPham().getMaSP());
                 psBC.executeUpdate();
             }
 

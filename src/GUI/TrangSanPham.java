@@ -5,18 +5,39 @@ import Model.SanPham;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import javax.swing.table.*;
+import java.util.ArrayList;
 
 public class TrangSanPham extends JPanel {
     private JTable table;
     private DefaultTableModel model;
+
     private JButton btnAdd;
     private JButton btnEdit;
     private JButton btnDelete;
+    private JButton btnRefresh;
+
     private JSplitPane splitPane;
     private JPanel panelForm;
     private JPanel panelTableWrapper;
+    private JLabel lblFormTitle;
+
+    private JTextField txtMaSP;
+    private JTextField txtTenSP;
+    private JTextField txtDVT;
+    private JTextField txtSoLuong;
+    private JTextField txtGia;
+
+    // === SEARCH ===
+    private JTextField txtSearch;
+    private Timer searchTimer;
+    // Lưu toàn bộ dữ liệu gốc để lọc mà không cần reload DB mỗi lần
+    private ArrayList<Object[]> allRows = new ArrayList<>();
 
     private SanPham_BUS spBus = new SanPham_BUS();
 
@@ -27,6 +48,18 @@ public class TrangSanPham extends JPanel {
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
         loadTableData();
+
+        // Timer debounce 400ms — gõ xong mới lọc, không lọc từng ký tự
+        searchTimer = new Timer(400, e -> applyFilter());
+        searchTimer.setRepeats(false);
+
+        // DocumentListener: lắng nghe thay đổi trong ô tìm kiếm
+        txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { restartTimer(); }
+            @Override public void removeUpdate(DocumentEvent e) { restartTimer(); }
+            @Override public void changedUpdate(DocumentEvent e) { }
+        });
+
         addEvents();
     }
 
@@ -37,10 +70,10 @@ public class TrangSanPham extends JPanel {
 
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
         panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(4,10,4,10));
+        panel.setBorder(new EmptyBorder(4, 10, 4, 10));
 
-        // Thanh tìm kiếm
-        JTextField txtSearch = new JTextField("Tìm kiếm");
+        // ===== Ô TÌM KIẾM =====
+        txtSearch = new JTextField("Tìm kiếm...");
         txtSearch.setColumns(15);
         txtSearch.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         txtSearch.setForeground(Color.GRAY);
@@ -53,64 +86,51 @@ public class TrangSanPham extends JPanel {
                 new EmptyBorder(0, 2, 0, 0)
         ));
 
+        // Nút 🔍 — click thì tìm ngay lập tức (không chờ debounce)
         JButton btnSearchIcon = new JButton("🔍");
         btnSearchIcon.setBackground(new Color(214, 238, 253));
         btnSearchIcon.setBorderPainted(false);
         btnSearchIcon.setFocusPainted(false);
         btnSearchIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnSearchIcon.addActionListener(e -> applyFilter());
 
         pnlSearchInput.add(txtSearch, BorderLayout.CENTER);
         pnlSearchInput.add(btnSearchIcon, BorderLayout.EAST);
 
-        txtSearch.addFocusListener(new java.awt.event.FocusAdapter() {
+        // Placeholder focus
+        txtSearch.addFocusListener(new FocusAdapter() {
             @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
-                // Khi người dùng click vào ô
-                if (txtSearch.getText().equals("Tìm kiếm")) {
-                    txtSearch.setText("");           // Xóa chữ "Tìm kiếm"
-                    txtSearch.setForeground(Color.BLACK); // Đổi màu chữ sang đen để người dùng nhập
+            public void focusGained(FocusEvent e) {
+                if (txtSearch.getText().equals("Tìm kiếm...")) {
+                    txtSearch.setText("");
+                    txtSearch.setForeground(Color.BLACK);
                 }
             }
-
             @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
-                // Khi người dùng click ra chỗ khác mà không nhập gì
+            public void focusLost(FocusEvent e) {
                 if (txtSearch.getText().isEmpty()) {
+                    txtSearch.setText("Tìm kiếm...");
                     txtSearch.setForeground(Color.GRAY);
-                    txtSearch.setText("Tìm kiếm");    // Hiện lại chữ gợi ý
                 }
             }
         });
 
-
-        // Nút làm mới
-        JButton btnLamMoi = new JButton("↻ Làm mới");
-        Style.styleButton(btnLamMoi);
-
-
-        // Combobox Lọc
+        // Combobox Lọc (giữ nguyên như cũ)
         String[] itemLoc = {"Lọc", "1", "2", "3", "4", "5"};
         JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
-
-        // Style cơ bản
         comboBoxLoc.setBackground(new Color(214, 238, 253));
         comboBoxLoc.setPreferredSize(new Dimension(90, 30));
         comboBoxLoc.setFont(new Font("Segoe UI", Font.BOLD, 13));
         comboBoxLoc.setCursor(new Cursor(Cursor.HAND_CURSOR));
         comboBoxLoc.setSelectedIndex(0);
-
-        // Placeholder "Lọc"
         comboBoxLoc.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(
                     JList<?> list, Object value, int index,
                     boolean isSelected, boolean cellHasFocus) {
-
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(
                         list, value, index, isSelected, cellHasFocus);
-
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
-
                 if (index == -1 && comboBoxLoc.getSelectedIndex() == -1) {
                     lbl.setText("Lọc");
                     lbl.setForeground(Color.GRAY);
@@ -119,20 +139,20 @@ public class TrangSanPham extends JPanel {
             }
         });
 
-
-        // Các nút khác
+        // Các nút
         btnEdit = new JButton("Chỉnh sửa");
         Style.styleButton(btnEdit);
         btnDelete = new JButton("Xóa");
         Style.styleButton(btnDelete);
         btnAdd = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
+        btnRefresh = new JButton("↻ Làm mới");
+        Style.styleButton(btnRefresh);
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
 
-        // Thêm vào panel
         panel.add(pnlSearchInput);
-        panel.add(btnLamMoi);
+        panel.add(btnRefresh);
         panel.add(comboBoxLoc);
         panel.add(btnEdit);
         panel.add(btnDelete);
@@ -150,15 +170,12 @@ public class TrangSanPham extends JPanel {
 
         panel.add(taoTieuDe(), BorderLayout.NORTH);
 
-        // ===== LEFT: bảng =====
         panelTableWrapper = new JPanel(new BorderLayout());
         panelTableWrapper.add(taoBang(), BorderLayout.CENTER);
 
-        // ===== RIGHT: form (ẩn ban đầu) =====
         panelForm = taoPanelForm();
         panelForm.setVisible(false);
 
-        // ===== SPLIT =====
         splitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 panelTableWrapper,
@@ -176,25 +193,57 @@ public class TrangSanPham extends JPanel {
         JPanel pnl = new JPanel();
         pnl.setPreferredSize(new Dimension(320, 0));
         pnl.setBackground(Color.WHITE);
-        pnl.setBorder(new LineBorder(new Color(200,200,200)));
+        pnl.setBorder(new EmptyBorder(20, 20, 20, 20));
+        pnl.setLayout(new BoxLayout(pnl, BoxLayout.Y_AXIS));
 
-        pnl.setLayout(new BorderLayout());
+        lblFormTitle = new JLabel("THÊM SẢN PHẨM");
+        lblFormTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblFormTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel lbl = new JLabel("FORM SẢN PHẨM", SwingConstants.CENTER);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        pnl.add(lblFormTitle);
+        pnl.add(Box.createVerticalStrut(20));
 
-        pnl.add(lbl, BorderLayout.NORTH);
+        txtMaSP = new JTextField();
+        txtTenSP = new JTextField();
+        txtDVT = new JTextField();
+        txtSoLuong = new JTextField();
+        txtSoLuong.setText("0");
+        txtSoLuong.setEditable(false);
+        txtGia = new JTextField();
 
-        // sau này bạn nhét JTextField vào đây
+        pnl.add(new JLabel("Mã SP"));
+        pnl.add(txtMaSP);
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(new JLabel("Tên SP"));
+        pnl.add(txtTenSP);
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(new JLabel("Đơn vị tính"));
+        pnl.add(txtDVT);
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(new JLabel("Số lượng"));
+        pnl.add(txtSoLuong);
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(new JLabel("Giá nhập"));
+        pnl.add(txtGia);
+        pnl.add(Box.createVerticalStrut(20));
 
+        JButton btnSave = new JButton("Lưu");
+        JButton btnCancel = new JButton("Hủy");
+
+        btnSave.addActionListener(e -> saveSanPham());
+        btnCancel.addActionListener(e -> hideFormPanel());
+
+        JPanel pnlBtn = new JPanel();
+        pnlBtn.add(btnSave);
+        pnlBtn.add(btnCancel);
+
+        pnl.add(pnlBtn);
         return pnl;
     }
 
     private void showFormPanel() {
         panelForm.setVisible(true);
-        splitPane.setDividerLocation(
-                getWidth() - 320
-        );
+        splitPane.setDividerLocation(getWidth() - 320);
     }
 
     private JPanel taoTieuDe() {
@@ -218,7 +267,7 @@ public class TrangSanPham extends JPanel {
         model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Không cho sửa trực tiếp trên bảng
+                return false;
             }
         };
 
@@ -226,20 +275,13 @@ public class TrangSanPham extends JPanel {
         table.setRowHeight(30);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-
-        // Màu header
         table.getTableHeader().setBackground(new Color(210, 230, 255));
         table.getTableHeader().setForeground(Color.BLACK);
-
-        // Tắt reorder
         table.getTableHeader().setReorderingAllowed(false);
 
-        // Căn giữa toàn bộ nội dung
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Áp dụng cho tất cả cột
-        for (int i = 0; i < table.getColumnCount(); i++) {
+        for (int i = 0; i < columns.length; i++) {
             table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
@@ -249,12 +291,9 @@ public class TrangSanPham extends JPanel {
             public Component getTableCellRendererComponent(
                     JTable table, Object value, boolean isSelected,
                     boolean hasFocus, int row, int column) {
-
                 JLabel lbl = (JLabel) super.getTableCellRendererComponent(
                         table, value, isSelected, hasFocus, row, column);
-
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
-
                 if (value != null) {
                     if (value.toString().equals("Còn hàng")) {
                         lbl.setForeground(new Color(0, 128, 0));
@@ -262,12 +301,10 @@ public class TrangSanPham extends JPanel {
                         lbl.setForeground(Color.RED);
                     }
                 }
-
                 return lbl;
             }
         });
 
-        // Chỉnh width từng cột cho giống mockup
         table.getColumnModel().getColumn(0).setPreferredWidth(40);
         table.getColumnModel().getColumn(1).setPreferredWidth(80);
         table.getColumnModel().getColumn(2).setPreferredWidth(120);
@@ -279,79 +316,93 @@ public class TrangSanPham extends JPanel {
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(new LineBorder(new Color(180, 180, 180)));
-
         return scrollPane;
     }
 
+    // ==================== LOAD DỮ LIỆU ====================
 
     private void loadTableData() {
         if (model == null) return;
         model.setRowCount(0);
+        allRows.clear(); // Xóa cache cũ
 
         int stt = 1;
         java.text.DecimalFormat df = new java.text.DecimalFormat("#,###đ");
 
-        // Sửa lại thành getAll() theo đúng file BUS của bạn
         for (SanPham sp : spBus.getAll()) {
-
-            // Logic trạng thái
             String trangThai = (sp.getSoLuong() > 0) ? "Còn hàng" : "Hết hàng";
+            String maKe = (sp.getKeKho() != null) ? sp.getKeKho().getMaKe() : "Chưa có";
 
-            // Lấy mã kệ từ đối tượng KeKho bên trong SanPham (dùng đúng tên biến make)
-            String make = (sp.getKeKho() != null) ? sp.getKeKho().getMaKe() : "Chưa có";
-
-            model.addRow(new Object[]{
+            Object[] row = {
                     stt++,
                     sp.getMaSP(),
                     sp.getTenSP(),
                     sp.getDonViTinh(),
                     sp.getSoLuong(),
                     df.format(sp.getGiaTien()),
-                    make, // Phải trùng với tên biến khai báo ở trên
+                    maKe,
                     trangThai
-            });
+            };
+            allRows.add(row);   // Lưu vào cache để lọc
+            model.addRow(row);
         }
     }
+
+    // ==================== TÌM KIẾM / LỌC ====================
+
+    /**
+     * Lọc bảng theo từ khoá trong txtSearch.
+     * Tìm kiếm trên: STT, Mã SP, Tên SP, Đơn vị tính, Mã kệ, Trạng thái
+     * — không reload DB, dùng allRows đã cache sẵn.
+     */
+    private void applyFilter() {
+        String keyword = txtSearch.getText().trim();
+        // Bỏ qua nếu đang hiển thị placeholder
+        if (keyword.equalsIgnoreCase("Tìm kiếm...")) keyword = "";
+
+        model.setRowCount(0);
+        int counter = 1;
+
+        for (Object[] row : allRows) {
+            if (!keyword.isEmpty()) {
+                String kw = keyword.toLowerCase();
+                // So khớp với STT, Mã SP, Tên SP, DVT, Mã kệ, Trạng thái
+                boolean match = row[0].toString().contains(kw)          // STT
+                        || row[1].toString().toLowerCase().contains(kw) // Mã SP
+                        || row[2].toString().toLowerCase().contains(kw) // Tên SP
+                        || row[3].toString().toLowerCase().contains(kw) // DVT
+                        || row[6].toString().toLowerCase().contains(kw) // Mã kệ
+                        || row[7].toString().toLowerCase().contains(kw);// Trạng thái
+                if (!match) continue;
+            }
+
+            // Cập nhật lại STT theo thứ tự hiển thị (giống TrangPhieuNhap)
+            Object[] displayRow = row.clone();
+            displayRow[0] = counter++;
+            model.addRow(displayRow);
+        }
+    }
+
+    /** Khởi động lại timer debounce mỗi khi người dùng gõ */
+    private void restartTimer() {
+        if (searchTimer.isRunning()) searchTimer.restart();
+        else searchTimer.start();
+    }
+
+    // ==================== SỰ KIỆN NÚT ====================
+
     private void addEvents() {
         btnAdd.addActionListener(e -> handleAdd());
         btnEdit.addActionListener(e -> handleEdit());
         btnDelete.addActionListener(e -> handleDelete());
-        btnAdd.addActionListener(e -> showFormPanel());
-        btnEdit.addActionListener(e -> showFormPanel());
+        btnRefresh.addActionListener(e -> handleRefresh());
     }
+
     private void handleAdd() {
-        String maSP = JOptionPane.showInputDialog(this, "Nhập mã SP:");
-        if (maSP == null || maSP.trim().isEmpty()) return;
-
-        String tenSP = JOptionPane.showInputDialog(this, "Nhập tên SP:");
-        if (tenSP == null || tenSP.trim().isEmpty()) return;
-
-        String dvt = JOptionPane.showInputDialog(this, "Đơn vị tính:");
-        String slStr = JOptionPane.showInputDialog(this, "Số lượng:");
-        String giaStr = JOptionPane.showInputDialog(this, "Giá nhập:");
-
-        int soLuong;
-        float gia;
-
-        try {
-            soLuong = Integer.parseInt(slStr);
-            gia = Float.parseFloat(giaStr);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ");
-            return;
-        }
-
-        SanPham sp = new SanPham();
-        sp.setMaSP(maSP);
-        sp.setTenSP(tenSP);
-        sp.setDonViTinh(dvt);
-        sp.setSoLuong(soLuong);
-        sp.setGiaTien(gia);
-
-        String msg = spBus.addSanPham(sp);
-        JOptionPane.showMessageDialog(this, msg);
-        loadTableData();
+        clearForm();
+        showFormPanel();
     }
+
     private void handleEdit() {
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -359,47 +410,23 @@ public class TrangSanPham extends JPanel {
             return;
         }
 
-        String maSP = model.getValueAt(row, 1).toString();
+        lblFormTitle.setText("SỬA SẢN PHẨM");
+        txtMaSP.setText(model.getValueAt(row, 1).toString());
+        txtTenSP.setText(model.getValueAt(row, 2).toString());
+        txtDVT.setText(model.getValueAt(row, 3).toString());
+        txtSoLuong.setText(model.getValueAt(row, 4).toString());
 
-        String tenMoi = JOptionPane.showInputDialog(
-                this,
-                "Tên mới:",
-                model.getValueAt(row, 2)
-        );
+        String gia = model.getValueAt(row, 5).toString()
+                .replace("đ", "")
+                .replace(",", "");
+        txtGia.setText(gia);
 
-        String slMoiStr = JOptionPane.showInputDialog(
-                this,
-                "Số lượng mới:",
-                model.getValueAt(row, 4)
-        );
+        txtMaSP.setEditable(false);
+        txtSoLuong.setEditable(false);
 
-        String giaMoiStr = JOptionPane.showInputDialog(
-                this,
-                "Giá mới:",
-                model.getValueAt(row, 5)
-        );
-
-        int slMoi;
-        float giaMoi;
-
-        try {
-            slMoi = Integer.parseInt(slMoiStr);
-            giaMoi = Float.parseFloat(giaMoiStr.replace("đ","").replace(",",""));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ");
-            return;
-        }
-
-        SanPham sp = new SanPham();
-        sp.setMaSP(maSP);
-        sp.setTenSP(tenMoi);
-        sp.setSoLuong(slMoi);
-        sp.setGiaTien(giaMoi);
-
-        String msg = spBus.updateSanPham(sp);
-        JOptionPane.showMessageDialog(this, msg);
-        loadTableData();
+        showFormPanel();
     }
+
     private void handleDelete() {
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -410,16 +437,75 @@ public class TrangSanPham extends JPanel {
         String maSP = model.getValueAt(row, 1).toString();
 
         int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Bạn có chắc muốn xóa?",
-                "Xác nhận",
+                this, "Bạn có chắc muốn xóa?", "Xác nhận",
                 JOptionPane.YES_NO_OPTION
         );
-
         if (confirm != JOptionPane.YES_OPTION) return;
 
         String msg = spBus.deleteSanPham(maSP);
         JOptionPane.showMessageDialog(this, msg);
         loadTableData();
+    }
+
+    private void handleRefresh() {
+        // Reset ô tìm kiếm về placeholder
+        txtSearch.setText("Tìm kiếm...");
+        txtSearch.setForeground(Color.GRAY);
+
+        spBus.refeshdata();   // Reload từ DB
+        loadTableData();      // Reload bảng + cache allRows
+        clearForm();
+        hideFormPanel();
+        table.clearSelection();
+    }
+
+    private void saveSanPham() {
+        String ma = txtMaSP.getText().trim();
+        String ten = txtTenSP.getText().trim();
+        String dvt = txtDVT.getText().trim();
+
+        int sl;
+        float gia;
+        try {
+            sl = Integer.parseInt(txtSoLuong.getText().trim());
+            gia = Float.parseFloat(txtGia.getText().trim());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Số lượng hoặc giá không hợp lệ");
+            return;
+        }
+
+        SanPham sp = new SanPham();
+        sp.setMaSP(ma);
+        sp.setTenSP(ten);
+        sp.setDonViTinh(dvt);
+        sp.setSoLuong(sl);
+        sp.setGiaTien(gia);
+
+        String msg;
+        if (lblFormTitle.getText().equals("THÊM SẢN PHẨM")) {
+            msg = spBus.addSanPham(sp);
+        } else {
+            msg = spBus.updateSanPham(sp);
+        }
+        JOptionPane.showMessageDialog(this, msg);
+
+        loadTableData();
+        clearForm();
+        hideFormPanel();
+    }
+
+    private void clearForm() {
+        txtMaSP.setText("");
+        txtTenSP.setText("");
+        txtDVT.setText("");
+        txtSoLuong.setText("0");
+        txtGia.setText("");
+        txtMaSP.setEditable(true);
+        txtSoLuong.setEditable(false);
+        lblFormTitle.setText("THÊM SẢN PHẨM");
+    }
+
+    private void hideFormPanel() {
+        panelForm.setVisible(false);
     }
 }

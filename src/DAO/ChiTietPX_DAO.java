@@ -1,9 +1,7 @@
 package DAO;
 
 import DataBase.DBConnection;
-import Model.ChiTiet_PhieuXuat;
-import Model.PhieuXuat;
-import Model.SanPham;
+import Model.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -113,5 +111,40 @@ public class ChiTietPX_DAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public ArrayList<ChiTiet_PhieuXuat> getChiTietPXByMaPX(String maPX) {
+        ArrayList<ChiTiet_PhieuXuat> list = new ArrayList<>();
+        // JOIN với bảng SAN_PHAM để lấy tên sản phẩm
+        String sql = "SELECT ct.*, sp.ten_sp FROM CHITIET_PHIEU_XUAT ct " +
+                "JOIN SAN_PHAM sp ON ct.ma_sku = sp.ma_sku " +
+                "WHERE ct.ma_px = ?";
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, maPX);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                ChiTiet_PhieuXuat ct = new ChiTiet_PhieuXuat();
+                PhieuXuat px = new PhieuXuat();
+                px.setMaPX(rs.getString("ma_px"));
+
+                SanPham sp = new SanPham();
+                sp.setMaSP(rs.getString("ma_sku"));
+                sp.setTenSP(rs.getString("ten_sp"));
+
+                ct.setPhieuXuat(px);
+                ct.setSanPham(sp);
+                ct.setSoLuong(rs.getInt("sl"));
+                ct.setDonGia(rs.getDouble("don_gia"));
+                ct.setThanhTien(rs.getLong("thanh_tien"));
+                ct.setThueVAT(rs.getFloat("thue_vat"));
+                list.add(ct);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

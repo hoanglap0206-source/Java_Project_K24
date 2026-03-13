@@ -35,12 +35,10 @@ public class ChiTietPN_BUS {
                 return false;
             }
         }
-
         if (CTPNDAO.inSert(conn,CTPN)) {
             listPN.add(CTPN);
             return true;
         }
-
         return false;
     }
 
@@ -71,5 +69,9 @@ public class ChiTietPN_BUS {
     }
 
     public void refeshData(){this.listPN=CTPNDAO.getAllCtPN();}
+
+    public ArrayList<ChiTiet_PhieuNhap> getChiTietByMaPN_DB(String maPN){
+        return CTPNDAO.getChiTietPNByMaPN(maPN);
+    }
 
 }

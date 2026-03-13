@@ -43,6 +43,7 @@ public class TrangNhapKho extends JPanel {
     private Timer searchTimer;
     private JTextField txtNTP,txtID,txtNCC;
     private String maNV = ManHinhChinh.currentMaNV;
+    private JComboBox<String> comboBoxLoc;
     public TrangNhapKho() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -215,11 +216,11 @@ public class TrangNhapKho extends JPanel {
         JLabel lblNCC = new JLabel("Nhà Cung Cấp");
 
         String[] itemLoc = new String[nccBus.getListNCC().size()];
-        itemLoc[0] = "Nhà Cung Cấp";
+        itemLoc[0] = "Mã nhà Cung Cấp";
         for (int i = 1; i < nccBus.getListNCC().size(); i++) {
            itemLoc[i] = nccBus.getListNCC().get(i).getMaNCC();
         }
-        JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
+        comboBoxLoc = new JComboBox<>(itemLoc);
         comboBoxLoc.setBackground(new Color(214, 238, 253));
         comboBoxLoc.setFont(new Font("Segoe UI", Font.BOLD, 13));
         comboBoxLoc.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -366,6 +367,7 @@ public class TrangNhapKho extends JPanel {
                 return;
             }
             taoPN();
+            spBus.refeshdata();
         });
 
         panel.add(leftWrapper, BorderLayout.WEST);
@@ -566,32 +568,46 @@ public class TrangNhapKho extends JPanel {
         }
     }
 
-    public void taoPN(){
-        DateTimeFormatter date_form =
-                DateTimeFormatter.ofPattern("ddMMyyyy");
-        String ngayNhap = LocalDate.now().format(date_form);
-        String maPN = "PN" + maNV + ngayNhap;
+    private void resetForm() {
+        txtNCC.setText("");
+        tableModelRight.setRowCount(0);
+        txtTongTien.setText("0");
+        comboBoxLoc.setSelectedIndex(0);
+    }
 
+    public void taoPN(){
         LocalDateTime dateTime = LocalDateTime.now();
 
+        String maPN = "PN" + dateTime
+                .format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
+
         String ManCC = txtNCC.getText().trim();
-        NhaCungCap ncc = new NhaCungCap();
-        ncc.setMaNCC(ManCC);
         if(ManCC.isEmpty() || ManCC.equalsIgnoreCase("Mã nhà cung cấp")){
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập mã Nhà Cung Cấp");
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập mã Nhà Cung Cấp","Cảnh báo",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
-
+        NhaCungCap ncc = new NhaCungCap();
+        ncc.setMaNCC(ManCC);
         NhanVien nv = new NhanVien();
         nv.setMaNV(maNV);
 
         PhieuNhap pn = new PhieuNhap(maPN,dateTime,ncc,nv);
         if (pnBus.taoPhieuNhap(pn,tableModelRight)){
-            JOptionPane.showMessageDialog(this, "Thêm phiếu thành công");
-            return;
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Thêm phiếu thành công",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            resetForm();
         }else{
-            JOptionPane.showMessageDialog(this, "Thêm phiếu thất bại");
-            return;
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Thêm phiếu thất bại",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
         }
     }
 }

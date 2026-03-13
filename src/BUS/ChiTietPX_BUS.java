@@ -1,6 +1,7 @@
 package BUS;
 
 import DAO.ChiTietPX_DAO;
+import Model.ChiTiet_PhieuNhap;
 import Model.ChiTiet_PhieuXuat;
 import Model.SanPham;
 
@@ -35,7 +36,14 @@ public class ChiTietPX_BUS {
 
 
     public boolean addCTPX(Connection conn,ChiTiet_PhieuXuat ct) {
-        if (ct.getSoLuong() <= 0) return false;
+        System.out.println("Bắt đầu addCTPX - maPX: " + ct.getPhieuXuat().getMaPX() +
+                " | maSP: " + ct.getSanPham().getMaSP() +
+                " | SL: " + ct.getSoLuong() +
+                " | Đơn giá: " + ct.getDonGia());
+        if (ct.getSoLuong() <= 0) {
+            System.out.println("→ SL <= 0 → từ chối");
+            return false;
+        }
         int tonkho = spBUS.getSoLuongTon(ct.getSanPham().getMaSP());
         if(ct.getSoLuong() > tonkho)
             return false;
@@ -43,6 +51,7 @@ public class ChiTietPX_BUS {
         for (ChiTiet_PhieuXuat item : listCTPX) {
             if (item.getPhieuXuat().getMaPX().equals(ct.getPhieuXuat().getMaPX())
                     && item.getSanPham().getMaSP().equals(ct.getSanPham().getMaSP())) {
+                System.out.println("→ Trùng sản phẩm trong cùng phiếu → từ chối");
                 return false;
             }
         }
@@ -51,9 +60,11 @@ public class ChiTietPX_BUS {
         // Lưu ý: Tùy vào cách tính VAT (số tiền hay %) mà điều chỉnh công thức này
 
         if (ctDAO.inSert(conn,ct)) {
+            System.out.println("→ Insert CHITIET_PHIEU_XUAT thành công");
             listCTPX.add(ct);
             return true;
         }
+        System.out.println("→ Insert CHITIET_PHIEU_XUAT thất bại (ctDAO.inSert trả về false)");
         return false;
     }
 
@@ -85,4 +96,9 @@ public class ChiTietPX_BUS {
 
 
     public void refeshData(){listCTPX=ctDAO.getAllCtPX();}
+
+    public ArrayList<ChiTiet_PhieuXuat> getChiTietByMaPx_DB(String maPx){
+        return this.ctDAO.getChiTietPXByMaPX(maPx);
+    }
+
 }

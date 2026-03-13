@@ -1,6 +1,7 @@
 package DAO;
 
 import DataBase.DBConnection;
+import Model.ChiTiet_PhieuXuat;
 import Model.KhachHang;
 import Model.NhanVien;
 import Model.PhieuXuat;
@@ -95,18 +96,44 @@ public class PhieuXuat_DAO {
         }
     }
     public boolean delete(String maPX){
-        String sql=
-                "DELETE FROM PHIEU_XUAT WHERE ma_px=?";
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setString(1,maPX);
-            int rows = ps.executeUpdate();
-            return rows > 0;
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            //Xóa chi tiết phiếu xuất trước bắt buộc trước khi xóa phiếu xuất
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "DELETE FROM CHITIET_PHIEU_XUAT WHERE ma_px=?");
+            ps1.setString(1, maPX);
+            ps1.executeUpdate();
+            ps1.close();
+
+            //Sau khi chi tiết đã xóa xong mới xóa phiếu xuất
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "DELETE FROM PHIEU_XUAT WHERE ma_px=?");
+            ps2.setString(1, maPX);
+            int rows = ps2.executeUpdate();
+            ps2.close();
+
+            if (rows == 0) {
+                conn.rollback();
+                return false;
+            }
+            conn.commit();
+            return true;
+
         } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
             e.printStackTrace();
             return false;
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (Exception ignored) {}
         }
     }
+
 }

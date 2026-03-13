@@ -104,13 +104,13 @@ public class KeKho_BUS {
         return false;
     }
 
-    public boolean updateKKtheoKT(Connection conn, String maKe, int khoangTrong){
-        if(kkDAO.updateKhoangTrong(conn, maKe, khoangTrong)) {
-            refreshData();
-            return true;
-        }
-        return false;
-    }
+//    public boolean updateKKtheoKT(Connection conn, String maKe, int khoangTrong){
+//        if(kkDAO.updateKhoangTrong(conn, maKe, khoangTrong)) {
+//            refreshData();
+//            return true;
+//        }
+//        return false;
+//    }
 
     public String deleteKK(String maKe){
         if(spDAO.countByMaKe(maKe) > 0){

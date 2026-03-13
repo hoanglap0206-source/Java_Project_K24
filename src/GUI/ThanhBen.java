@@ -40,6 +40,7 @@ public class ThanhBen extends JPanel {
         addMenu("Tổng quan");
 //        addMenu("Phân quyền"); // Bị double phân quyền
 
+
         // Gọi logic phân quyền từ DataBase
         if (maNV != null && !maNV.isEmpty()) {
             PhanQuyen_BUS PQbus = new PhanQuyen_BUS();

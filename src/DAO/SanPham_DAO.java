@@ -134,7 +134,7 @@ public class SanPham_DAO {
 
     public int SumSLbyMaKe(Connection conn,String maKe){
         int tong = 0;
-        String sql = "SELECT SUM(sl) FROM SanPham WHERE ma_ke = ?";
+        String sql = "SELECT SUM(sl) FROM San_Pham WHERE ma_ke = ?";
         try (
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {

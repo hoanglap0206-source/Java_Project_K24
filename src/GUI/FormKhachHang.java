@@ -8,7 +8,7 @@ import java.awt.*;
 public class FormKhachHang extends JDialog {
     private JTextField txtMa, txtTen, txtSdt, txtDiaChi;
     private JButton btnLuu;
-    private KhachHang_BUS khBUS = new KhachHang_BUS();
+    private KhachHang_BUS khBUS ;
     private TrangKhachHang parent;
     private String mode; // "THEM" hoặc "SUA"
     private KhachHang khSelected; // Lưu dữ liệu cũ nếu là chế độ Sửa
@@ -19,6 +19,7 @@ public class FormKhachHang extends JDialog {
         this.mode = mode;
 
         this.khSelected = kh;
+        this.khBUS=parent.get_khBUS();
         initUI();
 
         // Nếu là chế độ SỬA, đổ dữ liệu vào các ô

@@ -107,4 +107,39 @@ public class ChiTietPN_DAO {
             return false;
         }
     }
+
+    public ArrayList<ChiTiet_PhieuNhap> getChiTietPNByMaPN(String maPN){
+        ArrayList<ChiTiet_PhieuNhap> list = new ArrayList<>();
+        String sql = "SELECT ct.*, sp.ten_sp FROM CHITIET_PHIEU_NHAP ct " +
+                     "JOIN SAN_PHAM sp ON ct.ma_sku = sp.ma_sku " +
+                     "WHERE ct.ma_pn = ?";
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)){
+
+            ps.setString(1, maPN);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()){
+                ChiTiet_PhieuNhap ct = new ChiTiet_PhieuNhap();
+
+                PhieuNhap pn = new PhieuNhap();
+                pn.setMaPN(rs.getString("ma_pn"));
+
+                SanPham sp = new SanPham();
+                sp.setMaSP(rs.getString("ma_sku"));
+                sp.setTenSP(rs.getString("ten_sp"));
+
+                ct.setPhieuNhap(pn);
+                ct.setSanPham(sp);
+                ct.setSoLuong(rs.getInt("sl"));
+                ct.setDonGia(rs.getDouble("don_gia"));
+                ct.setThanhTien(rs.getLong("thanh_tien"));
+
+                list.add(ct);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

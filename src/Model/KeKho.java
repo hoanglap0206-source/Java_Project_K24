@@ -4,24 +4,15 @@ public class KeKho {
     private String maKe;
     private int sucChua;
     private String viTri;
-    private int khoangTrong;
+
 
     public KeKho() {
     }
 
-    public KeKho(String maKe, int sucChua, String viTri,int khoangTrong) {
+    public KeKho(String maKe, int sucChua, String viTri) {
         this.maKe = maKe;
         this.sucChua = sucChua;
         this.viTri = viTri;
-        this.khoangTrong = khoangTrong;
-    }
-
-    public int getKhoangTrong() {
-        return khoangTrong;
-    }
-
-    public void setKhoangTrong(int khoangTrong) {
-        this.khoangTrong = khoangTrong;
     }
 
     public String getMaKe() {

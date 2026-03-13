@@ -1,6 +1,6 @@
 package BUS;
 
-import DAO.TonKho_DAO; // Sửa thành TonKho_DAO cho khớp với file vừa tạo
+import DAO.TonKho_DAO;
 import Model.BaoCaoTonKho;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,20 +9,20 @@ import java.util.stream.Collectors;
 public class BaoCaoTonKho_BUS {
 
     private ArrayList<BaoCaoTonKho> listBaoCao;
-    private TonKho_DAO tonKhoDAO; // Sửa tên biến DAO
+    private TonKho_DAO tonKhoDAO;
 
     public BaoCaoTonKho_BUS() {
         tonKhoDAO = new TonKho_DAO();
-        // Sửa thành getDanhSachTonKho() để gọi đúng hàm trong DAO
+
         this.listBaoCao = tonKhoDAO.getDanhSachTonKho();
     }
 
-    // Lấy toàn bộ danh sách hiện có trong RAM
+
     public ArrayList<BaoCaoTonKho> getAll() {
         return listBaoCao;
     }
 
-    // --- CÁC HÀM BÁO CÁO NHANH (Xử lý trực tiếp trên RAM) ---
+
 
     public List<BaoCaoTonKho> findBySku(String maSKU) {
         return listBaoCao.stream()
@@ -40,15 +40,11 @@ public class BaoCaoTonKho_BUS {
         return listBaoCao.stream().mapToInt(BaoCaoTonKho::getsLTon).sum();
     }
 
-    // --- CÁC HÀM CẬP NHẬT ---
 
-    // Lưu ý: Các hàm insert, update, delete dưới đây yêu cầu trong file TonKho_DAO
-    // của bạn phải viết thêm các hàm tương ứng (insert, update, delete).
-    // Tạm thời mình sửa lại getMaTonKho() thành getMaBC() để không bị báo lỗi đỏ.
 
-    // Tạm ẩn nếu DAO chưa có hàm insert
+
     public String addBaoCao(BaoCaoTonKho bc) {
-        if (bc.getMaTonKho().isEmpty()) return "Mã báo cáo không được để trống!"; // Sửa thành getMaBC()
+        if (bc.getMaTonKho().isEmpty()) return "Mã báo cáo không được để trống!";
 
         if (tonKhoDAO.insert(bc)) {
             listBaoCao.add(bc);
@@ -58,11 +54,11 @@ public class BaoCaoTonKho_BUS {
     }
 
 
-    // Tạm ẩn nếu DAO chưa có hàm update
+
     public String updateBaoCao(BaoCaoTonKho bc) {
         if (tonKhoDAO.update(bc)) {
             for (int i = 0; i < listBaoCao.size(); i++) {
-                if (listBaoCao.get(i).getMaTonKho().equals(bc.getMaTonKho())) { // Sửa thành getMaBC()
+                if (listBaoCao.get(i).getMaTonKho().equals(bc.getMaTonKho())) {
                     listBaoCao.set(i, bc);
                     break;
                 }
@@ -76,7 +72,7 @@ public class BaoCaoTonKho_BUS {
     // Tạm ẩn nếu DAO chưa có hàm delete
     public String deleteBaoCao(String maBC) {
         if (tonKhoDAO.delete(maBC)) {
-            listBaoCao.removeIf(bc -> bc.getMaTonKho().equals(maBC)); // Sửa thành getMaBC()
+            listBaoCao.removeIf(bc -> bc.getMaTonKho().equals(maBC));
             return "Xóa thành công!";
         }
         return "Xóa thất bại!";
