@@ -551,7 +551,6 @@ public class TrangKeKho extends JPanel {
     private void loadSoDo() {
         bus.refreshData();
         ArrayList<KeKho> listKe = bus.getListKK();
-        System.out.println("So ke: " + listKe.size());  // kiểm tra
         veSoDoTheoDanhSach(listKe);
         selectedCard = null; // đảm bảo không còn tham chiếu đến card cũ
         capNhatTongSanPham();

@@ -409,7 +409,7 @@ public class TrangKeKho2 extends JPanel {
 
         try{
             int sucChua = Integer.parseInt(suc);
-            KeKho ke = new KeKho(ma.trim(), sucChua, viTri.trim(),khoangTrong);
+            KeKho ke = new KeKho(ma.trim(), sucChua, viTri.trim());
             String result = bus.addKK(ke);
             JOptionPane.showMessageDialog(null, result);
             if (result.contains("thành công"))
