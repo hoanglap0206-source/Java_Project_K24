@@ -38,7 +38,7 @@ public class ThanhBen extends JPanel {
 
         // Luôn có menu Hồ sơ cá nhân cho mọi user
         addMenu("Tổng quan");
-        addMenu("Phân quyền");
+//        addMenu("Phân quyền"); // Bị double phân quyền
 
         // Gọi logic phân quyền từ DataBase
         if (maNV != null && !maNV.isEmpty()) {

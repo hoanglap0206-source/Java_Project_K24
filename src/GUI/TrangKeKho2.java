@@ -24,7 +24,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.FileOutputStream;
 import java.io.File;
 
-public class TrangKeKho extends JPanel {
+public class TrangKeKho2 extends JPanel {
     private JTextField txtSearch;
     private JPanel soDoKe;
     private JLabel lblTenKe;
@@ -46,7 +46,7 @@ public class TrangKeKho extends JPanel {
     private JButton btnSearchIcon;
     private JPanel selectedCard = null;
 
-    public TrangKeKho() {
+    public TrangKeKho2() {
         setLayout(new BorderLayout());
         setBackground(new Color(255,255,255));
 
