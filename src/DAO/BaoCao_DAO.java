@@ -101,8 +101,10 @@ public class BaoCao_DAO {
             conn=DBConnection.getConnection();
             if(loaiBaoCao.equalsIgnoreCase("Nhập hàng")){
 
-                String sql = "SELECT pn.ma_pn, pn.ngay_ct, pn.ma_ncc, pn.ma_nhan_vien, ct.sl, ct.don_gia, ct.thanh_tien " +
-                        "FROM phieu_nhap pn JOIN chitiet_phieu_nhap ct ON pn.ma_pn = ct.ma_pn " +
+                String sql = "SELECT pn.ma_pn, pn.ngay_ct, pn.ma_ncc, pn.ma_nhan_vien, ct.sl, sp.gia " +
+                        "FROM phieu_nhap pn "+
+                        "JOIN chitiet_phieu_nhap ct ON pn.ma_pn = ct.ma_pn " +
+                        "JOIN san_pham sp ON ct.ma_sku =sp.ma_sku "+
                         "WHERE ct.ma_sku = ? ORDER BY pn.ngay_ct DESC";
 
                 ps = conn.prepareStatement(sql);
@@ -110,17 +112,22 @@ public class BaoCao_DAO {
                 rs=ps.executeQuery();
 
                 while (rs.next()){
+                    int sl=rs.getInt("sl");
+                    float donGiaChuan=rs.getFloat("gia");
+                    float thanhtien=sl*donGiaChuan;
                     list.add(new Object[]{
                             rs.getString("ma_pn"), rs.getTimestamp("ngay_ct"),
                             rs.getString("ma_ncc"), rs.getString("ma_nhan_vien"),
-                            rs.getInt("sl"), rs.getFloat("don_gia"), rs.getFloat("thanh_tien")
+                            sl,donGiaChuan,thanhtien
                     });
                 }
             }
             else {
 
-                String sql = "SELECT px.ma_px, px.ngay_ct, px.ma_kh, px.ma_nhan_vien, ctx.sl, ctx.don_gia, ctx.thanh_tien "+
-                        "FROM phieu_xuat px JOIN chitiet_phieu_xuat ctx ON px.ma_px = ctx.ma_px " +
+                String sql = "SELECT px.ma_px, px.ngay_ct, px.ma_kh, px.ma_nhan_vien, ctx.sl, sp.gia "+
+                        "FROM phieu_xuat px "+
+                        "JOIN chitiet_phieu_xuat ctx ON px.ma_px = ctx.ma_px " +
+                        "JOIN san_pham sp ON ctx.ma_sku=sp.ma_sku "+
                         "WHERE ctx.ma_sku=? ORDER BY px.ngay_ct DESC";
 
                 ps= conn.prepareStatement(sql);
@@ -128,10 +135,13 @@ public class BaoCao_DAO {
                 rs=ps.executeQuery();
 
                 while (rs.next()){
+                    int sl=rs.getInt("sl");
+                    float dongia=rs.getFloat("gia");
+                    float thanhtien=sl*dongia;
                     list.add(new Object[]{
                             rs.getString("ma_px"), rs.getTimestamp("ngay_ct"),
                             rs.getString("ma_kh"), rs.getString("ma_nhan_vien"),
-                            rs.getInt("sl"), rs.getFloat("don_gia"), rs.getFloat("thanh_tien")
+                            sl,dongia,thanhtien
                     });
                 }
             }

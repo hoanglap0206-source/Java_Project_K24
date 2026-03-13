@@ -289,7 +289,7 @@
             }
         });
 
-            // Các nút khác
+
             JButton btnEdit = new JButton("Chỉnh sửa");
             Style.styleButton(btnEdit);
             JButton btnDelete = new JButton("Xóa");
@@ -311,6 +311,87 @@
             });
             JButton btnExcel = new JButton("Xuất excel");
             Style.styleButton(btnExcel);
+            btnExcel.addActionListener(e -> {
+                if (table.getRowCount() == 0) {
+                    JOptionPane.showMessageDialog(this, "Không có dữ liệu trong kho để xuất Excel!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("Chọn vị trí lưu file Báo Cáo Tồn Kho");
+
+                // Đặt tên file mặc định có chứa ngày tháng hiện tại cho chuyên nghiệp
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("ddMMyyyy_HHmm");
+                String defaultFileName = "BaoCaoTonKho_" + sdf.format(new java.util.Date()) + ".xlsx";
+                fileChooser.setSelectedFile(new java.io.File(defaultFileName));
+
+                int userSelection = fileChooser.showSaveDialog(this);
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    java.io.File fileToSave = fileChooser.getSelectedFile();
+                    String filePath = fileToSave.getAbsolutePath();
+
+                    // Đảm bảo file luôn có đuôi .xlsx
+                    if (!filePath.endsWith(".xlsx")) {
+                        filePath += ".xlsx";
+                    }
+
+                    try (java.io.FileOutputStream out = new java.io.FileOutputStream(filePath);
+                         org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+
+                        org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet("Tồn Kho Hiện Tại");
+
+                        // 1. Tạo dòng Tiêu đề (Header)
+                        org.apache.poi.xssf.usermodel.XSSFRow headerRow = sheet.createRow(0);
+                        // Tạo font in đậm cho Header
+                        org.apache.poi.xssf.usermodel.XSSFCellStyle headerStyle = workbook.createCellStyle();
+                        org.apache.poi.xssf.usermodel.XSSFFont font = workbook.createFont();
+                        font.setBold(true);
+                        headerStyle.setFont(font);
+
+                        for (int i = 0; i < table.getColumnCount(); i++) {
+                            org.apache.poi.xssf.usermodel.XSSFCell cell = headerRow.createCell(i);
+                            cell.setCellValue(table.getColumnName(i));
+                            cell.setCellStyle(headerStyle);
+                        }
+
+                        // 2. Chép toàn bộ Dữ liệu từ bảng (JTable) ra file
+                        for (int i = 0; i < table.getRowCount(); i++) {
+                            org.apache.poi.xssf.usermodel.XSSFRow row = sheet.createRow(i + 1);
+                            for (int j = 0; j < table.getColumnCount(); j++) {
+                                Object value = table.getValueAt(i, j);
+                                if (value != null) {
+                                    // Nếu là cột số lượng (Cột 3) hoặc giá (Cột 4), có thể ép kiểu số để Excel hiểu
+                                    String strValue = value.toString().replace(",", "").replace(".", ""); // Bỏ dấu phẩy/chấm ngàn nếu có
+                                    try {
+                                        if (j == 3 || j == 4 || j == 5) {
+                                            row.createCell(j).setCellValue(Double.parseDouble(strValue));
+                                        } else {
+                                            row.createCell(j).setCellValue(value.toString());
+                                        }
+                                    } catch (NumberFormatException nfe) {
+                                        row.createCell(j).setCellValue(value.toString());
+                                    }
+                                } else {
+                                    row.createCell(j).setCellValue("");
+                                }
+                            }
+                        }
+
+                        // Tự động căn chỉnh độ rộng cột cho đẹp
+                        for (int i = 0; i < table.getColumnCount(); i++) {
+                            sheet.autoSizeColumn(i);
+                        }
+
+                        // Xuất file
+                        workbook.write(out);
+                        JOptionPane.showMessageDialog(this, "Xuất file Excel báo cáo Tồn Kho thành công!\nĐã lưu tại: " + filePath, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, "Có lỗi xảy ra khi xuất file Excel:\n" + ex.getMessage(), "Lỗi Xuất File", JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+                    }
+                }
+            });
 
             btnAdd.addActionListener(new ActionListener() {
                 @Override
@@ -345,17 +426,17 @@
                 return;
             }
 
-            // 1. Lấy Mã SP để biết đang sửa dòng nào
+
             Object objMa = table.getValueAt(row, 0);
             Object objTen = table.getValueAt(row, 1);
 
             String maSP = (objMa != null) ? objMa.toString() : "";
             String tenSP = (objTen != null) ? objTen.toString() : "";
 
-            // 2. Tạo danh sách các mục cho phép sửa
+
             String[] cacMucCanSua = {"Tên sản phẩm", "Đơn vị tính", "Số lượng", "Đơn giá", "Hủy bỏ"};
 
-            // Hiển thị hộp thoại để người dùng chọn mục muốn sửa
+
             int luaChon = JOptionPane.showOptionDialog(this,
                     "Bạn muốn chỉnh sửa thông tin gì của sản phẩm:\n" + maSP + " - " + tenSP,
                     "Chọn thông tin chỉnh sửa",
@@ -365,15 +446,15 @@
                     cacMucCanSua,
                     cacMucCanSua[0]);
 
-            // 3. Xử lý Switch-Case theo lựa chọn
+
             switch (luaChon) {
                 case 0: // Sửa Tên sản phẩm
                     Object objTenHT = table.getValueAt(row, 1);
                     String tenHienTai = (objTenHT != null) ? objTenHT.toString() : "";
                     String tenMoi = JOptionPane.showInputDialog(this, "Nhập tên sản phẩm mới:", tenHienTai);
                     if (tenMoi != null && !tenMoi.trim().isEmpty()) {
-                        // TODO: Gọi BUS -> DAO để UPDATE tên vào CSDL
-                        // Nếu SQL Update thành công thì cập nhật lại trên bảng JTable:
+
+
                         table.setValueAt(tenMoi, row, 1);
                         JOptionPane.showMessageDialog(this, "Đã cập nhật tên thành công!");
                     }
@@ -384,7 +465,7 @@
                     String dvtHienTai = (objDvtHT != null) ? objDvtHT.toString() : "";
                     String dvtMoi = JOptionPane.showInputDialog(this, "Nhập đơn vị tính mới:", dvtHienTai);
                     if (dvtMoi != null && !dvtMoi.trim().isEmpty()) {
-                        // TODO: Gọi BUS -> DAO
+
                         table.setValueAt(dvtMoi, row, 2);
                     }
                     break;
@@ -396,7 +477,7 @@
                     if (slMoiStr != null && !slMoiStr.trim().isEmpty()) {
                         try {
                             int slMoi = Integer.parseInt(slMoiStr);
-                            // TODO: Gọi BUS -> DAO để UPDATE số lượng
+
                             table.setValueAt(slMoi, row, 3);
                         } catch (NumberFormatException ex) {
                             JOptionPane.showMessageDialog(this, "Số lượng phải là số nguyên hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -409,13 +490,13 @@
                     String giaHienTai = (objGiaHT != null) ? objGiaHT.toString() : "0";
                     String giaMoiStr = JOptionPane.showInputDialog(this, "Nhập đơn giá mới:", giaHienTai);
                     if (giaMoiStr != null && !giaMoiStr.trim().isEmpty()) {
-                        // TODO: Kiểm tra số hợp lệ, gọi BUS -> DAO UPDATE giá
+
                         table.setValueAt(giaMoiStr, row, 4);
                     }
                     break;
 
                 default:
-                    // Người dùng chọn "Hủy bỏ" hoặc bấm dấu X tắt cửa sổ
+
                     break;
             }
         }

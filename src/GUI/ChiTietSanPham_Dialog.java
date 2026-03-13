@@ -118,7 +118,6 @@ public class ChiTietSanPham_Dialog extends JDialog {
                     ngayGio,
                     row[2],
                     row[3],
-                    row[4],
                     String.format("%,d", (Integer) row[4]),
                     String.format("%,.0f", (Float) row[5]),
                     String.format("%,.0f", (Float) row[6])

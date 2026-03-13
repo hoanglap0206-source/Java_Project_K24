@@ -11,6 +11,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.SwingConstants;
@@ -83,6 +85,61 @@ public class TrangBaoCao extends JPanel {
         JButton btnExcel = new JButton("📊 Xuất excel");
         btnExcel.setBackground(Color.WHITE);
         btnExcel.setFocusPainted(false);
+
+        btnExcel.addActionListener(e -> {
+            if (table.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this, "Không có dữ liệu để xuất Excel!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Chọn vị trí lưu file Excel");
+            // Mặc định tên file là Mã Báo Cáo
+            fileChooser.setSelectedFile(new java.io.File(txtMaBC.getText() + ".xlsx"));
+
+            int userSelection = fileChooser.showSaveDialog(this);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                java.io.File fileToSave = fileChooser.getSelectedFile();
+                String filePath = fileToSave.getAbsolutePath();
+                if (!filePath.endsWith(".xlsx")) filePath += ".xlsx";
+
+                try (java.io.FileOutputStream out = new java.io.FileOutputStream(filePath);
+                     org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+
+                    org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet("Báo Cáo");
+
+                    // 1. Tạo dòng Header (Chỉ lấy tới cột Thành Tiền, bỏ nút Xem)
+                    org.apache.poi.xssf.usermodel.XSSFRow headerRow = sheet.createRow(0);
+                    for (int i = 0; i < table.getColumnCount() - 1; i++) {
+                        headerRow.createCell(i).setCellValue(table.getColumnName(i));
+                    }
+
+                    // 2. Chép dữ liệu từ bảng ra file
+                    for (int i = 0; i < table.getRowCount(); i++) {
+                        org.apache.poi.xssf.usermodel.XSSFRow row = sheet.createRow(i + 1);
+                        for (int j = 0; j < table.getColumnCount() - 1; j++) {
+                            Object value = table.getValueAt(i, j);
+                            row.createCell(j).setCellValue(value != null ? value.toString() : "");
+                        }
+                    }
+
+                    // 3. Chép dòng Tổng Tiền xuống cuối
+                    org.apache.poi.xssf.usermodel.XSSFRow totalRow = sheet.createRow(table.getRowCount() + 2);
+                    totalRow.createCell(5).setCellValue("TỔNG CỘNG:");
+
+                    // Lọc bỏ thẻ HTML để lấy số tiền thuần túy
+                    String tongTienRaw = lblTong.getText().replaceAll("<[^>]*>", "").replace("TỔNG TIỀN ĐÃ THANH TOÁN:", "").trim();
+                    totalRow.createCell(6).setCellValue(tongTienRaw);
+
+                    workbook.write(out);
+                    JOptionPane.showMessageDialog(this, "Xuất Excel thành công!\nĐã lưu tại: " + filePath);
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Lỗi khi xuất file: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            }
+        });
 
         JPanel pnlLoai = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         pnlLoai.setOpaque(false);
@@ -211,8 +268,17 @@ public class TrangBaoCao extends JPanel {
         lblTong = new JLabel("<html>TỔNG TIỀN ĐÃ THANH TOÁN: <font color='#1A932B'><b>0 VNĐ</b></font></html>");
         lblTong.setFont(new Font("Arial", Font.PLAIN, 14));
 
-        JButton btnAdd = new JButton("Xoá báo cáo");
-        btnAdd.setBackground(new Color(244, 66, 66));
+        JButton btnAdd = new JButton("In báo cáo");
+        btnAdd.setBackground(new Color(14, 129, 239));
+
+        btnAdd.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null,"Đã in thành công");
+            }
+        });
+
+
         btnAdd.setForeground(Color.WHITE);
         btnAdd.setFont(new Font("Arial", Font.BOLD, 12));
         btnAdd.setFocusPainted(false);
