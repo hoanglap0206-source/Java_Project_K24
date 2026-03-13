@@ -16,4 +16,4 @@
     git pull --rebase origin main
         {Đề phòng khi đang code có người push lên code mới,pull về để git tự merge code mới lẫn code của bản thân}
 7. Push lên git
-    g
+    git push origin main
