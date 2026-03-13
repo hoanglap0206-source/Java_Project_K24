@@ -7,6 +7,7 @@ import Model.SanPham;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class BaoCao_DAO {
@@ -86,6 +87,57 @@ public class BaoCao_DAO {
             }
         } catch (Exception e) {
             System.err.println("Lỗi lấy báo cáo xuất: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
+    public ArrayList<Object[]> getLichSuGiaoDidh(String maSP,String loaiBaoCao){
+        ArrayList<Object[]> list = new ArrayList<>();
+        Connection conn=null;
+        PreparedStatement ps=null;
+        ResultSet rs=null;
+
+        try{
+            conn=DBConnection.getConnection();
+            if(loaiBaoCao.equalsIgnoreCase("Nhập hàng")){
+
+                String sql = "SELECT pn.ma_pn, pn.ngay_ct, pn.ma_ncc, pn.ma_nhan_vien, ct.sl, ct.don_gia, ct.thanh_tien " +
+                        "FROM phieu_nhap pn JOIN chitiet_phieu_nhap ct ON pn.ma_pn = ct.ma_pn " +
+                        "WHERE ct.ma_sku = ? ORDER BY pn.ngay_ct DESC";
+
+                ps = conn.prepareStatement(sql);
+                ps.setString(1,maSP);
+                rs=ps.executeQuery();
+
+                while (rs.next()){
+                    list.add(new Object[]{
+                            rs.getString("ma_pn"), rs.getTimestamp("ngay_ct"),
+                            rs.getString("ma_ncc"), rs.getString("ma_nhan_vien"),
+                            rs.getInt("sl"), rs.getFloat("don_gia"), rs.getFloat("thanh_tien")
+                    });
+                }
+            }
+            else {
+
+                String sql = "SELECT px.ma_px, px.ngay_ct, px.ma_kh, px.ma_nhan_vien, ctx.sl, ctx.don_gia, ctx.thanh_tien "+
+                        "FROM phieu_xuat px JOIN chitiet_phieu_xuat ctx ON px.ma_px = ctx.ma_px " +
+                        "WHERE ctx.ma_sku=? ORDER BY px.ngay_ct DESC";
+
+                ps= conn.prepareStatement(sql);
+                ps.setString(1,maSP);
+                rs=ps.executeQuery();
+
+                while (rs.next()){
+                    list.add(new Object[]{
+                            rs.getString("ma_px"), rs.getTimestamp("ngay_ct"),
+                            rs.getString("ma_kh"), rs.getString("ma_nhan_vien"),
+                            rs.getInt("sl"), rs.getFloat("don_gia"), rs.getFloat("thanh_tien")
+                    });
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("Lỗi lấy lịch sử: " + e.getMessage());
             e.printStackTrace();
         }
         return list;

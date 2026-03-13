@@ -1,10 +1,15 @@
 package GUI;
 
+import BUS.BaoCao_BUS;
+import Model.BaoCao;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 public class ChiTietSanPham_Dialog extends JDialog {
     private JTable tableHistory;
@@ -94,18 +99,30 @@ public class ChiTietSanPham_Dialog extends JDialog {
         pnlSouth.add(btnClose);
         add(pnlSouth, BorderLayout.SOUTH);
 
-        // Tạm gọi dữ liệu giả để test vẽ UI
-        loadDummyData();
+
+        loadDummyData(maSP);
     }
 
-    // TODO: Sau này bạn thay hàm này bằng việc gọi DAO lấy dữ liệu thật từ SQL
-    private void loadDummyData() {
-        if (loaiBaoCao.equalsIgnoreCase("Nhập hàng")) {
-            modelHistory.addRow(new Object[]{"PN01", "2026-03-01 16:20", "NCC05", "NV02", "10", "150,000", "1,500,000"});
-            modelHistory.addRow(new Object[]{"PN05", "2026-03-15 09:10", "NCC01", "NV01", "10", "150,000", "1,500,000"});
-        } else {
-            modelHistory.addRow(new Object[]{"PX02", "2026-01-02 10:00", "KH10", "NV01", "5", "180,000", "900,000"});
-            modelHistory.addRow(new Object[]{"PX07", "2026-02-07 14:30", "KH07", "NV02", "7", "180,000", "1,260,000"});
+
+    private void loadDummyData(String maSP) {
+        BaoCao_BUS bus=new BaoCao_BUS();
+        ArrayList<Object[]> danhsach=bus.getLichSuGiaoDidh(maSP,this.loaiBaoCao);
+        SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        for (Object[] row:danhsach){
+            String ngayGio="";
+            if(row[1]!=null){
+                ngayGio=sdf.format((java.util.Date)row[1]);
+            }
+            modelHistory.addRow(new Object[]{
+                    row[0],
+                    ngayGio,
+                    row[2],
+                    row[3],
+                    row[4],
+                    String.format("%,d", (Integer) row[4]),
+                    String.format("%,.0f", (Float) row[5]),
+                    String.format("%,.0f", (Float) row[6])
+            });
         }
     }
 }

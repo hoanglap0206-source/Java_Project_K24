@@ -49,4 +49,7 @@ public class BaoCao_BUS {
 
         return bc;
     }
+    public ArrayList<Object[]> getLichSuGiaoDidh(String maSP, String loaiBaoCao) {
+        return baoCaoDAO.getLichSuGiaoDidh(maSP, loaiBaoCao);
+    }
 }
