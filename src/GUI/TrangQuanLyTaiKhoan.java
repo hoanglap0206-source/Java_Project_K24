@@ -41,7 +41,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         setBackground(Color.WHITE);
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoNoiDung(), BorderLayout.CENTER);
-        loadTableData();
+        loadDataFromBUS();
 
         searchTimer = new Timer(400, e -> applyFilter());
         searchTimer.setRepeats(false);
@@ -131,7 +131,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
     // ==================== BẢNG ====================
 
     private JScrollPane taoBang() {
-        String[] cols = {"STT", "Họ tên", "Số điện thoại", "Username", "Vai trò", "Trạng thái", "Mật khẩu", ""};
+        String[] cols = {"STT", "Họ tên", "Số điện thoại", "Username", "Vai trò", "Trạng thái", "Mật khẩu", "Hiện mật khẩu"};
         model = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int row, int col) { return col == 7; }
         };
@@ -171,9 +171,9 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         // Nút Xem/Ẩn mật khẩu (cột 7)
         table.getColumnModel().getColumn(7).setCellRenderer(new TogglePwRenderer());
         table.getColumnModel().getColumn(7).setCellEditor(new TogglePwEditor());
-        table.getColumnModel().getColumn(7).setPreferredWidth(80);
-        table.getColumnModel().getColumn(7).setMinWidth(80);
-        table.getColumnModel().getColumn(7).setMaxWidth(80);
+        table.getColumnModel().getColumn(7).setPreferredWidth(110);
+        table.getColumnModel().getColumn(7).setMinWidth(110);
+        table.getColumnModel().getColumn(7).setMaxWidth(110);
 
         table.getColumnModel().getColumn(0).setPreferredWidth(40);
         table.getColumnModel().getColumn(1).setPreferredWidth(150);
@@ -243,7 +243,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         txtHoTen   = new JTextField();
         txtSDT     = new JTextField();
         txtMatKhau = new JPasswordField();
-        cboChucVu    = new JComboBox<>(new String[]{"Admin", "NhanVien"});
+        cboChucVu    = new JComboBox<>(new String[]{"Admin", "QuanLy", "ThuKho", "BanHang"});
         cboTrangThai = new JComboBox<>(new String[]{"HoatDong", "BiKhoa"});
 
         pnl.add(nhomField("Mã nhân viên", txtMaNV));    pnl.add(Box.createVerticalStrut(10));
@@ -274,7 +274,10 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         pnlBtn.add(btnSave); pnlBtn.add(btnCancel);
         pnl.add(pnlBtn);
 
-        outer.add(pnl, BorderLayout.CENTER);
+        JScrollPane formScroll = new JScrollPane(pnl);
+        formScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        formScroll.setBorder(null);
+        outer.add(formScroll, BorderLayout.CENTER);
         return outer;
     }
 
@@ -333,7 +336,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
 
     // ==================== LOAD / TÌM KIẾM ====================
 
-    private void loadTableData() {
+    private void loadDataFromBUS() {
         model.setRowCount(0); allRows.clear(); visiblePasswordRows.clear();
         int stt = 1;
         for (NhanVien nv : nvBUS.getAll()) {
@@ -394,12 +397,12 @@ public class TrangQuanLyTaiKhoan extends JPanel {
                 "Xác nhận xóa", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (confirm != JOptionPane.YES_OPTION) return;
         JOptionPane.showMessageDialog(this, nvBUS.deleteNV(maNV));
-        nvBUS.refesh(); loadTableData();
+        nvBUS.refesh(); loadDataFromBUS();
     }
 
     private void handleRefresh() {
         txtSearch.setText("Tìm kiếm..."); txtSearch.setForeground(Color.GRAY);
-        nvBUS.refesh(); loadTableData(); clearForm(); hideFormPanel(); table.clearSelection();
+        nvBUS.refesh(); loadDataFromBUS(); clearForm(); hideFormPanel(); table.clearSelection();
     }
 
     private void saveNhanVien() {
@@ -413,7 +416,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         nv.setChucVu(cboChucVu.getSelectedItem().toString()); nv.setTrangThai(cboTrangThai.getSelectedItem().toString());
         String msg = lblFormTitle.getText().equals("THÊM TÀI KHOẢN") ? nvBUS.addNV(nv) : nvBUS.updateNV(nv);
         JOptionPane.showMessageDialog(this, msg);
-        nvBUS.refesh(); loadTableData(); clearForm(); hideFormPanel();
+        nvBUS.refesh(); loadDataFromBUS(); clearForm(); hideFormPanel();
     }
 
     private void clearForm() {
