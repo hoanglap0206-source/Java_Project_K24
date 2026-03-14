@@ -16,6 +16,7 @@ public class ThanhBen extends JPanel {
     private final Color HOVER_COLOR = new Color(86, 166, 255);
 
     private JLabel selectedLabel = null;
+    private JLabel firstLabel   = null;   // xác định cho menu đầu tiên
     private ManHinhChinh manHinhChinh;
     private JPanel menuContainer;
 
@@ -28,18 +29,15 @@ public class ThanhBen extends JPanel {
 
         setBorder(BorderFactory.createMatteBorder(
                 0, 0, 0, 1,
-                new Color(210, 220, 230)  // xám rất nhạt
+                new Color(210, 220, 230)
         ));
 
-        // Container dùng BoxLayout để các menu động gom gọn lên phía trên (NORTH)
+        // Container dùng BoxLayout để các menu động gom gọn lên phía trên
         menuContainer = new JPanel();
         menuContainer.setLayout(new BoxLayout(menuContainer, BoxLayout.Y_AXIS));
         menuContainer.setBackground(SIDEBAR_COLOR);
 
-        // Luôn có menu Hồ sơ cá nhân cho mọi user
         addMenu("Tổng quan");
-//        addMenu("Phân quyền"); // Bị double phân quyền
-
 
         // Gọi logic phân quyền từ DataBase
         if (maNV != null && !maNV.isEmpty()) {
@@ -54,13 +52,25 @@ public class ThanhBen extends JPanel {
                 }
             }
         }
-
-        // Đưa container vào vùng NORTH để các Item nằm sát phía trên
         add(menuContainer, BorderLayout.NORTH);
     }
 
     private void addMenu(String text) {
-        menuContainer.add(createMenuLabel(text));
+        JLabel lbl = createMenuLabel(text);
+        menuContainer.add(lbl);
+        // Lưu lại nhãn đầu tiên để dùng khi Thoát
+        if (firstLabel == null) firstLabel = lbl;
+    }
+
+    // Kích hoạt menu đầu tiên (dùng cho nút Thoát trong TrangHoSo)
+    public void clickFirstMenu() {
+        if (firstLabel != null) {
+            firstLabel.dispatchEvent(new java.awt.event.MouseEvent(
+                    firstLabel,
+                    java.awt.event.MouseEvent.MOUSE_CLICKED,
+                    System.currentTimeMillis(), 0, 0, 0, 1, false
+            ));
+        }
     }
 
     private JLabel createMenuLabel(String text) {
@@ -89,10 +99,10 @@ public class ThanhBen extends JPanel {
                 label.setForeground(Color.WHITE);
                 selectedLabel = label;
 
-                // 1. Chuyển trang nội dung
+                // Chuyển trang nội dung
                 manHinhChinh.hienThiTrang(text);
 
-                // 2. Cập nhật tên chức năng lên ThanhTieuDe
+                // Cập nhật tên chức năng lên ThanhTieuDe
                 manHinhChinh.getThanhTieuDe().setTitleCN(text);
             }
 

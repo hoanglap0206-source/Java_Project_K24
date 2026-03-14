@@ -10,26 +10,24 @@ public class ManHinhChinh extends JFrame {
     private JPanel contentPanel;
     public static String currentMaNV;
     private ThanhTieuDe thanhTieuDe;
+    private ThanhBen thanhBen;
 
     public ManHinhChinh(String maNV) {
-        // 1. Cấu hình Frame TRƯỚC khi add linh kiện
         setUndecorated(true);
         setSize(1200, 720);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        // Thiết lập Layout ngay từ đầu
         setLayout(new BorderLayout(0, 0));
 
         ManHinhChinh.currentMaNV = maNV;
         NV_BUS nv = new NV_BUS();
         String nameUser = nv.getTenNV_BUS(maNV);
 
-        // 2. Khởi tạo và add ThanhTieuDe
+        // Tạo và add ThanhTieuDe
         thanhTieuDe = new ThanhTieuDe(this, nameUser);
         add(thanhTieuDe, BorderLayout.NORTH);
 
-        // 3. Khởi tạo Content Panel với CardLayout
+        // Tạo Content Panel với CardLayout
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
 
@@ -52,8 +50,8 @@ public class ManHinhChinh extends JFrame {
 
         add(contentPanel, BorderLayout.CENTER);
 
-        // 4. Thanh bên (Menu) - Đã tích hợp phân quyền SQL
-        add(new ThanhBen(this, maNV), BorderLayout.WEST);
+        thanhBen = new ThanhBen(this, maNV);
+        add(thanhBen, BorderLayout.WEST);
 
         // Icon ứng dụng
         try {
@@ -71,6 +69,10 @@ public class ManHinhChinh extends JFrame {
 
     public ThanhTieuDe getThanhTieuDe() {
         return thanhTieuDe;
+    }
+
+    public ThanhBen getThanhBen() {
+        return thanhBen;
     }
 
     public void hienThiTrang(String tenTrang) {
