@@ -8,13 +8,18 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
-public class TrangKhachHang extends JPanel {
+public class TrangKhachHang extends JPanel implements QuyenTrang {
     private JTable table;
     private DefaultTableModel model;
     private KhachHang_BUS khBUS = new KhachHang_BUS();
-    private TableRowSorter<DefaultTableModel> sorter; // Thêm dòng này ở đầu class
+    private DecimalFormat dfVND = new DecimalFormat("#,### VNĐ");
+    private TableRowSorter<DefaultTableModel> sorter;
+    private JButton btnAdd;
+    private JButton btnEdit;
+    private JButton btnDelete;
 
     public TrangKhachHang() {
         setLayout(new BorderLayout());
@@ -150,11 +155,11 @@ public class TrangKhachHang extends JPanel {
 
 
         // Các nút khác
-        JButton btnEdit = new JButton("Chỉnh sửa");
+        btnEdit   = new JButton("Chỉnh sửa");
         Style.styleButton(btnEdit);
-        JButton btnDelete = new JButton("Xóa");
+        btnDelete = new JButton("Xóa");
         Style.styleButton(btnDelete);
-        JButton btnAdd = new JButton("+ Thêm");
+        btnAdd    = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
@@ -288,18 +293,26 @@ public class TrangKhachHang extends JPanel {
         int stt = 1;
 
         for(KhachHang kh : list){
+            long tongCT = khBUS.getTongChiTieu(kh.getMaKH());
             Object[] row = {
                     stt++,
                     kh.getMaKH(),
                     kh.getHoTenKH(),
                     kh.getSdt(),
                     kh.getDiaChi(),
-                    kh.getCT()
+                    dfVND.format(tongCT)
             };
             model.addRow(row);
         }
     }
     public KhachHang_BUS get_khBUS(){
         return this.khBUS;
+    }
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
+                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        btnAdd.setVisible(coQuyen_Them);
+        btnEdit.setVisible(coQuyen_Sua);
+        btnDelete.setVisible(coQuyen_Xoa);
     }
 }

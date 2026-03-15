@@ -103,10 +103,10 @@ public class PhanQuyen_DAO{
 
         //Lệnh này sẽ kết bảng PHAN_QUYEN và bảng DM_CHUC_NANG lại và add vào danh sach PhanQuyen
         String sql = "SELECT pq.ma_nhan_vien, pq.ma_chuc_nang, cn.ten_chuc_nang, pq.duoc_xem, pq.duoc_xoa, pq.duoc_sua, pq.duoc_them " +
-                     "FROM PHAN_QUYEN pq " +
-                     "JOIN DM_CHUC_NANG cn ON pq.ma_chuc_nang = cn.ma_chuc_nang " +
-                     "WHERE pq.ma_nhan_vien = ? "+
-                     "ORDER BY pq.ma_chuc_nang ASC";
+                "FROM PHAN_QUYEN pq " +
+                "JOIN DM_CHUC_NANG cn ON pq.ma_chuc_nang = cn.ma_chuc_nang " +
+                "WHERE pq.ma_nhan_vien = ? "+
+                "ORDER BY pq.ma_chuc_nang ASC";
         try(Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)){
 
@@ -140,7 +140,7 @@ public class PhanQuyen_DAO{
 
     // Ktra xem các button có trong sql hay chưa
     public boolean checkExists (String maNv, String maCN){
-        String sql = "SELECT 1 FROM phan_quyen WHERE ma_nhan_vien = ?, AND ma_chuc_nang = ?";
+        String sql = "SELECT 1 FROM phan_quyen WHERE ma_nhan_vien = ? AND ma_chuc_nang = ?";
         try(Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)){
 

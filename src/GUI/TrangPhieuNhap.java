@@ -1,8 +1,10 @@
 package GUI;
 
 import BUS.ChiTietPN_BUS;
+import BUS.NCC_BUS;
 import BUS.PhieuNhap_BUS;
 import Model.ChiTiet_PhieuNhap;
+import Model.NhaCungCap;
 import Model.PhieuNhap;
 
 import javax.swing.*;
@@ -19,13 +21,14 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
-public class TrangPhieuNhap extends JPanel {
+public class TrangPhieuNhap extends JPanel implements QuyenTrang {
 
     private DefaultTableModel model;
     private JTable table;
 
     private PhieuNhap_BUS pnBus = new PhieuNhap_BUS();
     private ChiTietPN_BUS ctBus = new ChiTietPN_BUS();
+    private NCC_BUS nccBus      = new NCC_BUS();
     private DecimalFormat df = new DecimalFormat("#,### VNĐ");
     private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -34,9 +37,12 @@ public class TrangPhieuNhap extends JPanel {
     private JTextField tfFrom;
     private JTextField tfTo;
     private Timer searchTimer;
+    private JComboBox<String> cbNhaCungCap;
 
     // FIX: Flag ngăn focusLost kích applyFilter trong khi đang reset
     private boolean isResetting = false;
+    private boolean coQuyen_Xem = true;
+    private boolean coQuyen_Xoa = true;
 
     // Dữ liệu gốc để lọc không cần reload DB mỗi lần
     private ArrayList<Object[]> allRows = new ArrayList<>();
@@ -138,10 +144,12 @@ public class TrangPhieuNhap extends JPanel {
             txtSearch.setForeground(Color.GRAY);
             resetPlaceholder(tfFrom, "dd/MM/yyyy");
             resetPlaceholder(tfTo, "dd/MM/yyyy");
+            cbNhaCungCap.setSelectedIndex(0);
             isResetting = false;
             // Refresh dữ liệu từ DB
             pnBus.refeshData();
             ctBus.refeshData();
+            reloadComboNCC();
             loadDataToTable();
         });
 
@@ -158,6 +166,7 @@ public class TrangPhieuNhap extends JPanel {
                 new EmptyBorder(0, 5, 0, 5)
         ));
         setPlaceholder(tfFrom, "dd/MM/yyyy");
+        setupDateAutoFormat(tfFrom);
         // FIX: Kiểm tra isResetting trước khi lọc
         tfFrom.addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
@@ -178,6 +187,7 @@ public class TrangPhieuNhap extends JPanel {
                 new EmptyBorder(0, 5, 0, 5)
         ));
         setPlaceholder(tfTo, "dd/MM/yyyy");
+        setupDateAutoFormat(tfTo);
         // FIX: Kiểm tra isResetting trước khi lọc
         tfTo.addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
@@ -191,6 +201,21 @@ public class TrangPhieuNhap extends JPanel {
         panel.add(tfFrom);
         panel.add(lblTo);
         panel.add(tfTo);
+
+        // ===== COMBOBOX NHÀ CUNG CẤP =====
+        ArrayList<String> dsNCC = new ArrayList<>();
+        dsNCC.add("Tất cả NCC");
+        for (NhaCungCap ncc : nccBus.getListNCC()) {
+            dsNCC.add(ncc.getMaNCC());
+        }
+        cbNhaCungCap = new JComboBox<>(dsNCC.toArray(new String[0]));
+        cbNhaCungCap.setPreferredSize(new Dimension(130, 35));
+        cbNhaCungCap.setBackground(new Color(214, 238, 253));
+        cbNhaCungCap.setBorder(new LineBorder(new Color(198, 226, 255), 2, true));
+        cbNhaCungCap.addActionListener(e -> {
+            if (!isResetting) applyFilter();
+        });
+        panel.add(cbNhaCungCap);
 
         return panel;
     }
@@ -243,6 +268,7 @@ public class TrangPhieuNhap extends JPanel {
                         new LineBorder(new Color(150, 200, 255), 1, true),
                         new EmptyBorder(2, 8, 2, 8)));
                 btnXem.setFocusPainted(false);
+                btnXem.setVisible(coQuyen_Xem);
 
                 JButton btnXoa = new JButton("Xóa");
                 btnXoa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -252,6 +278,7 @@ public class TrangPhieuNhap extends JPanel {
                         new LineBorder(new Color(190, 40, 40), 1, true),
                         new EmptyBorder(2, 8, 2, 8)));
                 btnXoa.setFocusPainted(false);
+                btnXoa.setVisible(coQuyen_Xoa);
 
                 pnl.add(btnXem);
                 pnl.add(btnXoa);
@@ -301,12 +328,14 @@ public class TrangPhieuNhap extends JPanel {
 
                 if (xInCell < cellWidth / 2) {
                     // Nút XEM
+                    if(!coQuyen_Xem) return;
                     JFrame frameDialog = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuNhap.this);
                     ChiTietPhieuNhap_GUI dialog = new ChiTietPhieuNhap_GUI(
                             frameDialog, maPN, ngayNhap, ncc, tongTien);
                     dialog.setVisible(true);
                 } else {
                     // Nút XÓA
+                    if(!coQuyen_Xoa) return;
                     int confirm = JOptionPane.showConfirmDialog(
                             TrangPhieuNhap.this,
                             "Bạn có chắc muốn xóa phiếu nhập " + maPN + "?",
@@ -409,6 +438,12 @@ public class TrangPhieuNhap extends JPanel {
                 } catch (DateTimeParseException ignored) { }
             }
 
+            // Lọc nhà cung cấp
+            String selNCC = (String) cbNhaCungCap.getSelectedItem();
+            if (selNCC != null && !selNCC.equals("Tất cả NCC")) {
+                if (!ncc.equalsIgnoreCase(selNCC)) continue;
+            }
+
             Object[] displayRow = row.clone();
             displayRow[0] = counter++; // Cập nhật lại STT theo thứ tự hiển thị
             model.addRow(displayRow);
@@ -418,6 +453,64 @@ public class TrangPhieuNhap extends JPanel {
     private void restartTimer() {
         if (searchTimer.isRunning()) searchTimer.restart();
         else searchTimer.start();
+    }
+
+    /**
+     * Tự động chèn dấu / khi gõ số liên tục: "01022026" → "01/02/2026"
+     * Nhấn Enter khi đủ 10 ký tự sẽ lọc ngay lập tức.
+     */
+    private void setupDateAutoFormat(JTextField field) {
+        field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private boolean isFormatting = false;
+
+            private void format() {
+                if (isFormatting) return;
+                String raw = field.getText();
+                String digits = raw.replaceAll("[^0-9]", "");
+                if (digits.length() > 8) digits = digits.substring(0, 8);
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < digits.length(); i++) {
+                    sb.append(digits.charAt(i));
+                    if (i == 1 || i == 3) sb.append('/');
+                }
+                String formatted = sb.toString();
+
+                if (!formatted.equals(raw)) {
+                    isFormatting = true;
+                    SwingUtilities.invokeLater(() -> {
+                        field.setText(formatted);
+                        field.setCaretPosition(formatted.length());
+                        isFormatting = false;
+                    });
+                }
+            }
+
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { format(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { }
+        });
+
+        field.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER
+                        && field.getText().length() == 10) {
+                    applyFilter();
+                }
+            }
+        });
+    }
+
+    /** Cập nhật lại danh sách NCC trong combobox sau khi refresh DB */
+    private void reloadComboNCC() {
+        nccBus.refeshData();
+        cbNhaCungCap.removeAllItems();
+        cbNhaCungCap.addItem("Tất cả NCC");
+        for (NhaCungCap ncc : nccBus.getListNCC()) {
+            cbNhaCungCap.addItem(ncc.getMaNCC());
+        }
+        cbNhaCungCap.setSelectedIndex(0);
     }
 
     // Gắn placeholder mờ cho JTextField
@@ -448,7 +541,7 @@ public class TrangPhieuNhap extends JPanel {
         field.setForeground(Color.GRAY);
     }
 
-    // ==================== FOOTER ====================
+    //FOOTER
 
     private JPanel taoFooter() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -549,5 +642,13 @@ public class TrangPhieuNhap extends JPanel {
                     "Xuất Excel thất bại: " + ex.getMessage(),
                     "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
+                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        this.coQuyen_Xem = coQuyen_Xem;
+        this.coQuyen_Xoa = coQuyen_Xoa;
+        if (model != null) model.fireTableDataChanged();
     }
 }

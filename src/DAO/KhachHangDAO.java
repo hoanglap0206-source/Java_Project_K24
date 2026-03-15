@@ -81,4 +81,22 @@ public class KhachHangDAO {
             return false;
         }
     }
+
+    public long getTongChiTieuByMaKH(String maKH) {
+        String sql = "SELECT COALESCE(SUM(ct.thanh_tien), 0) AS tong " +
+                "FROM PHIEU_XUAT px " +
+                "JOIN CHITIET_PHIEU_XUAT ct ON px.ma_px = ct.ma_px " +
+                "WHERE px.ma_kh = ?";
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, maKH);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getLong("tong");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

@@ -19,9 +19,12 @@ public class ThanhBen extends JPanel {
     private JLabel firstLabel   = null;   // xác định cho menu đầu tiên
     private ManHinhChinh manHinhChinh;
     private JPanel menuContainer;
+    private ArrayList<PhanQuyen> dsQuyenCaNhan = new ArrayList<>();
+    private String maNV;
 
     public ThanhBen(ManHinhChinh manHinhChinh, String maNV) {
         this.manHinhChinh = manHinhChinh;
+        this.maNV = maNV;
 
         setBackground(SIDEBAR_COLOR);
         setLayout(new BorderLayout());
@@ -37,32 +40,30 @@ public class ThanhBen extends JPanel {
         menuContainer.setLayout(new BoxLayout(menuContainer, BoxLayout.Y_AXIS));
         menuContainer.setBackground(SIDEBAR_COLOR);
 
-        addMenu("Tổng quan");
+        addMenu("Tổng quan", null);
 
         // Gọi logic phân quyền từ DataBase
         if (maNV != null && !maNV.isEmpty()) {
             PhanQuyen_BUS PQbus = new PhanQuyen_BUS();
-            ArrayList<PhanQuyen> dsQuyenCaNhan = PQbus.getDSQuyenCaNhan(maNV);
+            dsQuyenCaNhan = PQbus.getDSQuyenCaNhan(maNV);
 
             if (dsQuyenCaNhan != null) {
                 for (PhanQuyen pq : dsQuyenCaNhan) {
                     ChucNang cn = pq.getChucNang();
-                    String tenButton = cn.getTenCN();
-                    addMenu(tenButton);
+                    addMenu(pq.getChucNang().getTenCN(), pq);
                 }
             }
         }
         add(menuContainer, BorderLayout.NORTH);
     }
 
-    private void addMenu(String text) {
-        JLabel lbl = createMenuLabel(text);
+    private void addMenu(String text, PhanQuyen pq) {
+        JLabel lbl = createMenuLabel(text, pq);
         menuContainer.add(lbl);
-        // Lưu lại nhãn đầu tiên để dùng khi Thoát
         if (firstLabel == null) firstLabel = lbl;
     }
 
-    // Kích hoạt menu đầu tiên (dùng cho nút Thoát trong TrangHoSo)
+    //Hiện menu button đầu tiên
     public void clickFirstMenu() {
         if (firstLabel != null) {
             firstLabel.dispatchEvent(new java.awt.event.MouseEvent(
@@ -73,7 +74,7 @@ public class ThanhBen extends JPanel {
         }
     }
 
-    private JLabel createMenuLabel(String text) {
+    private JLabel createMenuLabel(String text, PhanQuyen pq) {
         JLabel label = new JLabel(text);
         label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
         label.setHorizontalAlignment(SwingConstants.LEFT);
@@ -104,6 +105,13 @@ public class ThanhBen extends JPanel {
 
                 // Cập nhật tên chức năng lên ThanhTieuDe
                 manHinhChinh.getThanhTieuDe().setTitleCN(text);
+
+                // Áp dụng quyền lên trang vừa mở
+                JPanel trang = manHinhChinh.getTrangHienTai();
+                if (trang instanceof QuyenTrang && pq != null) {
+                    ((QuyenTrang) trang).apDungQuyen(
+                            pq.isXem(), pq.isThem(), pq.isSua(), pq.isXoa());
+                }
             }
 
             @Override

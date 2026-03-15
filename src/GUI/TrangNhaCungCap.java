@@ -11,11 +11,14 @@ import java.awt.*;
 import java.util.ArrayList;
 
 
-public class TrangNhaCungCap extends JPanel {
+public class TrangNhaCungCap extends JPanel implements QuyenTrang {
     private JTable table;
     private DefaultTableModel model;
     private NCC_BUS nccBUS = new NCC_BUS();
     private TableRowSorter<DefaultTableModel> sorter;
+    private JButton btnAdd;
+    private JButton btnEdit;
+    private JButton btnDelete;
 
     public TrangNhaCungCap() {
         setLayout(new BorderLayout());
@@ -151,11 +154,11 @@ public class TrangNhaCungCap extends JPanel {
 
 
         // Các nút khác
-        JButton btnEdit = new JButton("Chỉnh sửa");
+        btnEdit   = new JButton("Chỉnh sửa");
         Style.styleButton(btnEdit);
-        JButton btnDelete = new JButton("Xóa");
+        btnDelete = new JButton("Xóa");
         Style.styleButton(btnDelete);
-        JButton btnAdd = new JButton("+ Thêm");
+        btnAdd    = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
@@ -200,7 +203,7 @@ public class TrangNhaCungCap extends JPanel {
                 }
                 else {
                     JOptionPane.showMessageDialog(this, "Lỗi: " + result);
-            }
+                }
             }
 
         });
@@ -211,7 +214,7 @@ public class TrangNhaCungCap extends JPanel {
                 return;
             }
             // Lấy dữ liệu dòng đang chọn từ table để truyền qua form
-          int modelRow= table.convertRowIndexToModel(row);
+            int modelRow= table.convertRowIndexToModel(row);
             String ma =table.getModel().getValueAt(modelRow,1).toString();
             String ten=table.getModel().getValueAt(modelRow,2).toString();
             String sdt=table.getModel().getValueAt(modelRow,3).toString();
@@ -312,5 +315,12 @@ public class TrangNhaCungCap extends JPanel {
 
     public NCC_BUS getNccBUS() {
         return this.nccBUS;
+    }
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
+                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        btnAdd.setVisible(coQuyen_Them);
+        btnEdit.setVisible(coQuyen_Sua);
+        btnDelete.setVisible(coQuyen_Xoa);
     }
 }

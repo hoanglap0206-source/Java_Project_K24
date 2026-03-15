@@ -82,6 +82,13 @@ public class ManHinhChinh extends JFrame {
         }
     }
 
+    public JPanel getTrangHienTai() {
+        for (Component c : contentPanel.getComponents()) {
+            if (c.isVisible()) return (JPanel) c;
+        }
+        return null;
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new ManHinhChinh("NV99"));
     }

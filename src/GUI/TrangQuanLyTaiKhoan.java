@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-public class TrangQuanLyTaiKhoan extends JPanel {
+public class TrangQuanLyTaiKhoan extends JPanel implements QuyenTrang {
 
     private JTable table;
     private DefaultTableModel model;
@@ -424,5 +424,13 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         txtMatKhau.setText(""); txtMatKhau.setEchoChar('•');
         cboChucVu.setSelectedIndex(0); cboTrangThai.setSelectedIndex(0);
         txtMaNV.setEditable(true);
+    }
+
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
+                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        btnAdd.setVisible(coQuyen_Them);
+        btnEdit.setVisible(coQuyen_Sua);
+        btnDelete.setVisible(coQuyen_Xoa);
     }
 }

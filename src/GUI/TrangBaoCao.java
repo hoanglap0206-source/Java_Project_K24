@@ -17,12 +17,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.SwingConstants;
 
-public class TrangBaoCao extends JPanel {
+public class TrangBaoCao extends JPanel implements QuyenTrang {
 
     private JTable table;
     private DefaultTableModel model;
     private BaoCao_BUS bus;
-    private TableRowSorter<DefaultTableModel> rowSorter; // Đã khai báo sorter
+    private TableRowSorter<DefaultTableModel> rowSorter;
+    private JButton btnAdd;
 
     private JComboBox<String> cboloai;
     private JTextField txtTuNgay;
@@ -268,7 +269,7 @@ public class TrangBaoCao extends JPanel {
         lblTong = new JLabel("<html>TỔNG TIỀN ĐÃ THANH TOÁN: <font color='#1A932B'><b>0 VNĐ</b></font></html>");
         lblTong.setFont(new Font("Arial", Font.PLAIN, 14));
 
-        JButton btnAdd = new JButton("In báo cáo");
+        btnAdd = new JButton("In báo cáo");
         btnAdd.setBackground(new Color(14, 129, 239));
 
         btnAdd.addActionListener(new ActionListener() {
@@ -440,5 +441,11 @@ public class TrangBaoCao extends JPanel {
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
+    }
+
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
+                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        btnAdd.setVisible(coQuyen_Them);
     }
 }

@@ -50,4 +50,8 @@ public class KhachHang_BUS {
         this.listKH = khDAO.getAllKhachHang(); // Quét lại toàn bộ DB
     }
     public void refeshData(){this.listKH=khDAO.getAllKhachHang();}
+
+    public long getTongChiTieu(String maKH) {
+        return khDAO.getTongChiTieuByMaKH(maKH);
+    }
 }

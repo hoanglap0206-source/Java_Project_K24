@@ -13,7 +13,7 @@ import java.awt.event.FocusEvent;
 import javax.swing.table.*;
 import java.util.ArrayList;
 
-public class TrangSanPham extends JPanel {
+public class TrangSanPham extends JPanel implements QuyenTrang {
     private JTable table;
     private DefaultTableModel model;
 
@@ -507,5 +507,12 @@ public class TrangSanPham extends JPanel {
 
     private void hideFormPanel() {
         panelForm.setVisible(false);
+    }
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
+                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        btnAdd.setVisible(coQuyen_Them);
+        btnEdit.setVisible(coQuyen_Sua);
+        btnDelete.setVisible(coQuyen_Xoa);
     }
 }

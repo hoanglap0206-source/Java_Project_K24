@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
-public class TrangPhieuXuat extends JPanel {
+public class TrangPhieuXuat extends JPanel implements QuyenTrang {
 
     private DefaultTableModel model;
     private JTable table;
@@ -44,6 +44,8 @@ public class TrangPhieuXuat extends JPanel {
 
     // Flag ngăn focusLost kích applyFilter khi đang reset
     private boolean isResetting = false;
+    private boolean coQuyen_Xem = true;
+    private boolean coQuyen_Xoa = true;
 
     // Dữ liệu gốc để lọc không cần reload DB
     private ArrayList<Object[]> allRows = new ArrayList<>();
@@ -165,6 +167,7 @@ public class TrangPhieuXuat extends JPanel {
                 new EmptyBorder(0, 5, 0, 5)
         ));
         setPlaceholder(tfFrom, "dd/MM/yyyy");
+        setupDateAutoFormat(tfFrom);
         tfFrom.addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
                 if (!isResetting) applyFilter();
@@ -184,6 +187,7 @@ public class TrangPhieuXuat extends JPanel {
                 new EmptyBorder(0, 5, 0, 5)
         ));
         setPlaceholder(tfTo, "dd/MM/yyyy");
+        setupDateAutoFormat(tfTo);
         tfTo.addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
                 if (!isResetting) applyFilter();
@@ -205,7 +209,7 @@ public class TrangPhieuXuat extends JPanel {
             if (!isResetting) applyFilter();
         });
 
-        // ===== COMBOBOX TRẠNG THÁI =====
+        //COMBOBOX TRẠNG THÁI
         cbTrangThai = new JComboBox<>(new String[]{
                 "Tất cả", "Đã xuất kho", "Chờ xuất kho"
         });
@@ -276,6 +280,7 @@ public class TrangPhieuXuat extends JPanel {
                         new LineBorder(new Color(150, 200, 255), 1, true),
                         new EmptyBorder(2, 8, 2, 8)));
                 btnXem.setFocusPainted(false);
+                btnXem.setVisible(coQuyen_Xem);
 
                 JButton btnXoa = new JButton("Xóa");
                 btnXoa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -285,6 +290,7 @@ public class TrangPhieuXuat extends JPanel {
                         new LineBorder(new Color(190, 40, 40), 1, true),
                         new EmptyBorder(2, 8, 2, 8)));
                 btnXoa.setFocusPainted(false);
+                btnXoa.setVisible(coQuyen_Xoa);
 
                 pnl.add(btnXem);
                 pnl.add(btnXoa);
@@ -334,12 +340,15 @@ public class TrangPhieuXuat extends JPanel {
 
                 if (xInCell < cellWidth / 2) {
                     // Nút XEM
+                    if(!coQuyen_Xem) return;
                     JFrame frameDialog = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuXuat.this);
                     ChiTietPhieuXuat_GUI dialog = new ChiTietPhieuXuat_GUI(
                             frameDialog, maPX, ngay, khach, tongTien);
                     dialog.setVisible(true);
+
                 } else {
                     // Nút XÓA
+                    if(!coQuyen_Xoa) return;
                     int confirm = JOptionPane.showConfirmDialog(
                             TrangPhieuXuat.this,
                             "Bạn có chắc muốn xóa phiếu xuất " + maPX + "?",
@@ -368,7 +377,7 @@ public class TrangPhieuXuat extends JPanel {
         return panel;
     }
 
-    // ==================== LOAD + LỌC DỮ LIỆU ====================
+    //LOAD + LỌC DỮ LIỆU
 
     public void loadDataToTable() {
         allRows.clear();
@@ -465,11 +474,57 @@ public class TrangPhieuXuat extends JPanel {
         }
     }
 
-    // ==================== HELPER ====================
-
     private void restartTimer() {
         if (searchTimer.isRunning()) searchTimer.restart();
         else searchTimer.start();
+    }
+
+
+    /**
+     * Tự động chèn dấu / khi gõ số liên tục: "01022026" → "01/02/2026"
+     * Nhấn Enter khi đủ 10 ký tự sẽ lọc ngay lập tức.
+     */
+    private void setupDateAutoFormat(JTextField field) {
+        field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private boolean isFormatting = false;
+
+            private void format() {
+                if (isFormatting) return;
+                String raw = field.getText();
+                String digits = raw.replaceAll("[^0-9]", "");
+                if (digits.length() > 8) digits = digits.substring(0, 8);
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < digits.length(); i++) {
+                    sb.append(digits.charAt(i));
+                    if (i == 1 || i == 3) sb.append('/');
+                }
+                String formatted = sb.toString();
+
+                if (!formatted.equals(raw)) {
+                    isFormatting = true;
+                    SwingUtilities.invokeLater(() -> {
+                        field.setText(formatted);
+                        field.setCaretPosition(formatted.length());
+                        isFormatting = false;
+                    });
+                }
+            }
+
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { format(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { }
+        });
+
+        field.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER
+                        && field.getText().length() == 10) {
+                    applyFilter();
+                }
+            }
+        });
     }
 
     private void setPlaceholder(JTextField field, String placeholder) {
@@ -508,7 +563,7 @@ public class TrangPhieuXuat extends JPanel {
         isResetting = false;
     }
 
-    // ==================== FOOTER ====================
+    //FOOTER
 
     private JPanel taoFooter() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -607,5 +662,13 @@ public class TrangPhieuXuat extends JPanel {
                     "Xuất Excel thất bại: " + ex.getMessage(),
                     "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
+                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        this.coQuyen_Xem = coQuyen_Xem;
+        this.coQuyen_Xoa = coQuyen_Xoa;
+        if (model != null) model.fireTableDataChanged();
     }
 }
