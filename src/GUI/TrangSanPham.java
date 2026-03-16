@@ -31,10 +31,10 @@ public class TrangSanPham extends JPanel {
 
     private JTextField txtMaSP;
     private JTextField txtTenSP;
-    private JTextField txtDVT;
     private JTextField txtSoLuong;
     private JTextField txtGia;
     private JComboBox<String> cboKeKho;
+    private JComboBox<String> cboDVT;
 
     private SanPham_BUS spBus = new SanPham_BUS();
     private KeKho_BUS kkBus = new KeKho_BUS();
@@ -43,6 +43,7 @@ public class TrangSanPham extends JPanel {
     private JTextField txtSearch;
     private Timer searchTimer;
     private ArrayList<Object[]> allRows = new ArrayList<>();
+    private JComboBox<String> comboBoxLoc;
 
     public TrangSanPham() {
         setLayout(new BorderLayout());
@@ -106,35 +107,15 @@ public class TrangSanPham extends JPanel {
         });
 
         // Combobox Lọc
-        String[] itemLoc = {"Lọc", "1", "2", "3", "4", "5"};
+        String[] itemLoc = {"Mặc định", "Tên A → Z", "Tên Z → A", "STT nhỏ → lớn", "STT lớn → nhỏ"};
         JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
-
-        // Style cơ bản
         comboBoxLoc.setBackground(new Color(214, 238, 253));
-        comboBoxLoc.setPreferredSize(new Dimension(90, 30));
-        comboBoxLoc.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        comboBoxLoc.setPreferredSize(new Dimension(145, 30));
+        comboBoxLoc.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         comboBoxLoc.setCursor(new Cursor(Cursor.HAND_CURSOR));
         comboBoxLoc.setSelectedIndex(0);
-
-        // Placeholder "Lọc"
-        comboBoxLoc.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(
-                    JList<?> list, Object value, int index,
-                    boolean isSelected, boolean cellHasFocus) {
-
-                JLabel lbl = (JLabel) super.getListCellRendererComponent(
-                        list, value, index, isSelected, cellHasFocus);
-
-                lbl.setHorizontalAlignment(SwingConstants.CENTER);
-
-                if (index == -1 && comboBoxLoc.getSelectedIndex() == -1) {
-                    lbl.setText("Lọc");
-                    lbl.setForeground(Color.GRAY);
-                }
-                return lbl;
-            }
-        });
+        comboBoxLoc.addActionListener(e -> applyFilter());
+        this.comboBoxLoc = comboBoxLoc;
 
 
         // Các nút khác
@@ -148,6 +129,7 @@ public class TrangSanPham extends JPanel {
         Style.styleButton(btnRefresh);
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
+        btnExcel.addActionListener(e -> xuatExcel());
 
         // Thêm vào panel
         panel.add(pnlSearchInput);
@@ -214,10 +196,17 @@ public class TrangSanPham extends JPanel {
 
         txtMaSP    = new JTextField();
         txtTenSP   = new JTextField();
-        txtDVT     = new JTextField();
         txtSoLuong = new JTextField("0");
         txtSoLuong.setEditable(false);
         txtGia     = new JTextField();
+
+        // ComboBox đơn vị tính
+        cboDVT = new JComboBox<>(new String[]{"Thùng", "Chai", "Lon", "Hộp"});
+        cboDVT.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cboDVT.setBackground(Color.WHITE);
+        cboDVT.setBorder(new LineBorder(new Color(198, 218, 245), 1, true));
+        cboDVT.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        cboDVT.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // ComboBox kệ kho — load từ KeKho_BUS
         cboKeKho = new JComboBox<>();
@@ -230,7 +219,7 @@ public class TrangSanPham extends JPanel {
 
         pnl.add(nhomField("Mã sản phẩm", txtMaSP, false));  pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Tên sản phẩm", txtTenSP, false)); pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomField("Đơn vị tính", txtDVT, false));    pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomCombo("Đơn vị tính", cboDVT));           pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Số lượng", txtSoLuong, true));    pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Giá nhập (VNĐ)", txtGia, false)); pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomCombo("Kệ kho", cboKeKho));              pnl.add(Box.createVerticalStrut(24));
@@ -340,6 +329,12 @@ public class TrangSanPham extends JPanel {
             table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
+        // Căn trái riêng cột Tên SP (cột 2)
+        DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
+        leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        leftRenderer.setBorder(new EmptyBorder(0, 8, 0, 0));
+        table.getColumnModel().getColumn(2).setCellRenderer(leftRenderer);
+
         // Render cột trạng thái
         table.getColumnModel().getColumn(7).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
@@ -399,7 +394,9 @@ public class TrangSanPham extends JPanel {
     private void applyFilter() {
         String kw = txtSearch.getText().trim();
         if (kw.equalsIgnoreCase("Tìm kiếm...")) kw = "";
-        model.setRowCount(0); int counter = 1;
+
+        // Lọc trước
+        ArrayList<Object[]> filtered = new ArrayList<>();
         for (Object[] row : allRows) {
             if (!kw.isEmpty()) {
                 String k = kw.toLowerCase();
@@ -410,7 +407,26 @@ public class TrangSanPham extends JPanel {
                         || row[7].toString().toLowerCase().contains(k);
                 if (!match) continue;
             }
-            Object[] d = row.clone(); d[0] = counter++; model.addRow(d);
+            filtered.add(row);
+        }
+
+        // Sắp xếp
+        String sortOpt = comboBoxLoc != null && comboBoxLoc.getSelectedItem() != null
+                ? comboBoxLoc.getSelectedItem().toString() : "Mặc định";
+        switch (sortOpt) {
+            case "Tên A → Z" -> filtered.sort((a, b) -> a[2].toString().compareToIgnoreCase(b[2].toString()));
+            case "Tên Z → A" -> filtered.sort((a, b) -> b[2].toString().compareToIgnoreCase(a[2].toString()));
+            case "STT nhỏ → lớn" -> filtered.sort((a, b) -> Integer.compare((int) a[0], (int) b[0]));
+            case "STT lớn → nhỏ" -> filtered.sort((a, b) -> Integer.compare((int) b[0], (int) a[0]));
+        }
+
+        // Đổ vào bảng, đánh lại STT
+        model.setRowCount(0);
+        int counter = 1;
+        for (Object[] row : filtered) {
+            Object[] d = row.clone();
+            d[0] = counter++;
+            model.addRow(d);
         }
     }
 
@@ -431,7 +447,7 @@ public class TrangSanPham extends JPanel {
         lblFormTitle.setText("SỬA SẢN PHẨM");
         txtMaSP.setText(model.getValueAt(row, 1).toString());
         txtTenSP.setText(model.getValueAt(row, 2).toString());
-        txtDVT.setText(model.getValueAt(row, 3).toString());
+        cboDVT.setSelectedItem(model.getValueAt(row, 3).toString());
         txtSoLuong.setText(model.getValueAt(row, 4).toString());
         String gia = model.getValueAt(row, 5).toString().replace("đ","").replace(",","");
         txtGia.setText(gia);
@@ -476,7 +492,7 @@ public class TrangSanPham extends JPanel {
     private void saveSanPham() {
         String ma  = txtMaSP.getText().trim();
         String ten = txtTenSP.getText().trim();
-        String dvt = txtDVT.getText().trim();
+        String dvt = cboDVT.getSelectedItem() != null ? cboDVT.getSelectedItem().toString() : "Chai";
         String maKe = cboKeKho.getSelectedItem() != null ? cboKeKho.getSelectedItem().toString() : "A1";
         int sl; float gia;
         try {
@@ -495,8 +511,9 @@ public class TrangSanPham extends JPanel {
     }
 
     private void clearForm() {
-        txtMaSP.setText(""); txtTenSP.setText(""); txtDVT.setText("");
+        txtMaSP.setText(""); txtTenSP.setText("");
         txtSoLuong.setText("0"); txtGia.setText("");
+        if (cboDVT != null) cboDVT.setSelectedIndex(0);
         if (cboKeKho != null && cboKeKho.getItemCount() > 0) { cboKeKho.setSelectedIndex(0); cboKeKho.setEnabled(true); }
         txtMaSP.setEditable(true); txtSoLuong.setEditable(false);
         lblFormTitle.setText("THÊM SẢN PHẨM");
@@ -504,5 +521,83 @@ public class TrangSanPham extends JPanel {
 
     private void hideFormPanel() {
         panelForm.setVisible(false);
+    }
+
+    private void xuatExcel() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu file Excel");
+        fileChooser.setSelectedFile(new java.io.File("DanhSachSanPham.xlsx"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Excel file (*.xlsx)", "xlsx"));
+
+        if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        java.io.File file = fileChooser.getSelectedFile();
+        if (!file.getName().endsWith(".xlsx"))
+            file = new java.io.File(file.getAbsolutePath() + ".xlsx");
+
+        try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook =
+                     new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+
+            org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Danh sách sản phẩm");
+
+            // Style tiêu đề
+            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setFontHeightInPoints((short) 12);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(new org.apache.poi.xssf.usermodel.XSSFColor(
+                    new byte[]{(byte) 200, (byte) 220, (byte) 240}, null));
+            headerStyle.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            headerStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            // Style dữ liệu
+            org.apache.poi.ss.usermodel.CellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            dataStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            // Dòng tiêu đề — khớp với cột bảng (bỏ cột Trạng thái nếu muốn, ở đây giữ đủ)
+            String[] cols = {"STT", "Mã SP", "Tên SP", "Đơn vị tính", "Số lượng", "Giá nhập", "Mã kệ", "Trạng thái"};
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < cols.length; i++) {
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                cell.setCellValue(cols[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Ghi dữ liệu từ model
+            for (int r = 0; r < model.getRowCount(); r++) {
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(r + 1);
+                for (int c = 0; c < cols.length; c++) {
+                    org.apache.poi.ss.usermodel.Cell cell = row.createCell(c);
+                    Object val = model.getValueAt(r, c);
+                    cell.setCellValue(val != null ? val.toString() : "");
+                    cell.setCellStyle(dataStyle);
+                }
+            }
+
+            for (int i = 0; i < cols.length; i++) sheet.autoSizeColumn(i);
+
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+                workbook.write(fos);
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thành công!\nFile: " + file.getAbsolutePath(),
+                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thất bại: " + ex.getMessage(),
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
