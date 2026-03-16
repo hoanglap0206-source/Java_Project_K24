@@ -1,6 +1,7 @@
 package GUI;
 
 import BUS.KhachHang_BUS;
+import DAO.KhachHangDAO;
 import Model.KhachHang;
 //import org.apache.poi.xwpf.usermodel.TableRowHeightRule;
 
@@ -17,6 +18,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
     private JTable table;
     private DefaultTableModel model;
     private KhachHang_BUS khBUS = new KhachHang_BUS();
+    //private KhachHangDAO khDAO=new KhachHangDAO();
     private DecimalFormat dfVND = new DecimalFormat("#,### VNĐ");
     private TableRowSorter<DefaultTableModel> rowSorter;
     private JButton btnAdd;
@@ -394,20 +396,33 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
         if(table.isEditing()){
             table.getCellEditor().stopCellEditing();
         }
+        khBUS.DongBoCT();
         model.setRowCount(0);
         khBUS.refeshData();
         ArrayList<KhachHang> list = khBUS.getListKH();
         int stt = 1;
 
         for(KhachHang kh : list){
-            long tongCT = khBUS.getTongChiTieu(kh.getMaKH());
+
+            String strChiTieu = kh.getCT();
+
+
+            double soChiTieu = 0;
+            try {
+                if (strChiTieu != null && !strChiTieu.isEmpty()) {
+                    soChiTieu = Double.parseDouble(strChiTieu);
+                }
+            } catch (NumberFormatException e) {
+                soChiTieu = 0; // Nếu chuỗi lỗi, mặc định là 0
+            }
+
             Object[] row = {
                     stt++,
                     kh.getMaKH(),
                     kh.getHoTenKH(),
                     kh.getSdt(),
                     kh.getDiaChi(),
-                    dfVND.format(tongCT)
+                    dfVND.format(soChiTieu) // Bây giờ truyền số vào sẽ không còn lỗi
             };
             model.addRow(row);
         }

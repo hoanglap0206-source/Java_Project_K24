@@ -51,7 +51,7 @@ public class KhachHang_BUS {
     }
     public void refeshData(){this.listKH=khDAO.getAllKhachHang();}
 
-    public long getTongChiTieu(String maKH) {
-        return khDAO.getTongChiTieuByMaKH(maKH);
+    public void DongBoCT(){
+        khDAO.DongBoChiTieu();
     }
 }
