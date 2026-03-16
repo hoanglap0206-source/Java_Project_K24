@@ -22,6 +22,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
     private JButton btnAdd;
     private JButton btnEdit;
     private JButton btnDelete;
+    private JComboBox<String> comboBoxLoc;
 
     public TrangNhaCungCap() {
         setLayout(new BorderLayout());
@@ -130,8 +131,8 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
 
 
         // Combobox Lọc
-        String[] itemLoc = {"Lọc","1-N","N-1"};
-        JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
+        String[] itemLoc = {"Lọc","1-N","A-Z","Z-A"};
+        comboBoxLoc = new JComboBox<>(itemLoc);
 
         // Style cơ bản
         comboBoxLoc.setBackground(new Color(214, 238, 253));
@@ -143,42 +144,44 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         // Placeholder "Lọc"
         comboBoxLoc.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(
-                    JList<?> list, Object value, int index,
-                    boolean isSelected, boolean cellHasFocus) {
-
-                JLabel lbl = (JLabel) super.getListCellRendererComponent(
-                        list, value, index, isSelected, cellHasFocus);
-
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
-
-                if (index == -1 && comboBoxLoc.getSelectedIndex() == -1) {
-                    lbl.setText("Lọc");
-                    lbl.setForeground(Color.GRAY);
-                }
                 return lbl;
             }
         });
 
-        comboBoxLoc.addActionListener(new ActionListener(){
+        // 3. Sự kiện sắp xếp (Sửa lại index cột cho chuẩn với bảng của bạn)
+        comboBoxLoc.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e){
-                java.util.List<RowSorter.SortKey> sortKeys=new ArrayList<>();
-                int luachon=comboBoxLoc.getSelectedIndex();
-                if(luachon==1){
-                    sortKeys.add(new RowSorter.SortKey(1,SortOrder.ASCENDING));
-                }
-                else if(luachon==2){
-                    sortKeys.add(new RowSorter.SortKey(1,SortOrder.DESCENDING));
-                }
-                else {
-                    sortKeys.add(new RowSorter.SortKey(0,SortOrder.ASCENDING));
+            public void actionPerformed(ActionEvent e) {
+                if (RowSorter == null) return; // Kiểm tra tránh lỗi NullPointer
+
+                java.util.List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+                int luachon = comboBoxLoc.getSelectedIndex();
+
+                switch (luachon) {
+                    case 1: // Mã KH 1-N (Cột index 1)
+                        sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
+                        break;
+                    case 2: // Tên A-Z
+                        // Cột index 2 là cột Tên
+                        sortKeys.add(new RowSorter.SortKey(2, SortOrder.ASCENDING));
+                        break;
+                    case 3: // Tên Z-A
+                        sortKeys.add(new RowSorter.SortKey(2, SortOrder.DESCENDING));
+                        break;
+
+                    default: // Mặc định STT tăng dần (Cột index 0)
+                        sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
+                        break;
                 }
 
                 RowSorter.setSortKeys(sortKeys);
                 RowSorter.sort();
             }
         });
+
 
         // Các nút khác
         btnEdit   = new JButton("Chỉnh sửa");
@@ -362,6 +365,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         if(table.isEditing()){
             table.getCellEditor().stopCellEditing();
         }
+
         model.setRowCount(0);
         ArrayList<NhaCungCap> list = nccBUS.getListNCC();
         int stt = 1;
@@ -378,6 +382,8 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
             model.addRow(row);
         }
         model.fireTableDataChanged();
+        comboBoxLoc.setSelectedIndex(0);
+
     }
 
     public NCC_BUS getNccBUS() {
