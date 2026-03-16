@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-public class TrangQuanLyTaiKhoan extends JPanel implements QuyenTrang {
+public class TrangQuanLyTaiKhoan extends JPanel {
 
     private JTable table;
     private DefaultTableModel model;
@@ -95,6 +95,7 @@ public class TrangQuanLyTaiKhoan extends JPanel implements QuyenTrang {
         btnDelete  = new JButton("Xóa");       Style.styleButton(btnDelete);
         btnAdd     = new JButton("+ Thêm");    Style.styleButton(btnAdd);
         JButton btnExcel = new JButton("Xuất excel"); Style.styleButton(btnExcel);
+        btnExcel.addActionListener(e -> xuatExcel());
 
         panel.add(pnlSearch); panel.add(btnRefresh);
         panel.add(btnEdit); panel.add(btnDelete); panel.add(btnAdd); panel.add(btnExcel);
@@ -302,13 +303,14 @@ public class TrangQuanLyTaiKhoan extends JPanel implements QuyenTrang {
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 12)); lbl.setForeground(new Color(80, 100, 130)); lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtMatKhau.setFont(new Font("Segoe UI", Font.PLAIN, 13)); txtMatKhau.setBackground(Color.WHITE);
         txtMatKhau.setBorder(new CompoundBorder(new LineBorder(new Color(198, 218, 245), 1, true), new EmptyBorder(4, 10, 4, 10)));
-        JButton btnToggle = new JButton("👁");
+        JButton btnToggle = new JButton("Xem");
         btnToggle.setFocusPainted(false); btnToggle.setBorderPainted(false);
-        btnToggle.setBackground(new Color(214, 238, 253)); btnToggle.setPreferredSize(new Dimension(36, 34));
+        btnToggle.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnToggle.setBackground(new Color(214, 238, 253)); btnToggle.setPreferredSize(new Dimension(60, 34));
         btnToggle.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnToggle.addActionListener(e -> {
-            if (txtMatKhau.getEchoChar() == 0) { txtMatKhau.setEchoChar('•'); btnToggle.setText("👁"); }
-            else { txtMatKhau.setEchoChar((char) 0); btnToggle.setText("🙈"); }
+            if (txtMatKhau.getEchoChar() == 0) { txtMatKhau.setEchoChar('•'); btnToggle.setText("Xem"); btnToggle.setBackground(new Color(214, 238, 253)); btnToggle.setForeground(new Color(30, 80, 160)); }
+            else { txtMatKhau.setEchoChar((char) 0); btnToggle.setText("Ẩn"); btnToggle.setBackground(new Color(255, 210, 210)); btnToggle.setForeground(new Color(180, 0, 0)); }
         });
         JPanel row = new JPanel(new BorderLayout());
         row.setBackground(new Color(245, 247, 250)); row.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -426,11 +428,81 @@ public class TrangQuanLyTaiKhoan extends JPanel implements QuyenTrang {
         txtMaNV.setEditable(true);
     }
 
-    @Override
-    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
-                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
-        btnAdd.setVisible(coQuyen_Them);
-        btnEdit.setVisible(coQuyen_Sua);
-        btnDelete.setVisible(coQuyen_Xoa);
+    private void xuatExcel() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu file Excel");
+        fileChooser.setSelectedFile(new java.io.File("DanhSachTaiKhoan.xlsx"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Excel file (*.xlsx)", "xlsx"));
+
+        if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        java.io.File file = fileChooser.getSelectedFile();
+        if (!file.getName().endsWith(".xlsx"))
+            file = new java.io.File(file.getAbsolutePath() + ".xlsx");
+
+        try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook =
+                     new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+
+            org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Danh sách tài khoản");
+
+            // Style tiêu đề
+            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setFontHeightInPoints((short) 12);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(new org.apache.poi.xssf.usermodel.XSSFColor(
+                    new byte[]{(byte) 200, (byte) 220, (byte) 240}, null));
+            headerStyle.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            headerStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            // Style dữ liệu
+            org.apache.poi.ss.usermodel.CellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            dataStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            // Tiêu đề — bỏ cột Mật khẩu và cột nút Hiện mật khẩu
+            String[] cols = {"STT", "Họ tên", "Số điện thoại", "Username", "Vai trò", "Trạng thái"};
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < cols.length; i++) {
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                cell.setCellValue(cols[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Ghi dữ liệu — chỉ lấy 6 cột đầu (bỏ cột Mật khẩu và nút)
+            for (int r = 0; r < model.getRowCount(); r++) {
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(r + 1);
+                for (int c = 0; c < cols.length; c++) {
+                    org.apache.poi.ss.usermodel.Cell cell = row.createCell(c);
+                    Object val = model.getValueAt(r, c);
+                    cell.setCellValue(val != null ? val.toString() : "");
+                    cell.setCellStyle(dataStyle);
+                }
+            }
+
+            for (int i = 0; i < cols.length; i++) sheet.autoSizeColumn(i);
+
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+                workbook.write(fos);
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thành công!\nFile: " + file.getAbsolutePath(),
+                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thất bại: " + ex.getMessage(),
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
