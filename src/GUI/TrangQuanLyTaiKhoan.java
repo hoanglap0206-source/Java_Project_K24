@@ -149,6 +149,12 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         center.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i < cols.length; i++) table.getColumnModel().getColumn(i).setCellRenderer(center);
 
+        // Căn trái cột Họ tên (cột 1)
+        DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
+        leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        leftRenderer.setBorder(new EmptyBorder(0, 8, 0, 0));
+        table.getColumnModel().getColumn(1).setCellRenderer(leftRenderer);
+
         // Render trạng thái màu (cột 5)
         table.getColumnModel().getColumn(5).setCellRenderer((t, val, sel, foc, row, col) -> {
             JLabel l = new JLabel(val != null ? val.toString() : "");
