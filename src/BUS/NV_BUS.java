@@ -62,7 +62,7 @@ public class NV_BUS {
 
         if(nvDAO.insert(nv)){
             listNV.add(nv);//Cập nhật RAM
-            return "Thêm nhân viên thanhf công!";
+            return "Thêm nhân viên thành công!";
         }
         return "Lỗi không thể thêm nhân viên";
     }
