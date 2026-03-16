@@ -11,7 +11,12 @@ import java.util.ArrayList;
 public class KhachHangDAO {
     public ArrayList<KhachHang> getAllKhachHang(){
         ArrayList<KhachHang> list = new ArrayList<>();
-        String sql = "SELECT * FROM KHACH_HANG";
+        String sql = "SELECT kh.*, " +
+                "SUM(ct.thanh_tien * (1 + IFNULL(ct.thue_vat, 0))) AS tong_chi_tieu " +
+                "FROM KHACH_HANG kh " +
+                "LEFT JOIN phieu_xuat px ON kh.ma_kh = px.ma_kh " +
+                "LEFT JOIN chitiet_phieu_xuat ct ON px.ma_px = ct.ma_px " +
+                "GROUP BY kh.ma_kh";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
@@ -23,7 +28,8 @@ public class KhachHangDAO {
                 kh.setHoTenKH(rs.getString("ten_kh"));
                 kh.setDiaChi(rs.getString("dia_chi"));
                 kh.setSdt(rs.getString("sdt"));
-                kh.setCT(rs.getString("chi_tieu"));
+                double chiTieu=rs.getDouble("tong_chi_tieu");
+                kh.setCT(String.valueOf(chiTieu));
                 list.add(kh);
             }
         } catch (Exception e) {

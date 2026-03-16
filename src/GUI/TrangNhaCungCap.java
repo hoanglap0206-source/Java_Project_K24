@@ -3,11 +3,14 @@ package GUI;
 import BUS.NCC_BUS;
 import Model.KhachHang;
 import Model.NhaCungCap;
+import com.mysql.cj.result.Row;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 
@@ -15,7 +18,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
     private JTable table;
     private DefaultTableModel model;
     private NCC_BUS nccBUS = new NCC_BUS();
-    private TableRowSorter<DefaultTableModel> sorter;
+    private TableRowSorter<DefaultTableModel> RowSorter;
     private JButton btnAdd;
     private JButton btnEdit;
     private JButton btnDelete;
@@ -24,8 +27,13 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         setLayout(new BorderLayout());
         setBackground(new Color(255,255,255));
 
-        add(taoThanhCongCu(), BorderLayout.NORTH);
+        table=new JTable(model);
+
+        RowSorter=new TableRowSorter<>(model);
+        table.setRowSorter(RowSorter);
+
         add(taoNoiDung(), BorderLayout.CENTER);
+        add(taoThanhCongCu(), BorderLayout.NORTH);
         fillToTable();
     }
 
@@ -88,10 +96,10 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
                     {
                         String text = txtSearch.getText();
                         if (text.equals(place) || text.trim().isEmpty()) {
-                            if (sorter != null) sorter.setRowFilter(null);
+                            if (RowSorter != null) RowSorter.setRowFilter(null);
                         } else {
-                            if (sorter != null)
-                                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 1));
+                            if (RowSorter != null)
+                                RowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 1));
                         }
                     }
                 });
@@ -109,7 +117,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         btnLamMoi.addActionListener(e->{
             txtSearch.setText(place);
             txtSearch.setForeground(Color.GRAY);
-            if(sorter!=null)  sorter.setRowFilter(null);
+            if(RowSorter!=null)  RowSorter.setRowFilter(null);
 
             fillToTable();
 
@@ -122,7 +130,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
 
 
         // Combobox Lọc
-        String[] itemLoc = {"Lọc", "1", "2", "3", "4", "5"};
+        String[] itemLoc = {"Lọc","1-N","N-1"};
         JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
 
         // Style cơ bản
@@ -152,6 +160,25 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
             }
         });
 
+        comboBoxLoc.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                java.util.List<RowSorter.SortKey> sortKeys=new ArrayList<>();
+                int luachon=comboBoxLoc.getSelectedIndex();
+                if(luachon==1){
+                    sortKeys.add(new RowSorter.SortKey(1,SortOrder.ASCENDING));
+                }
+                else if(luachon==2){
+                    sortKeys.add(new RowSorter.SortKey(1,SortOrder.DESCENDING));
+                }
+                else {
+                    sortKeys.add(new RowSorter.SortKey(0,SortOrder.ASCENDING));
+                }
+
+                RowSorter.setSortKeys(sortKeys);
+                RowSorter.sort();
+            }
+        });
 
         // Các nút khác
         btnEdit   = new JButton("Chỉnh sửa");
@@ -162,6 +189,8 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         Style.styleButton(btnAdd);
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
+        btnExcel.addActionListener(e->xuatExcel());
+
 
         // Thêm vào panel
         panel.add(pnlSearchInput);
@@ -238,8 +267,8 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         panel.add(taoTieuDe(), BorderLayout.NORTH);
         panel.add(taoBang(), BorderLayout.CENTER);
 
-        sorter=new TableRowSorter<>(model);
-        table.setRowSorter(sorter);
+        RowSorter=new TableRowSorter<>(model);
+        table.setRowSorter(RowSorter);
         return panel;
     }
 
@@ -289,6 +318,44 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         scrollPane.setBorder(new LineBorder(new Color(180,180,180)));
 
         return scrollPane;
+    }
+
+    private void xuatExcel() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Chọn nơi lưu file");
+        if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+            String path = chooser.getSelectedFile().getPath();
+            if (!path.endsWith(".xlsx")) path += ".xlsx";
+
+            try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+                org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet("Danh Sách Nhà Cung Cấp");
+
+                // Tạo tiêu đề cột (Header)
+                org.apache.poi.xssf.usermodel.XSSFRow headerRow = sheet.createRow(0);
+                for (int i = 0; i < table.getColumnCount(); i++) {
+                    headerRow.createCell(i).setCellValue(table.getColumnName(i));
+                }
+
+                // Đổ dữ liệu từ JTable vào Excel
+                for (int i = 0; i < table.getRowCount(); i++) {
+                    org.apache.poi.xssf.usermodel.XSSFRow row = sheet.createRow(i + 1);
+                    for (int j = 0; j < table.getColumnCount(); j++) {
+                        Object value = table.getValueAt(i, j);
+                        row.createCell(j).setCellValue(value != null ? value.toString() : "");
+                    }
+                }
+
+                // Tự động căn chỉnh độ rộng cột
+                for (int i = 0; i < table.getColumnCount(); i++) sheet.autoSizeColumn(i);
+
+                try (java.io.FileOutputStream out = new java.io.FileOutputStream(path)) {
+                    workbook.write(out);
+                }
+                JOptionPane.showMessageDialog(this, "Xuất Excel thành công!");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Lỗi xuất Excel: " + e.getMessage());
+            }
+        }
     }
 
     public void fillToTable(){
