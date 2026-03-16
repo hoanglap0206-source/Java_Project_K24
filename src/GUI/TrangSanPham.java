@@ -31,10 +31,10 @@ public class TrangSanPham extends JPanel {
 
     private JTextField txtMaSP;
     private JTextField txtTenSP;
-    private JTextField txtDVT;
     private JTextField txtSoLuong;
     private JTextField txtGia;
     private JComboBox<String> cboKeKho;
+    private JComboBox<String> cboDVT;
 
     private SanPham_BUS spBus = new SanPham_BUS();
     private KeKho_BUS kkBus = new KeKho_BUS();
@@ -196,10 +196,17 @@ public class TrangSanPham extends JPanel {
 
         txtMaSP    = new JTextField();
         txtTenSP   = new JTextField();
-        txtDVT     = new JTextField();
         txtSoLuong = new JTextField("0");
         txtSoLuong.setEditable(false);
         txtGia     = new JTextField();
+
+        // ComboBox đơn vị tính
+        cboDVT = new JComboBox<>(new String[]{"Thùng", "Chai", "Lon", "Hộp"});
+        cboDVT.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cboDVT.setBackground(Color.WHITE);
+        cboDVT.setBorder(new LineBorder(new Color(198, 218, 245), 1, true));
+        cboDVT.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        cboDVT.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // ComboBox kệ kho — load từ KeKho_BUS
         cboKeKho = new JComboBox<>();
@@ -212,7 +219,7 @@ public class TrangSanPham extends JPanel {
 
         pnl.add(nhomField("Mã sản phẩm", txtMaSP, false));  pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Tên sản phẩm", txtTenSP, false)); pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomField("Đơn vị tính", txtDVT, false));    pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomCombo("Đơn vị tính", cboDVT));           pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Số lượng", txtSoLuong, true));    pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Giá nhập (VNĐ)", txtGia, false)); pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomCombo("Kệ kho", cboKeKho));              pnl.add(Box.createVerticalStrut(24));
@@ -321,6 +328,12 @@ public class TrangSanPham extends JPanel {
         for (int i = 0; i < table.getColumnCount(); i++) {
             table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
+
+        // Căn trái riêng cột Tên SP (cột 2)
+        DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
+        leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        leftRenderer.setBorder(new EmptyBorder(0, 8, 0, 0));
+        table.getColumnModel().getColumn(2).setCellRenderer(leftRenderer);
 
         // Render cột trạng thái
         table.getColumnModel().getColumn(7).setCellRenderer(new DefaultTableCellRenderer() {
@@ -434,7 +447,7 @@ public class TrangSanPham extends JPanel {
         lblFormTitle.setText("SỬA SẢN PHẨM");
         txtMaSP.setText(model.getValueAt(row, 1).toString());
         txtTenSP.setText(model.getValueAt(row, 2).toString());
-        txtDVT.setText(model.getValueAt(row, 3).toString());
+        cboDVT.setSelectedItem(model.getValueAt(row, 3).toString());
         txtSoLuong.setText(model.getValueAt(row, 4).toString());
         String gia = model.getValueAt(row, 5).toString().replace("đ","").replace(",","");
         txtGia.setText(gia);
@@ -479,7 +492,7 @@ public class TrangSanPham extends JPanel {
     private void saveSanPham() {
         String ma  = txtMaSP.getText().trim();
         String ten = txtTenSP.getText().trim();
-        String dvt = txtDVT.getText().trim();
+        String dvt = cboDVT.getSelectedItem() != null ? cboDVT.getSelectedItem().toString() : "Chai";
         String maKe = cboKeKho.getSelectedItem() != null ? cboKeKho.getSelectedItem().toString() : "A1";
         int sl; float gia;
         try {
@@ -498,8 +511,9 @@ public class TrangSanPham extends JPanel {
     }
 
     private void clearForm() {
-        txtMaSP.setText(""); txtTenSP.setText(""); txtDVT.setText("");
+        txtMaSP.setText(""); txtTenSP.setText("");
         txtSoLuong.setText("0"); txtGia.setText("");
+        if (cboDVT != null) cboDVT.setSelectedIndex(0);
         if (cboKeKho != null && cboKeKho.getItemCount() > 0) { cboKeKho.setSelectedIndex(0); cboKeKho.setEnabled(true); }
         txtMaSP.setEditable(true); txtSoLuong.setEditable(false);
         lblFormTitle.setText("THÊM SẢN PHẨM");
