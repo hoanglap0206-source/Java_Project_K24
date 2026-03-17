@@ -16,11 +16,15 @@ public class ThanhBen extends JPanel {
     private final Color HOVER_COLOR = new Color(86, 166, 255);
 
     private JLabel selectedLabel = null;
+    private JLabel firstLabel   = null;   // xác định cho menu đầu tiên
     private ManHinhChinh manHinhChinh;
     private JPanel menuContainer;
+    private ArrayList<PhanQuyen> dsQuyenCaNhan = new ArrayList<>();
+    private String maNV;
 
     public ThanhBen(ManHinhChinh manHinhChinh, String maNV) {
         this.manHinhChinh = manHinhChinh;
+        this.maNV = maNV;
 
         setBackground(SIDEBAR_COLOR);
         setLayout(new BorderLayout());
@@ -28,42 +32,49 @@ public class ThanhBen extends JPanel {
 
         setBorder(BorderFactory.createMatteBorder(
                 0, 0, 0, 1,
-                new Color(210, 220, 230)  // xám rất nhạt
+                new Color(210, 220, 230)
         ));
 
-        // Container dùng BoxLayout để các menu động gom gọn lên phía trên (NORTH)
+        // Container dùng BoxLayout để các menu động gom gọn lên phía trên
         menuContainer = new JPanel();
         menuContainer.setLayout(new BoxLayout(menuContainer, BoxLayout.Y_AXIS));
         menuContainer.setBackground(SIDEBAR_COLOR);
 
-        // Luôn có menu Hồ sơ cá nhân cho mọi user
-        addMenu("Tổng quan");
-//        addMenu("Phân quyền"); // Bị double phân quyền
-
+        addMenu("Tổng quan", null);
 
         // Gọi logic phân quyền từ DataBase
         if (maNV != null && !maNV.isEmpty()) {
             PhanQuyen_BUS PQbus = new PhanQuyen_BUS();
-            ArrayList<PhanQuyen> dsQuyenCaNhan = PQbus.getDSQuyenCaNhan(maNV);
+            dsQuyenCaNhan = PQbus.getDSQuyenCaNhan(maNV);
 
             if (dsQuyenCaNhan != null) {
                 for (PhanQuyen pq : dsQuyenCaNhan) {
                     ChucNang cn = pq.getChucNang();
-                    String tenButton = cn.getTenCN();
-                    addMenu(tenButton);
+                    addMenu(pq.getChucNang().getTenCN(), pq);
                 }
             }
         }
-
-        // Đưa container vào vùng NORTH để các Item nằm sát phía trên
         add(menuContainer, BorderLayout.NORTH);
     }
 
-    private void addMenu(String text) {
-        menuContainer.add(createMenuLabel(text));
+    private void addMenu(String text, PhanQuyen pq) {
+        JLabel lbl = createMenuLabel(text, pq);
+        menuContainer.add(lbl);
+        if (firstLabel == null) firstLabel = lbl;
     }
 
-    private JLabel createMenuLabel(String text) {
+    //Hiện menu button đầu tiên
+    public void clickFirstMenu() {
+        if (firstLabel != null) {
+            firstLabel.dispatchEvent(new java.awt.event.MouseEvent(
+                    firstLabel,
+                    java.awt.event.MouseEvent.MOUSE_CLICKED,
+                    System.currentTimeMillis(), 0, 0, 0, 1, false
+            ));
+        }
+    }
+
+    private JLabel createMenuLabel(String text, PhanQuyen pq) {
         JLabel label = new JLabel(text);
         label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
         label.setHorizontalAlignment(SwingConstants.LEFT);
@@ -89,11 +100,18 @@ public class ThanhBen extends JPanel {
                 label.setForeground(Color.WHITE);
                 selectedLabel = label;
 
-                // 1. Chuyển trang nội dung
+                // Chuyển trang nội dung
                 manHinhChinh.hienThiTrang(text);
 
-                // 2. Cập nhật tên chức năng lên ThanhTieuDe
+                // Cập nhật tên chức năng lên ThanhTieuDe
                 manHinhChinh.getThanhTieuDe().setTitleCN(text);
+
+                // Áp dụng quyền lên trang vừa mở
+                JPanel trang = manHinhChinh.getTrangHienTai();
+                if (trang instanceof QuyenTrang && pq != null) {
+                    ((QuyenTrang) trang).apDungQuyen(
+                            pq.isXem(), pq.isThem(), pq.isSua(), pq.isXoa());
+                }
             }
 
             @Override

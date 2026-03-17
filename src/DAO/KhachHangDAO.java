@@ -6,12 +6,13 @@ import Model.KhachHang;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class KhachHangDAO {
     public ArrayList<KhachHang> getAllKhachHang(){
         ArrayList<KhachHang> list = new ArrayList<>();
-        String sql = "SELECT * FROM KHACH_HANG";
+        String sql = "SELECT ma_kh, ten_kh, dia_chi, sdt, chi_tieu FROM KHACH_HANG ORDER BY ma_kh ASC";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
@@ -23,13 +24,38 @@ public class KhachHangDAO {
                 kh.setHoTenKH(rs.getString("ten_kh"));
                 kh.setDiaChi(rs.getString("dia_chi"));
                 kh.setSdt(rs.getString("sdt"));
-                kh.setCT(rs.getString("chi_tieu"));
+                double chiTieu=rs.getDouble("chi_tieu");
+                kh.setCT(String.valueOf(chiTieu));
                 list.add(kh);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
+    }
+    public void DongBoChiTieu() {
+        // Câu lệnh SQL này sẽ tính tổng thực tế từ hóa đơn và cập nhật vào cột chi_tieu
+        // chỉ khi con số đó khác với con số hiện tại trong bảng KHACH_HANG.
+        String sqlUpdate = "UPDATE KHACH_HANG kh " +
+                "JOIN ( " +
+                "    SELECT kh.ma_kh, CAST(SUM(ct.thanh_tien * (1 + IFNULL(ct.thue_vat, 0)))AS SIGNED) as thuc_te " +
+                "    FROM KHACH_HANG kh " +
+                "    LEFT JOIN PHIEU_XUAT px ON kh.ma_kh = px.ma_kh " +
+                "    LEFT JOIN CHITIET_PHIEU_XUAT ct ON px.ma_px = ct.ma_px " +
+                "    GROUP BY kh.ma_kh " +
+                ") t ON kh.ma_kh = t.ma_kh " +
+                "SET kh.chi_tieu = IFNULL(t.thuc_te, 0) " +
+                "WHERE ABS(IFNULL(kh.chi_tieu, 0) - IFNULL(t.thuc_te, 0)) > 0.001";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlUpdate)) {
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                System.out.println("==> He thong da tu dong cap nhat chi tieu cho " + rows + " khach hang.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
     public boolean insert(KhachHang kh){
         String sql ="INSERT INTO KHACH_HANG(ma_kh,ten_kh,dia_chi,sdt,chi_tieu) VALUES (?, ?, ?,?,?)";
@@ -81,4 +107,22 @@ public class KhachHangDAO {
             return false;
         }
     }
+
+//    public long getTongChiTieuByMaKH(String maKH) {
+//        String sql = "SELECT COALESCE(SUM(ct.thanh_tien), 0) AS tong " +
+//                "FROM PHIEU_XUAT px " +
+//                "JOIN CHITIET_PHIEU_XUAT ct ON px.ma_px = ct.ma_px " +
+//                "WHERE px.ma_kh = ?";
+//        try (
+//                Connection conn = DBConnection.getConnection();
+//                PreparedStatement ps = conn.prepareStatement(sql)
+//        ) {
+//            ps.setString(1, maKH);
+//            ResultSet rs = ps.executeQuery();
+//            if (rs.next()) return rs.getLong("tong");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return 0;
+//    }
 }

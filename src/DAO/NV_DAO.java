@@ -75,14 +75,22 @@ public class NV_DAO {
             return false;
         }
     }
-    public boolean delete(String maNv){
-        String sql = "DELETE FROM NHAN_VIEN WHERE ma_nhan_vien=?";
+    public boolean delete(String maNv) {
+        String sql1 = "DELETE FROM PHAN_QUYEN WHERE ma_nhan_vien=?";
+        String sql2 = "DELETE FROM NHAN_VIEN WHERE ma_nhan_vien=?";
+
         try (
                 Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
+                PreparedStatement ps1 = conn.prepareStatement(sql1);
+                PreparedStatement ps2 = conn.prepareStatement(sql2);
         ) {
-            ps.setString(1, maNv);
-            return ps.executeUpdate() > 0;
+
+            ps1.setString(1, maNv);
+            ps1.executeUpdate();
+
+            ps2.setString(1, maNv);
+            return ps2.executeUpdate() > 0;
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;

@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
-public class TrangPhieuXuat extends JPanel {
+public class TrangPhieuXuat extends JPanel implements QuyenTrang {
 
     private DefaultTableModel model;
     private JTable table;
@@ -34,7 +34,7 @@ public class TrangPhieuXuat extends JPanel {
     private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private DateTimeFormatter dtfFull = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-    // ===== Component lọc =====
+    //Component lọc
     private JTextField   txtSearch;
     private JTextField   tfFrom;
     private JTextField   tfTo;
@@ -44,6 +44,8 @@ public class TrangPhieuXuat extends JPanel {
 
     // Flag ngăn focusLost kích applyFilter khi đang reset
     private boolean isResetting = false;
+    private boolean coQuyen_Xem = true;
+    private boolean coQuyen_Xoa = true;
 
     // Dữ liệu gốc để lọc không cần reload DB
     private ArrayList<Object[]> allRows = new ArrayList<>();
@@ -69,7 +71,7 @@ public class TrangPhieuXuat extends JPanel {
         });
     }
 
-    // ==================== TIÊU ĐỀ + THANH CÔNG CỤ ====================
+    //TIÊU ĐỀ + THANH CÔNG CỤ
 
     private JPanel taoTieuDe() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -165,6 +167,7 @@ public class TrangPhieuXuat extends JPanel {
                 new EmptyBorder(0, 5, 0, 5)
         ));
         setPlaceholder(tfFrom, "dd/MM/yyyy");
+        setupDateAutoFormat(tfFrom);
         tfFrom.addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
                 if (!isResetting) applyFilter();
@@ -184,6 +187,7 @@ public class TrangPhieuXuat extends JPanel {
                 new EmptyBorder(0, 5, 0, 5)
         ));
         setPlaceholder(tfTo, "dd/MM/yyyy");
+        setupDateAutoFormat(tfTo);
         tfTo.addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
                 if (!isResetting) applyFilter();
@@ -205,7 +209,7 @@ public class TrangPhieuXuat extends JPanel {
             if (!isResetting) applyFilter();
         });
 
-        // ===== COMBOBOX TRẠNG THÁI =====
+        //COMBOBOX TRẠNG THÁI
         cbTrangThai = new JComboBox<>(new String[]{
                 "Tất cả", "Đã xuất kho", "Chờ xuất kho"
         });
@@ -228,8 +232,7 @@ public class TrangPhieuXuat extends JPanel {
         return panel;
     }
 
-    // ==================== NỘI DUNG BẢNG ====================
-
+    //NỘI DUNG BẢNG
     private JPanel taoNoiDung() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
@@ -242,7 +245,7 @@ public class TrangPhieuXuat extends JPanel {
 
         model = new DefaultTableModel(columns, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            public boolean isCellEditable(int row, int column) { return column == 6; }
         };
         table = new JTable(model);
 
@@ -259,38 +262,11 @@ public class TrangPhieuXuat extends JPanel {
             table.getColumnModel().getColumn(i).setCellRenderer(center);
         }
 
-        // Renderer 2 nút cho cột Thao tác
-        table.getColumnModel().getColumn(6).setCellRenderer(new TableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(
-                    JTable t, Object value, boolean isSelected,
-                    boolean hasFocus, int row, int col) {
-                JPanel pnl = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 3));
-                pnl.setBackground(isSelected ? t.getSelectionBackground() : Color.WHITE);
-
-                JButton btnXem = new JButton("Xem");
-                btnXem.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-                btnXem.setForeground(new Color(0, 100, 220));
-                btnXem.setBackground(new Color(214, 238, 253));
-                btnXem.setBorder(new CompoundBorder(
-                        new LineBorder(new Color(150, 200, 255), 1, true),
-                        new EmptyBorder(2, 8, 2, 8)));
-                btnXem.setFocusPainted(false);
-
-                JButton btnXoa = new JButton("Xóa");
-                btnXoa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-                btnXoa.setForeground(Color.WHITE);
-                btnXoa.setBackground(new Color(220, 60, 60));
-                btnXoa.setBorder(new CompoundBorder(
-                        new LineBorder(new Color(190, 40, 40), 1, true),
-                        new EmptyBorder(2, 8, 2, 8)));
-                btnXoa.setFocusPainted(false);
-
-                pnl.add(btnXem);
-                pnl.add(btnXoa);
-                return pnl;
-            }
-        });
+        // Renderer + Editor 2 nút cho cột Thao tác
+        ThaoTacButtonsRenderer thaoTacRenderer = new ThaoTacButtonsRenderer();
+        ThaoTacButtonsEditor   thaoTacEditor   = new ThaoTacButtonsEditor();
+        table.getColumnModel().getColumn(6).setCellRenderer(thaoTacRenderer);
+        table.getColumnModel().getColumn(6).setCellEditor(thaoTacEditor);
         table.getColumnModel().getColumn(6).setPreferredWidth(150);
 
 
@@ -315,61 +291,14 @@ public class TrangPhieuXuat extends JPanel {
             }
         });
 
-        // Click cột Thao tác mở dialog chi tiết
         table.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                int row = table.rowAtPoint(e.getPoint());
-                int col = table.columnAtPoint(e.getPoint());
-
-                java.awt.Rectangle cellRect = table.getCellRect(row, col, false);
-                int xInCell = e.getX() - cellRect.x;
-                int cellWidth = cellRect.width;
-
-                String maPX = model.getValueAt(row, 1).toString();
-                String ngay = model.getValueAt(row, 2).toString();
-                String khach = model.getValueAt(row, 3).toString();
-                String tongTien = model.getValueAt(row, 4).toString();
-
-                if (xInCell < cellWidth / 2) {
-                    // Nút XEM
-                    JFrame frameDialog = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuXuat.this);
-                    ChiTietPhieuXuat_GUI dialog = new ChiTietPhieuXuat_GUI(
-                            frameDialog, maPX, ngay, khach, tongTien);
-                    dialog.setVisible(true);
-                } else {
-                    // Nút XÓA
-                    int confirm = JOptionPane.showConfirmDialog(
-                            TrangPhieuXuat.this,
-                            "Bạn có chắc muốn xóa phiếu xuất " + maPX + "?",
-                            "Xác nhận xóa",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.WARNING_MESSAGE);
-                    if (confirm == JOptionPane.YES_OPTION) {
-                        boolean ok = pxBus.deletePX(maPX);
-                        if (ok) {
-                            JOptionPane.showMessageDialog(TrangPhieuXuat.this,
-                                    "Xóa phiếu xuất thành công!",
-                                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                            loadDataToTable();
-                        } else {
-                            JOptionPane.showMessageDialog(TrangPhieuXuat.this,
-                                    "Xóa thất bại! Vui lòng thử lại.",
-                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
-                }
-            }
-        });
 
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
         loadDataToTable();
         return panel;
     }
 
-    // ==================== LOAD + LỌC DỮ LIỆU ====================
-
+    //LOAD + LỌC DỮ LIỆU
     public void loadDataToTable() {
         allRows.clear();
         model.setRowCount(0);
@@ -465,11 +394,57 @@ public class TrangPhieuXuat extends JPanel {
         }
     }
 
-    // ==================== HELPER ====================
-
     private void restartTimer() {
         if (searchTimer.isRunning()) searchTimer.restart();
         else searchTimer.start();
+    }
+
+
+    /**
+     * Tự động chèn dấu / khi gõ số liên tục: "01022026" → "01/02/2026"
+     * Nhấn Enter khi đủ 10 ký tự sẽ lọc ngay lập tức.
+     */
+    private void setupDateAutoFormat(JTextField field) {
+        field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private boolean isFormatting = false;
+
+            private void format() {
+                if (isFormatting) return;
+                String raw = field.getText();
+                String digits = raw.replaceAll("[^0-9]", "");
+                if (digits.length() > 8) digits = digits.substring(0, 8);
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < digits.length(); i++) {
+                    sb.append(digits.charAt(i));
+                    if (i == 1 || i == 3) sb.append('/');
+                }
+                String formatted = sb.toString();
+
+                if (!formatted.equals(raw)) {
+                    isFormatting = true;
+                    SwingUtilities.invokeLater(() -> {
+                        field.setText(formatted);
+                        field.setCaretPosition(formatted.length());
+                        isFormatting = false;
+                    });
+                }
+            }
+
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { format(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { }
+        });
+
+        field.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER
+                        && field.getText().length() == 10) {
+                    applyFilter();
+                }
+            }
+        });
     }
 
     private void setPlaceholder(JTextField field, String placeholder) {
@@ -508,8 +483,7 @@ public class TrangPhieuXuat extends JPanel {
         isResetting = false;
     }
 
-    // ==================== FOOTER ====================
-
+    //FOOTER
     private JPanel taoFooter() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panel.setBackground(Color.WHITE);
@@ -607,5 +581,129 @@ public class TrangPhieuXuat extends JPanel {
                     "Xuất Excel thất bại: " + ex.getMessage(),
                     "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    //Vẽ 2 nút Xem / Xóa trong ô
+    private class ThaoTacButtonsRenderer implements TableCellRenderer {
+        private final JPanel  pnl    = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 3));
+        private final JButton btnXem = makeXemBtn();
+        private final JButton btnXoa = makeXoaBtn();
+
+        ThaoTacButtonsRenderer() {
+            pnl.add(btnXem);
+            pnl.add(btnXoa);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable t, Object value, boolean isSelected,
+                boolean hasFocus, int row, int col) {
+            pnl.setBackground(isSelected ? t.getSelectionBackground() : Color.WHITE);
+            btnXem.setVisible(coQuyen_Xem);
+            btnXoa.setVisible(coQuyen_Xoa);
+            return pnl;
+        }
+    }
+
+    /**
+     * Editor cho cột Thao tác — bắt sự kiện click thật trên từng nút.
+     * Khi JTable kích hoạt editor, nó lưu currentRow rồi gắn ActionListener
+     * để xử lý đúng logic Xem / Xóa.
+     */
+    private class ThaoTacButtonsEditor extends AbstractCellEditor implements TableCellEditor {
+        private final JPanel  pnl    = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 3));
+        private final JButton btnXem = makeXemBtn();
+        private final JButton btnXoa = makeXoaBtn();
+        private int currentRow;
+
+        ThaoTacButtonsEditor() {
+            pnl.add(btnXem);
+            pnl.add(btnXoa);
+
+            btnXem.addActionListener(e -> {
+                fireEditingStopped();
+                if (!coQuyen_Xem) return;
+                String maPX = model.getValueAt(currentRow, 1).toString();
+                String ngay = model.getValueAt(currentRow, 2).toString();
+                String khach = model.getValueAt(currentRow, 3).toString();
+                String tongTien = model.getValueAt(currentRow, 4).toString();
+                JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(TrangPhieuXuat.this);
+                ChiTietPhieuXuat_GUI dialog =
+                        new ChiTietPhieuXuat_GUI(owner, maPX, ngay, khach, tongTien);
+                dialog.setVisible(true);
+            });
+
+            btnXoa.addActionListener(e -> {
+                fireEditingStopped();
+                if (!coQuyen_Xoa) return;
+                String maPX = model.getValueAt(currentRow, 1).toString();
+                int confirm = JOptionPane.showConfirmDialog(
+                        TrangPhieuXuat.this,
+                        "Bạn có chắc muốn xóa phiếu xuất " + maPX + "?",
+                        "Xác nhận xóa",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    boolean ok = pxBus.deletePX(maPX);
+                    if (ok) {
+                        JOptionPane.showMessageDialog(TrangPhieuXuat.this,
+                                "Xóa phiếu xuất thành công!",
+                                "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                        loadDataToTable();
+                    } else {
+                        JOptionPane.showMessageDialog(TrangPhieuXuat.this,
+                                "Xóa thất bại! Vui lòng thử lại.",
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(
+                JTable t, Object value, boolean isSelected, int row, int col) {
+            currentRow = row;
+            pnl.setBackground(t.getSelectionBackground());
+            btnXem.setVisible(coQuyen_Xem);
+            btnXoa.setVisible(coQuyen_Xoa);
+            return pnl;
+        }
+
+        @Override public Object getCellEditorValue() { return null; }
+    }
+
+    // Tạo nút dùng chung cho Renderer và Editor
+
+    private JButton makeXemBtn() {
+        JButton btn = new JButton("Xem");
+        btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        btn.setForeground(new Color(0, 100, 220));
+        btn.setBackground(new Color(214, 238, 253));
+        btn.setBorder(new CompoundBorder(
+                new LineBorder(new Color(150, 200, 255), 1, true),
+                new EmptyBorder(2, 8, 2, 8)));
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return btn;
+    }
+
+    private JButton makeXoaBtn() {
+        JButton btn = new JButton("Xóa");
+        btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(new Color(220, 60, 60));
+        btn.setBorder(new CompoundBorder(
+                new LineBorder(new Color(190, 40, 40), 1, true),
+                new EmptyBorder(2, 8, 2, 8)));
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return btn;
+    }
+
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them, boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        this.coQuyen_Xem = coQuyen_Xem;
+        this.coQuyen_Xoa = coQuyen_Xoa;
+        if (model != null) model.fireTableDataChanged();
     }
 }

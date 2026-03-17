@@ -20,13 +20,28 @@ public class NCC_BUS {
         return this.listNCC;
     }
 
+    public boolean isduplicateMaNCC(String NCC){
+        for(NhaCungCap ncc:listNCC){
+            if(ncc.getMaNCC().equalsIgnoreCase(NCC))
+                return  true;
+        }
+        return false;
+    }
+
     public String addNCC(NhaCungCap NCC){
         //Kiểm tra thêm nhà cung cấp có đúng định dạng không
         if(!Check.isValidNCC(NCC.getMaNCC()))
             return "Mã nhà cung cấp không đúng định dạng (Phải là NCCxx ví dụ NCC01)";
-
+        if(isduplicateMaNCC(NCC.getMaNCC()))
+            return "Mã nhà cung cấp đã tồn tại trên hệ thống";
         if(NCC.getTenNCC().isEmpty())
             return "Tên nhà cung cấp không được để trống!";
+
+        if(NCC.getSdt().isEmpty())
+            return"Số điên thoại không được để trống!";
+        if(NCC.getDiaChi().isEmpty())
+            return"Địa chỉ không được để trống!";
+
 
         if(nccDAO.insert(NCC)){
             listNCC.add(NCC);

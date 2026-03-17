@@ -3,26 +3,38 @@ package GUI;
 import BUS.NCC_BUS;
 import Model.KhachHang;
 import Model.NhaCungCap;
+import com.mysql.cj.result.Row;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 
-public class TrangNhaCungCap extends JPanel {
+public class TrangNhaCungCap extends JPanel implements QuyenTrang {
     private JTable table;
     private DefaultTableModel model;
     private NCC_BUS nccBUS = new NCC_BUS();
-    private TableRowSorter<DefaultTableModel> sorter;
+    private TableRowSorter<DefaultTableModel> RowSorter;
+    private JButton btnAdd;
+    private JButton btnEdit;
+    private JButton btnDelete;
+    private JComboBox<String> comboBoxLoc;
 
     public TrangNhaCungCap() {
         setLayout(new BorderLayout());
         setBackground(new Color(255,255,255));
 
-        add(taoThanhCongCu(), BorderLayout.NORTH);
+        table=new JTable(model);
+
+        RowSorter=new TableRowSorter<>(model);
+        table.setRowSorter(RowSorter);
+
         add(taoNoiDung(), BorderLayout.CENTER);
+        add(taoThanhCongCu(), BorderLayout.NORTH);
         fillToTable();
     }
 
@@ -85,12 +97,13 @@ public class TrangNhaCungCap extends JPanel {
                     {
                         String text = txtSearch.getText();
                         if (text.equals(place) || text.trim().isEmpty()) {
-                            if (sorter != null) sorter.setRowFilter(null);
+                            if (RowSorter != null) RowSorter.setRowFilter(null);
                         } else {
-                            if (sorter != null)
-                                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 1));
+                            if (RowSorter != null)
+                                RowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 1));
                         }
                     }
+                    reIndex();
                 });
 
 
@@ -106,7 +119,7 @@ public class TrangNhaCungCap extends JPanel {
         btnLamMoi.addActionListener(e->{
             txtSearch.setText(place);
             txtSearch.setForeground(Color.GRAY);
-            if(sorter!=null)  sorter.setRowFilter(null);
+            if(RowSorter!=null)  RowSorter.setRowFilter(null);
 
             fillToTable();
 
@@ -119,8 +132,8 @@ public class TrangNhaCungCap extends JPanel {
 
 
         // Combobox Lọc
-        String[] itemLoc = {"Lọc", "1", "2", "3", "4", "5"};
-        JComboBox<String> comboBoxLoc = new JComboBox<>(itemLoc);
+        String[] itemLoc = {"Lọc","1-N","A-Z","Z-A"};
+        comboBoxLoc = new JComboBox<>(itemLoc);
 
         // Style cơ bản
         comboBoxLoc.setBackground(new Color(214, 238, 253));
@@ -132,33 +145,58 @@ public class TrangNhaCungCap extends JPanel {
         // Placeholder "Lọc"
         comboBoxLoc.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(
-                    JList<?> list, Object value, int index,
-                    boolean isSelected, boolean cellHasFocus) {
-
-                JLabel lbl = (JLabel) super.getListCellRendererComponent(
-                        list, value, index, isSelected, cellHasFocus);
-
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 lbl.setHorizontalAlignment(SwingConstants.CENTER);
-
-                if (index == -1 && comboBoxLoc.getSelectedIndex() == -1) {
-                    lbl.setText("Lọc");
-                    lbl.setForeground(Color.GRAY);
-                }
                 return lbl;
             }
         });
 
 
+        // 3. Sự kiện sắp xếp (Sửa lại index cột cho chuẩn với bảng của bạn)
+        comboBoxLoc.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (RowSorter == null) return; // Kiểm tra tránh lỗi NullPointer
+
+                java.util.List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+                int luachon = comboBoxLoc.getSelectedIndex();
+
+                switch (luachon) {
+                    case 1: // Mã KH 1-N (Cột index 1)
+                        sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
+                        break;
+                    case 2: // Tên A-Z
+                        // Cột index 2 là cột Tên
+                        sortKeys.add(new RowSorter.SortKey(2, SortOrder.ASCENDING));
+                        break;
+                    case 3: // Tên Z-A
+                        sortKeys.add(new RowSorter.SortKey(2, SortOrder.DESCENDING));
+                        break;
+
+                    default: // Mặc định STT tăng dần (Cột index 0)
+                        sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
+                        break;
+                }
+
+                RowSorter.setSortKeys(sortKeys);
+                RowSorter.sort();
+                reIndex();
+            }
+        });
+
+
         // Các nút khác
-        JButton btnEdit = new JButton("Chỉnh sửa");
+        btnEdit   = new JButton("Chỉnh sửa");
         Style.styleButton(btnEdit);
-        JButton btnDelete = new JButton("Xóa");
+        btnDelete = new JButton("Xóa");
         Style.styleButton(btnDelete);
-        JButton btnAdd = new JButton("+ Thêm");
+        btnAdd    = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
         JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
+        btnExcel.addActionListener(e->xuatExcel());
+
 
         // Thêm vào panel
         panel.add(pnlSearchInput);
@@ -200,7 +238,7 @@ public class TrangNhaCungCap extends JPanel {
                 }
                 else {
                     JOptionPane.showMessageDialog(this, "Lỗi: " + result);
-            }
+                }
             }
 
         });
@@ -211,7 +249,7 @@ public class TrangNhaCungCap extends JPanel {
                 return;
             }
             // Lấy dữ liệu dòng đang chọn từ table để truyền qua form
-          int modelRow= table.convertRowIndexToModel(row);
+            int modelRow= table.convertRowIndexToModel(row);
             String ma =table.getModel().getValueAt(modelRow,1).toString();
             String ten=table.getModel().getValueAt(modelRow,2).toString();
             String sdt=table.getModel().getValueAt(modelRow,3).toString();
@@ -225,7 +263,10 @@ public class TrangNhaCungCap extends JPanel {
         wrapper.add(panel, BorderLayout.CENTER);
         return wrapper;
     }
-
+    public void reIndex(){
+        for(int i=0; i<table.getRowCount();i++)
+            table.setValueAt(i+1,i,0);
+    }
     private JPanel taoNoiDung() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -235,8 +276,8 @@ public class TrangNhaCungCap extends JPanel {
         panel.add(taoTieuDe(), BorderLayout.NORTH);
         panel.add(taoBang(), BorderLayout.CENTER);
 
-        sorter=new TableRowSorter<>(model);
-        table.setRowSorter(sorter);
+        RowSorter=new TableRowSorter<>(model);
+        table.setRowSorter(RowSorter);
         return panel;
     }
 
@@ -288,10 +329,49 @@ public class TrangNhaCungCap extends JPanel {
         return scrollPane;
     }
 
+    private void xuatExcel() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Chọn nơi lưu file");
+        if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+            String path = chooser.getSelectedFile().getPath();
+            if (!path.endsWith(".xlsx")) path += ".xlsx";
+
+            try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+                org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet("Danh Sách Nhà Cung Cấp");
+
+                // Tạo tiêu đề cột (Header)
+                org.apache.poi.xssf.usermodel.XSSFRow headerRow = sheet.createRow(0);
+                for (int i = 0; i < table.getColumnCount(); i++) {
+                    headerRow.createCell(i).setCellValue(table.getColumnName(i));
+                }
+
+                // Đổ dữ liệu từ JTable vào Excel
+                for (int i = 0; i < table.getRowCount(); i++) {
+                    org.apache.poi.xssf.usermodel.XSSFRow row = sheet.createRow(i + 1);
+                    for (int j = 0; j < table.getColumnCount(); j++) {
+                        Object value = table.getValueAt(i, j);
+                        row.createCell(j).setCellValue(value != null ? value.toString() : "");
+                    }
+                }
+
+                // Tự động căn chỉnh độ rộng cột
+                for (int i = 0; i < table.getColumnCount(); i++) sheet.autoSizeColumn(i);
+
+                try (java.io.FileOutputStream out = new java.io.FileOutputStream(path)) {
+                    workbook.write(out);
+                }
+                JOptionPane.showMessageDialog(this, "Xuất Excel thành công!");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Lỗi xuất Excel: " + e.getMessage());
+            }
+        }
+    }
+
     public void fillToTable(){
         if(table.isEditing()){
             table.getCellEditor().stopCellEditing();
         }
+
         model.setRowCount(0);
         ArrayList<NhaCungCap> list = nccBUS.getListNCC();
         int stt = 1;
@@ -308,9 +388,20 @@ public class TrangNhaCungCap extends JPanel {
             model.addRow(row);
         }
         model.fireTableDataChanged();
+        if(RowSorter!=null)
+            RowSorter.setSortKeys(null);
+        comboBoxLoc.setSelectedIndex(0);
+
     }
 
     public NCC_BUS getNccBUS() {
         return this.nccBUS;
+    }
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
+                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        btnAdd.setVisible(coQuyen_Them);
+        btnEdit.setVisible(coQuyen_Sua);
+        btnDelete.setVisible(coQuyen_Xoa);
     }
 }

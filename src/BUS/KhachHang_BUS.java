@@ -18,10 +18,18 @@ public class KhachHang_BUS {
         //Kiểm tra thêm khách hàng có đúng định dạng không
         if (!Check.isValidKH(kh.getMaKH()))
             return "Thêm mã khách hàng không đúng định dạng (Phải là KHxx ví dụ KH01)";
+        for (KhachHang existingKH : listKH) {
+            if (existingKH.getMaKH().equalsIgnoreCase(kh.getMaKH())) {
+                return "Lỗi: Mã khách hàng [" + kh.getMaKH() + "] đã tồn tại!";
+            }
+        }
 
         if(kh.getHoTenKH().trim().isEmpty())
             return"Họ tên không được để trống!";
-
+        if(kh.getSdt().trim().isEmpty())
+            return"Số điện thoại khôgn được để trống!";
+        if(kh.getDiaChi().trim().isEmpty())
+            return"Địa chỉ không được để trống!";
         if(khDAO.insert(kh)) {
             listKH.add(kh);
             return"Thêm khách hàng thành công!";
@@ -50,4 +58,8 @@ public class KhachHang_BUS {
         this.listKH = khDAO.getAllKhachHang(); // Quét lại toàn bộ DB
     }
     public void refeshData(){this.listKH=khDAO.getAllKhachHang();}
+
+    public void DongBoCT(){
+        khDAO.DongBoChiTieu();
+    }
 }

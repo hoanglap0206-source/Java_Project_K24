@@ -24,7 +24,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.FileOutputStream;
 import java.io.File;
 
-public class TrangKeKho extends JPanel {
+public class TrangKeKho extends JPanel implements QuyenTrang {
     private JTextField txtSearch;
     private JPanel soDoKe;
     private JLabel lblTenKe;
@@ -706,5 +706,13 @@ public class TrangKeKho extends JPanel {
     private void capNhatTongSanPham() {
         int tong = bus.tinhTongSP();
         lblTongSpTrongKho.setText("Tổng số sản phẩm trong kho: " + tong);
+    }
+
+    @Override
+    public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
+                            boolean coQuyen_Sua, boolean coQuyen_Xoa) {
+        btnAdd.setVisible(coQuyen_Them);
+        btnEdit.setVisible(coQuyen_Sua);
+        btnDelete.setVisible(coQuyen_Xoa);
     }
 }
