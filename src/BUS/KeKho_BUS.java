@@ -61,6 +61,15 @@ public class KeKho_BUS {
         return null;
     }
 
+    public int tinhTongSP() {
+        int tong = 0;
+        for (SanPham sp : listAllSP) {
+            tong += sp.getSoLuong();
+        }
+
+        return tong;
+    }
+
     public int tinhTongSoLuongTheoKe(String maKe) {
         int tong = 0;
         for (SanPham sp : listAllSP) {
@@ -88,12 +97,21 @@ public class KeKho_BUS {
         return "Thêm thất bại!";
     }
 
-    public boolean updateKK(KeKho kk){
-        if(kkDAO.update(kk)) {
+    public String updateKK(KeKho kk){
+        if(kk.getSucChua() <= 0)
+            return "Sức chứa phải lớn hơn 0!";
+
+        int tong = tinhTongSoLuongTheoKe(kk.getMaKe());
+
+        if(kk.getSucChua() < tong)
+            return "Sức chứa nhỏ hơn số lượng hiện tại!";
+
+        if(kkDAO.update(kk)){
             refreshData();
-            return true;
+            return "Cập nhật thành công!";
         }
-        return false;
+
+        return "Cập nhật thất bại!";
     }
 
     public boolean updatekK(Connection conn, KeKho kk){
@@ -104,22 +122,23 @@ public class KeKho_BUS {
         return false;
     }
 
-//    public boolean updateKKtheoKT(Connection conn, String maKe, int khoangTrong){
-//        if(kkDAO.updateKhoangTrong(conn, maKe, khoangTrong)) {
-//            refreshData();
-//            return true;
-//        }
-//        return false;
-//    }
+    public String deleteKK(String maKe) {
 
-    public String deleteKK(String maKe){
+        if(maKe == null || maKe.trim().isEmpty()){
+            return "Mã kệ không hợp lệ!";
+        }
+
         if(spDAO.countByMaKe(maKe) > 0){
             return "Không thể xoá! Kệ vẫn còn sản phẩm.";
         }
-        if(kkDAO.delete(maKe)) {
+
+        boolean deleted = kkDAO.delete(maKe);
+
+        if(deleted){
             listKK.removeIf(k -> k.getMaKe().equals(maKe));
-            return "Xoá kệ kho thành công!";
+            return "Xóa kệ kho thành công!";
         }
-        return "Xoá thất bại!";
+
+        return "Không tìm thấy kệ để xoá!";
     }
 }

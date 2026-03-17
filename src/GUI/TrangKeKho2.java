@@ -366,34 +366,34 @@ public class TrangKeKho2 extends JPanel {
     // XỬ LÝ SỰ KIỆN
     private void timKiem() {
         String keyword = txtSearch.getText().trim().toLowerCase();
+        // Lấy text, bỏ khoảng trắng, không phân biệt hoa thường
+
         if (keyword.isEmpty() || keyword.equals("Tìm kiếm")) {
             loadSoDo();
             return;
         }
+        // Nếu người dùng không tìm gì -> hiển thị lại tất cả và xuất hiện lại chữ tìm kiếm
 
         ArrayList<KeKho> listKe = bus.getListKK();
-        ArrayList<KeKho> listKeTim = new ArrayList<>();
-
         ArrayList<SanPham> allSP = bus.getAllSanPham();
+        ArrayList<KeKho> ketQua = new ArrayList<>();
+        // Chuẩn bị dữ liệu
 
+        // Duyệt kệ: trùng mã kệ -> thêm vào -> bỏ qua kiểm tra sản phẩm
         for (KeKho ke : listKe) {
-            if (ke.getMaKe().toLowerCase().contains(keyword)) {
-                listKeTim.add(ke);
+            if (ke.getMaKe().toLowerCase().contains(keyword)){
+                ketQua.add(ke);
                 continue;
             }
-
-            for (SanPham sp : allSP) {
-                if (sp.getKeKho() != null &&
-                        sp.getKeKho().getMaKe().equals(ke.getMaKe()) &&
-                        (sp.getMaSP().toLowerCase().contains(keyword) ||
-                                sp.getTenSP().toLowerCase().contains(keyword))) {
-                    listKeTim.add(ke);
-                    break;
-                }
-            }
+            for (SanPham sp : allSP)
+                // SP này phải nằm trong kệ đang xét
+                if (sp.getKeKho() != null && sp.getKeKho().getMaKe().equals(ke.getMaKe()))
+                    if (sp.getMaSP().toLowerCase().contains(keyword) || sp.getTenSP().toLowerCase().contains(keyword)) {
+                        ketQua.add(ke);
+                        break; // Tìm thấy 1 sản phẩm là đủ
+                    }
         }
-
-        veSoDoTheoDanhSach(listKeTim);
+        veSoDoTheoDanhSach(ketQua);
     }
 
     private void themKe(){

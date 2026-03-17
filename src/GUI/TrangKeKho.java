@@ -32,7 +32,7 @@ public class TrangKeKho extends JPanel {
     private JLabel lblViTri;
     private JLabel lblSucChua;
     private JLabel lblHienTai;
-    private JLabel ltlTongSpTrongKho;
+    private JLabel lblTongSpTrongKho;
 
     private DefaultTableModel model;
     private JLabel lblKhoangTrong;
@@ -46,6 +46,7 @@ public class TrangKeKho extends JPanel {
     private JButton btnExcel;
     private JButton btnSearchIcon;
     private JPanel selectedCard = null;
+    private String selectedMaKe = null;
 
     public TrangKeKho() {
         setLayout(new BorderLayout());
@@ -195,14 +196,14 @@ public class TrangKeKho extends JPanel {
         JLabel lblTitle = new JLabel("SƠ ĐỒ KHO TỔNG");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD,18));
 
-        ltlTongSpTrongKho = new JLabel("Tổng số sản phẩm trong kho:");
-        ltlTongSpTrongKho.setFont(new Font("Segoe UI", Font.BOLD,13));
-        ltlTongSpTrongKho.setForeground(new Color(60,90,150));
+        lblTongSpTrongKho = new JLabel("Tổng số sản phẩm trong kho:");
+        lblTongSpTrongKho.setFont(new Font("Segoe UI", Font.BOLD,13));
+        lblTongSpTrongKho.setForeground(new Color(60,90,150));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(Color.WHITE);
         titlePanel.add(lblTitle, BorderLayout.WEST);
-        titlePanel.add(ltlTongSpTrongKho, BorderLayout.EAST);
+        titlePanel.add(lblTongSpTrongKho, BorderLayout.EAST);
 
         // Panel chứa grid + bảng
         JPanel content = new JPanel(new BorderLayout(0,20));
@@ -275,6 +276,7 @@ public class TrangKeKho extends JPanel {
             }
 
             public void mouseClicked(MouseEvent e) {
+                selectedMaKe = ten; // lưu kệ đang chọn
                 capNhatBang(ten);
                 if (selectedCard != null) {
                     selectedCard.setBorder(new LineBorder(new Color(200,200,200),1,true));
@@ -320,7 +322,11 @@ public class TrangKeKho extends JPanel {
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
         table.getTableHeader().setBackground(new Color(210,230,255));
         table.getTableHeader().setForeground(Color.BLACK);
-        table.getTableHeader().setReorderingAllowed(false); // ?
+
+        table.getColumnModel().getColumn(0).setMaxWidth(50);
+        table.getColumnModel().getColumn(1).setPreferredWidth(120);
+        table.getColumnModel().getColumn(3).setPreferredWidth(120);
+        table.getColumnModel().getColumn(4).setPreferredWidth(80);
 
         // Căn giữa toàn bộ
         DefaultTableCellRenderer center = new DefaultTableCellRenderer(); // DefaultTableCellRenderer ?
@@ -367,7 +373,6 @@ public class TrangKeKho extends JPanel {
         return panel;
     }
 
-
     // XỬ LÝ SỰ KIỆN
     private void timKiem() {
         String keyword = txtSearch.getText().trim().toLowerCase();
@@ -402,67 +407,108 @@ public class TrangKeKho extends JPanel {
     }
 
     private void themKe(){
-        int khoangTrong =0;
-        String ma = JOptionPane.showInputDialog("Nhập mã kệ:");
-        if(ma == null || ma.trim().isEmpty()) return;
 
-        String viTri = JOptionPane.showInputDialog("Nhập vị trí:");
-        if(viTri == null) return;
+        JTextField txtMa = new JTextField();
+        JTextField txtViTri = new JTextField();
+        JTextField txtSucChua = new JTextField();
 
-        String suc = JOptionPane.showInputDialog("Nhập sức chứa:");
-        if(suc == null) return;
+        Object[] msg = {
+                "Mã kệ:", txtMa,
+                "Vị trí:", txtViTri,
+                "Sức chứa:", txtSucChua
+        };
+
+        int option = JOptionPane.showConfirmDialog(
+                null, msg, "Thêm kệ", JOptionPane.OK_CANCEL_OPTION
+        );
+
+        if(option != JOptionPane.OK_OPTION) return;
 
         try{
-            int sucChua = Integer.parseInt(suc);
-            KeKho ke = new KeKho(ma.trim(), sucChua, viTri.trim());
+            String ma = txtMa.getText().trim();
+            int sc = Integer.parseInt(txtSucChua.getText().trim());
+            String vt = txtViTri.getText().trim();
+
+            KeKho ke = new KeKho(ma, sc, vt);
+
             String result = bus.addKK(ke);
-            JOptionPane.showMessageDialog(null, result);
-            if (result.contains("thành công"))
+            JOptionPane.showMessageDialog(null,result);
+
+            if(result.contains("thành công"))
                 loadSoDo();
-        }catch(Exception ex){
-            JOptionPane.showMessageDialog(null,"Sức chứa phải là số!");
+
+        }catch(Exception e){
+            JOptionPane.showMessageDialog(null,"Dữ liệu không hợp lệ!");
         }
     }
 
     private void suaKe(){
-        String maKe = lblTenKe.getText().replace("Kệ ","").trim();
-        KeKho ke = bus.getKeTheoMa(maKe);
 
-        if(ke == null){
+        if(selectedMaKe == null){
             JOptionPane.showMessageDialog(null,"Chưa chọn kệ!");
             return;
         }
 
-        String viTri = JOptionPane.showInputDialog("Vị trí mới:", ke.getViTri());
-        if(viTri == null) return;
+        KeKho ke = bus.getKeTheoMa(selectedMaKe);
 
-        String suc = JOptionPane.showInputDialog("Sức chứa mới:", ke.getSucChua());
-        if(suc == null) return;
+        JTextField txtMa = new JTextField(ke.getMaKe());
+        JTextField txtViTri = new JTextField(ke.getViTri());
+        JTextField txtSucChua = new JTextField(String.valueOf(ke.getSucChua()));
+
+        txtMa.setEditable(false);
+
+        Object[] msg = {
+                "Mã kệ:", txtMa,
+                "Vị trí:", txtViTri,
+                "Sức chứa:", txtSucChua
+        };
+
+        int option = JOptionPane.showConfirmDialog(
+                null, msg, "Sửa kệ", JOptionPane.OK_CANCEL_OPTION
+        );
+
+        if(option != JOptionPane.OK_OPTION) return;
 
         try{
-            ke.setViTri(viTri.trim());
-            ke.setSucChua(Integer.parseInt(suc));
-            JOptionPane.showMessageDialog(null, bus.updateKK(ke));
-            loadSoDo();
-        }catch(Exception ex){
-            JOptionPane.showMessageDialog(null,"Sức chứa phải là số!");
+            String ma = txtMa.getText().trim();
+            int sc = Integer.parseInt(txtSucChua.getText().trim());
+            String vt = txtViTri.getText().trim();
+
+            KeKho newKe = new KeKho(ma, sc, vt);
+
+            String result = bus.updateKK(newKe);
+            JOptionPane.showMessageDialog(null,result);
+
+            if(result.contains("thành công"))
+                loadSoDo();
+
+        }catch(Exception e){
+            JOptionPane.showMessageDialog(null,"Dữ liệu không hợp lệ!");
         }
     }
 
     private void xoaKe(){
-        String maKe = lblTenKe.getText().replace("Kệ ","").trim();
-        if(maKe.isEmpty()) return;
+        if(selectedMaKe == null){
+            JOptionPane.showMessageDialog(null,"Chưa chọn kệ!");
+            return;
+        }
 
         int confirm = JOptionPane.showConfirmDialog(
                 null,
-                "Xóa kệ " + maKe + "?",
+                "Xóa kệ " + selectedMaKe + "?",
                 "Xác nhận",
                 JOptionPane.YES_NO_OPTION
         );
 
         if(confirm == JOptionPane.YES_OPTION){
-            JOptionPane.showMessageDialog(null, bus.deleteKK(maKe));
-            loadSoDo();
+
+            String result = bus.deleteKK(selectedMaKe);
+            JOptionPane.showMessageDialog(null, result);
+
+            if(result.contains("thành công")){
+                loadSoDo();
+                selectedMaKe = null;
+            }
         }
     }
 
@@ -553,6 +599,7 @@ public class TrangKeKho extends JPanel {
         ArrayList<KeKho> listKe = bus.getListKK();
         veSoDoTheoDanhSach(listKe);
         selectedCard = null; // đảm bảo không còn tham chiếu đến card cũ
+        selectedMaKe = null; // tương tự, không tham chiếu đến mã kệ cũ
         capNhatTongSanPham();
     }
 
@@ -640,9 +687,9 @@ public class TrangKeKho extends JPanel {
         }
 
         KeKho ke = bus.getKeTheoMa(maKe);
-        int tong = bus.tinhTongSoLuongTheoKe(maKe);
-        int khoangTrong = ke.getSucChua() - tong;
         if (ke != null) {
+            int tong = bus.tinhTongSoLuongTheoKe(maKe);
+            int khoangTrong = ke.getSucChua() - tong;
             lblViTri.setText("Vị trí: " + ke.getViTri());
             lblSucChua.setText("Sức chứa tối đa: " + ke.getSucChua());
             lblHienTai.setText("Hiện đang chứa: " + tong);
@@ -657,11 +704,7 @@ public class TrangKeKho extends JPanel {
     }
 
     private void capNhatTongSanPham() {
-        ArrayList<SanPham> allSP = bus.getAllSanPham();
-        int tong = 0;
-        for (SanPham sp : allSP) {
-            tong += sp.getSoLuong();
-        }
-        ltlTongSpTrongKho.setText("Tổng số sản phẩm trong kho: " + tong);
+        int tong = bus.tinhTongSP();
+        lblTongSpTrongKho.setText("Tổng số sản phẩm trong kho: " + tong);
     }
 }

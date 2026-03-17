@@ -67,6 +67,7 @@ public class KeKho_DAO {
             return false;
         }
     }
+
     public boolean update(KeKho kk){
         String sql =
                 "UPDATE KE_KHO SET suc_chua=?,vi_tri=?WHERE ma_ke=?";
