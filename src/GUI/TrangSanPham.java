@@ -438,6 +438,11 @@ public class TrangSanPham extends JPanel {
         btnRefresh.addActionListener(e -> handleRefresh());
     }
     private void handleAdd() {
+        // Reload danh sách kệ mới nhất từ DB
+        kkBus.refreshData();
+        cboKeKho.removeAllItems();
+        for (KeKho kk : kkBus.getListKK()) cboKeKho.addItem(kk.getMaKe());
+
         clearForm();
         showFormPanel();
     }
@@ -494,6 +499,11 @@ public class TrangSanPham extends JPanel {
         String ten = txtTenSP.getText().trim();
         String dvt = cboDVT.getSelectedItem() != null ? cboDVT.getSelectedItem().toString() : "Chai";
         String maKe = cboKeKho.getSelectedItem() != null ? cboKeKho.getSelectedItem().toString() : "A1";
+
+        if (ma.isEmpty() || ten.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Mã SP và tên sản phẩm không được để trống!"); return;
+        }
+
         int sl; float gia;
         try {
             sl  = Integer.parseInt(txtSoLuong.getText().trim());
@@ -507,7 +517,9 @@ public class TrangSanPham extends JPanel {
 
         String msg = lblFormTitle.getText().equals("THÊM SẢN PHẨM") ? spBus.addSanPham(sp) : spBus.updateSanPham(sp);
         JOptionPane.showMessageDialog(this, msg);
-        loadTableData(); clearForm(); hideFormPanel();
+        if (msg.toLowerCase().contains("thành công")) {
+            loadTableData(); clearForm(); hideFormPanel();
+        }
     }
 
     private void clearForm() {

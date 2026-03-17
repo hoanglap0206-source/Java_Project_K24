@@ -424,7 +424,9 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         nv.setChucVu(cboChucVu.getSelectedItem().toString()); nv.setTrangThai(cboTrangThai.getSelectedItem().toString());
         String msg = lblFormTitle.getText().equals("THÊM TÀI KHOẢN") ? nvBUS.addNV(nv) : nvBUS.updateNV(nv);
         JOptionPane.showMessageDialog(this, msg);
-        nvBUS.refesh(); loadDataFromBUS(); clearForm(); hideFormPanel();
+        if (msg.toLowerCase().contains("thành công")) {
+            nvBUS.refesh(); loadDataFromBUS(); clearForm(); hideFormPanel();
+        }
     }
 
     private void clearForm() {
