@@ -220,7 +220,7 @@ public class TrangNhapKho extends JPanel {
         String[] itemLoc = new String[nccBus.getListNCC().size()];
         itemLoc[0] = "Mã nhà Cung Cấp";
         for (int i = 1; i < nccBus.getListNCC().size(); i++) {
-           itemLoc[i] = nccBus.getListNCC().get(i).getMaNCC();
+           itemLoc[i] = nccBus.getListNCC().get(i-1).getMaNCC();
         }
         comboBoxLoc = new JComboBox<>(itemLoc);
         comboBoxLoc.setBackground(new Color(214, 238, 253));

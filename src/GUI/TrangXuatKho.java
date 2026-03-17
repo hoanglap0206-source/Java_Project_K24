@@ -242,7 +242,7 @@ public class TrangXuatKho extends JPanel {
         String[] itemLoc = new String[khBUS.getListKH().size()];
         itemLoc[0] = "Mã Khách hàng";
         for (int i = 1; i < khBUS.getListKH().size(); i++) {
-            itemLoc[i] = khBUS.getListKH().get(i).getMaKH();
+            itemLoc[i] = khBUS.getListKH().get(i-1).getMaKH();
         }
         comboBoxLoc = new JComboBox<>(itemLoc);
         comboBoxLoc.setBackground(new Color(214, 238, 253));
