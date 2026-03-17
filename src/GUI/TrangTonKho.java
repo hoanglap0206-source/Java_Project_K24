@@ -269,7 +269,10 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
 
         btnEdit.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm cần sửa!"); return; }
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm cần sửa!");
+                return;
+            }
 
             lblFormTitle.setText("SỬA SẢN PHẨM");
             txtMaSP.setText(model.getValueAt(row, 0).toString());
@@ -287,23 +290,113 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
 
         btnDelete.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm cần xoá!"); return; }
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm cần xoá!");
+                return;
+            }
             String masp = table.getValueAt(row, 0).toString();
             String tensp = table.getValueAt(row, 1).toString();
 
             if (JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa: " + tensp + "?", "Xác nhận", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                 String tb = bus.deleteBaoCao(masp);
                 JOptionPane.showMessageDialog(this, tb);
-                if(tb.contains("thành công")) { loadDataToTable(); hideFormPanel(); }
+                if (tb.contains("thành công")) {
+                    loadDataToTable();
+                    hideFormPanel();
+                }
             }
         });
 
         btnRefresh.addActionListener(e -> {
-            bus.refreshData(); loadDataToTable(); hideFormPanel();
+            bus.refreshData();
+            loadDataToTable();
+            hideFormPanel();
         });
+        btnExcel.addActionListener(e -> {
+            if (table.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this, "Không có dữ liệu trong bảng để xuất Excel!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
-        btnExcel.addActionListener(e -> JOptionPane.showMessageDialog(this, "Chức năng xuất Excel đang được tích hợp..."));
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Chọn vị trí lưu file Báo Cáo Tồn Kho");
+
+            // Tự động tạo tên file có ngày giờ hiện tại cho chuyên nghiệp
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("ddMMyyyy_HHmmss");
+            String defaultFileName = "TonKho_" + sdf.format(new java.util.Date()) + ".xlsx";
+            fileChooser.setSelectedFile(new java.io.File(defaultFileName));
+
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                java.io.File fileToSave = fileChooser.getSelectedFile();
+                String filePath = fileToSave.getAbsolutePath();
+
+                // Đảm bảo đuôi file luôn là .xlsx
+                if (!filePath.endsWith(".xlsx")) {
+                    filePath += ".xlsx";
+                }
+
+                try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+                     java.io.FileOutputStream out = new java.io.FileOutputStream(filePath)) {
+
+                    org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet("Tồn Kho Hiện Tại");
+
+                    // --- 1. Tạo Style cho dòng Tiêu đề (In đậm, Căn giữa) ---
+                    org.apache.poi.xssf.usermodel.XSSFCellStyle headerStyle = workbook.createCellStyle();
+                    org.apache.poi.xssf.usermodel.XSSFFont font = workbook.createFont();
+                    font.setBold(true);
+                    headerStyle.setFont(font);
+                    headerStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+
+                    // --- 2. Ghi dòng Tiêu đề ---
+                    org.apache.poi.xssf.usermodel.XSSFRow headerRow = sheet.createRow(0);
+                    for (int i = 0; i < table.getColumnCount(); i++) {
+                        org.apache.poi.xssf.usermodel.XSSFCell cell = headerRow.createCell(i);
+                        cell.setCellValue(table.getColumnName(i));
+                        cell.setCellStyle(headerStyle);
+                    }
+
+                    // --- 3. Ghi Dữ liệu từ bảng JTable ra Excel ---
+                    for (int i = 0; i < table.getRowCount(); i++) {
+                        org.apache.poi.xssf.usermodel.XSSFRow row = sheet.createRow(i + 1);
+                        for (int j = 0; j < table.getColumnCount(); j++) {
+                            Object value = table.getValueAt(i, j); // Lấy đúng dữ liệu đang hiển thị trên màn hình
+
+                            if (value != null) {
+                                // Xử lý thông minh: Ép các cột Số lượng (3), Đơn giá (4), Cảnh báo (5) về dạng SỐ
+                                // để khi mở Excel lên nó có thể tính toán hàm SUM(), AVG()... được ngay.
+                                if (j == 3 || j == 4 || j == 5) {
+                                    String strNum = value.toString().replaceAll("[,\\s]", ""); // Xóa dấu phẩy ngàn
+                                    try {
+                                        row.createCell(j).setCellValue(Double.parseDouble(strNum));
+                                    } catch (NumberFormatException ex) {
+                                        row.createCell(j).setCellValue(value.toString()); // Nếu lỗi thì cứ in ra dạng chữ
+                                    }
+                                } else {
+                                    row.createCell(j).setCellValue(value.toString()); // Các cột Mã, Tên thì in dạng chữ
+                                }
+                            } else {
+                                row.createCell(j).setCellValue("");
+                            }
+                        }
+                    }
+
+                    // Tự động căn chỉnh độ rộng của các cột cho vừa khít với chữ
+                    for (int i = 0; i < table.getColumnCount(); i++) {
+                        sheet.autoSizeColumn(i);
+                    }
+
+                    // Xuất file và đóng luồng
+                    workbook.write(out);
+                    JOptionPane.showMessageDialog(this, "Xuất file Excel Tồn Kho thành công!\nĐã lưu tại: " + filePath, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Có lỗi xảy ra khi xuất file Excel:\n" + ex.getMessage(), "Lỗi Xuất File", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
+
 
     private void luuDuLieu() {
         try {
