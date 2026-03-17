@@ -6,6 +6,7 @@ import DataBase.DBConnection;
 import Model.KeKho;
 import Model.SanPham;
 import java.sql.Connection;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.ArrayList;
 
@@ -94,6 +95,9 @@ public class SanPham_BUS {
             }
 
             if (!daChuyen) {
+                JOptionPane.showMessageDialog(null,
+                        "Không đủ chỗ cho sản phẩm có mã:  "+ maSP ,
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
                 System.out.println("Không đủ chỗ cho " + maSP);
                 return false;
             }

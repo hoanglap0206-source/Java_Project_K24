@@ -48,6 +48,7 @@ public class TrangXuatKho extends JPanel {
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private String maNV = ManHinhChinh.currentMaNV;
+    private String ma_PX,maKH;
 
     private JComboBox<String> comboBoxLoc;
     public TrangXuatKho() {
@@ -138,6 +139,7 @@ public class TrangXuatKho extends JPanel {
             txtSearch.setText("Tìm kiếm");
         });
         btnLamMoi.addActionListener(e -> {
+            spBus.refeshdata();
             loadTableData();
             txtSearch.setText("Tìm kiếm");
         });
@@ -268,6 +270,7 @@ public class TrangXuatKho extends JPanel {
         });
         comboBoxLoc.addActionListener(e -> {
             txtKH.setText(comboBoxLoc.getSelectedItem().toString());
+            this.maKH = txtKH.getText();
         });
 
         panel.add(comboBoxLoc);
@@ -396,6 +399,17 @@ public class TrangXuatKho extends JPanel {
             if (tableModelRight.getRowCount()==0){
                 JOptionPane.showMessageDialog(this, "Không có sản phẩm để Xuất ");
                 return;
+            }
+            int response = JOptionPane.showConfirmDialog(
+                    this,
+                    "Bạn có muốn xuất Excel trước khi tạo phiếu?",
+                    "Xác nhận xuất Excel",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (response == JOptionPane.YES_OPTION) {
+                xuatExcel();
             }
             TaoPX();
             spBus.refeshdata();
@@ -614,6 +628,7 @@ public class TrangXuatKho extends JPanel {
     public void bTnRightEvent(){
         btnXoa.addActionListener(e -> deleteSP());
         UpdateSP();
+        btnXuat.addActionListener(e->xuatExcel());
     }
 
     private void resetForm() {
@@ -628,6 +643,7 @@ public class TrangXuatKho extends JPanel {
 
         String maPX = "PX" + dateTime
                 .format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
+        this.ma_PX = maPX;
         String MaKH = txtKH.getText().trim();
         if(MaKH.isEmpty() || MaKH.equalsIgnoreCase("Mã Khách hàng")){
             JOptionPane.showMessageDialog(this, "Vui lòng chọn mã Khách hàng","Cảnh báo",
@@ -656,5 +672,111 @@ public class TrangXuatKho extends JPanel {
             );
         }
 
+    }
+
+    private void xuatExcel() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu file Excel");
+        fileChooser.setSelectedFile(new java.io.File("PhieuXuat.xlsx"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Excel file (*.xlsx)", "xlsx"));
+
+        if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        java.io.File file = fileChooser.getSelectedFile();
+        if (!file.getName().endsWith(".xlsx"))
+            file = new java.io.File(file.getAbsolutePath() + ".xlsx");
+
+        if (file.exists()) {
+            int response = JOptionPane.showConfirmDialog(
+                    this,
+                    "File \"" + file.getName() + "\" đã tồn tại.\nBạn có muốn ghi đè (thay thế) file cũ không?",
+                    "Xác nhận ghi đè",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (response != JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(this, "Đã hủy xuất file.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+        }
+
+        try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook =
+                     new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+
+            org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Danh sách phiếu xuất");
+
+            // Style tiêu đề
+            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setFontHeightInPoints((short) 12);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(new org.apache.poi.xssf.usermodel.XSSFColor(
+                    new byte[]{(byte) 200, (byte) 220, (byte) 240}, null));
+            headerStyle.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            headerStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            // Style dữ liệu
+            org.apache.poi.ss.usermodel.CellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            dataStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            // Dòng tiêu đề — khớp với cột bảng (bỏ cột Trạng thái nếu muốn, ở đây giữ đủ)
+            String[] cols = {"STT", "Mã PX","Mã NV","Mã KH","Mã SP", "Tên SP", "Số lượng", "Đơn giá","Ngày tạo"};
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < cols.length; i++) {
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                cell.setCellValue(cols[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Ghi dữ liệu từ model
+            for (int r = 0; r < tableModelRight.getRowCount(); r++) {
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(r + 1);
+                // Cột 0: STT → tự đếm (hoặc lấy từ đâu đó nếu có)
+                row.createCell(0).setCellValue(r + 1);
+                row.getCell(0).setCellStyle(dataStyle);
+
+                row.createCell(1).setCellValue(ma_PX);
+                row.getCell(1).setCellStyle(dataStyle);
+
+                row.createCell(2).setCellValue(maNV);
+                row.getCell(2).setCellStyle(dataStyle);
+
+                row.createCell(3).setCellValue(maKH);
+                row.getCell(3).setCellStyle(dataStyle);
+
+                for (int c = 1; c < cols.length; c++) {
+                    org.apache.poi.ss.usermodel.Cell cell = row.createCell(c+3);
+                    Object val = tableModelRight.getValueAt(r, c);
+                    cell.setCellValue(val != null ? val.toString() : "");
+                    cell.setCellStyle(dataStyle);
+                }
+            }
+
+            for (int i = 0; i < cols.length; i++) sheet.autoSizeColumn(i);
+
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+                workbook.write(fos);
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thành công!\nFile: " + file.getAbsolutePath(),
+                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thất bại: " + ex.getMessage(),
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
