@@ -506,10 +506,14 @@ public class TrangSanPham extends JPanel {
 
         int sl; float gia;
         try {
-            sl  = Integer.parseInt(txtSoLuong.getText().trim());
+            sl = Integer.parseInt(txtSoLuong.getText().trim());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ"); return;
+        }
+        try {
             gia = Float.parseFloat(txtGia.getText().trim());
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Số lượng hoặc giá không hợp lệ"); return;
+            JOptionPane.showMessageDialog(this, "Giá nhập không hợp lệ"); return;
         }
         SanPham sp = new SanPham();
         sp.setMaSP(ma); sp.setTenSP(ten); sp.setDonViTinh(dvt); sp.setSoLuong(sl); sp.setGiaTien(gia);
