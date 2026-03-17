@@ -14,6 +14,7 @@ public class KhachHang_BUS {
     public ArrayList<KhachHang>getListKH(){
         return listKH;
     }
+
     public String addKhachHang(KhachHang kh){
         //Kiểm tra thêm khách hàng có đúng định dạng không
         if (!Check.isValidKH(kh.getMaKH()))

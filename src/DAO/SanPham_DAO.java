@@ -148,20 +148,54 @@ public class SanPham_DAO {
         }return tong;
     }
 
-    public boolean delete(String maSP){
-        String sql = "DELETE FROM SAN_PHAM WHERE ma_sku=?";
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setString(1, maSP);
-            return ps.executeUpdate() > 0;
+    public boolean delete(String maSP) {
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            //Xóa chi tiết phiếu nhập có chứa sản phẩm này
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "DELETE FROM CHITIET_PHIEU_NHAP WHERE ma_sku = ?");
+            ps1.setString(1, maSP);
+            ps1.executeUpdate();
+            ps1.close();
+
+            //Xóa chi tiết phiếu xuất có chứa sản phẩm này
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "DELETE FROM CHITIET_PHIEU_XUAT WHERE ma_sku = ?");
+            ps2.setString(1, maSP);
+            ps2.executeUpdate();
+            ps2.close();
+
+            //Xóa sản phẩm
+            PreparedStatement ps3 = conn.prepareStatement(
+                    "DELETE FROM SAN_PHAM WHERE ma_sku = ?");
+            ps3.setString(1, maSP);
+            int rows = ps3.executeUpdate();
+            ps3.close();
+
+            if (rows == 0) {
+                conn.rollback();
+                return false;
+            }
+
+            conn.commit();
+            return true;
+
         } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
             e.printStackTrace();
             return false;
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (Exception ignored) {}
         }
     }
-
     public int countByMaKe(String maKe){ // trả về số lượng sản phẩm trong kệ
         String sql = "SELECT COUNT(*) FROM SAN_PHAM WHERE ma_ke = ?";
         try (

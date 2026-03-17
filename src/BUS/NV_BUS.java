@@ -62,7 +62,7 @@ public class NV_BUS {
 
         if(nvDAO.insert(nv)){
             listNV.add(nv);//Cập nhật RAM
-            return "Thêm nhân viên thanhf công!";
+            return "Thêm nhân viên thành công!";
         }
         return "Lỗi không thể thêm nhân viên";
     }
@@ -85,7 +85,7 @@ public class NV_BUS {
             listNV.removeIf(nv->nv.getMaNV().equals(maNV));
             return "Xoá nhân viên thành công!";
         }
-        return "Xoá nhân viên thất bại";
+        return "Không thể xoá vì nhân viên đã có phiếu nhập/xuất";
     }
     public void refesh(){
         this.listNV=nvDAO.getAllNV();
