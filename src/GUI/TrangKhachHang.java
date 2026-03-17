@@ -114,6 +114,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
                                 rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 1));
                         }
                     }
+                    reIndex();
                 });
 
 
@@ -191,6 +192,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
 
                 rowSorter.setSortKeys(sortKeys);
                 rowSorter.sort();
+                reIndex();
             }
         });
 
@@ -271,7 +273,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
                 String result = khBUS.deleteKH(maKH);
 
                 if(result.contains("Thành công!")){
-                    JOptionPane.showMessageDialog(this,result);
+                    JOptionPane.showMessageDialog(this,result,"Thông báo",JOptionPane.INFORMATION_MESSAGE);
                     fillToTable();
                 }else{
                     JOptionPane.showMessageDialog(this,"Lỗi"+result);
@@ -391,7 +393,10 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
             }
         }
     }
-
+    public void reIndex(){
+        for(int i=0;i<table.getRowCount();i++)
+            table.setValueAt(i+1,i,0);
+    }
     public void fillToTable(){
         if(table.isEditing()){
             table.getCellEditor().stopCellEditing();
@@ -426,6 +431,8 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
             };
             model.addRow(row);
         }
+        if(rowSorter!=null)
+             rowSorter.setSortKeys(null);
         comboBoxLoc.setSelectedIndex(0);
     }
     public KhachHang_BUS get_khBUS(){

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class KhachHangDAO {
     public ArrayList<KhachHang> getAllKhachHang(){
         ArrayList<KhachHang> list = new ArrayList<>();
-        String sql = "SELECT ma_kh, ten_kh, dia_chi, sdt, chi_tieu FROM KHACH_HANG";
+        String sql = "SELECT ma_kh, ten_kh, dia_chi, sdt, chi_tieu FROM KHACH_HANG ORDER BY ma_kh ASC";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);

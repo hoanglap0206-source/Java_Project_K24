@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class NCC_DAO {
     public ArrayList<NhaCungCap> getAllNCC(){
         ArrayList<NhaCungCap> list = new ArrayList<>();
-        String sql = "SELECT * FROM NHA_CUNG_CAP";
+        String sql = "SELECT * FROM NHA_CUNG_CAP ORDER BY ma_ncc  ASC";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);

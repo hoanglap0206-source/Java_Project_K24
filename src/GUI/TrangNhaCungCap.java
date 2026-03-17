@@ -103,6 +103,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
                                 RowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 1));
                         }
                     }
+                    reIndex();
                 });
 
 
@@ -151,6 +152,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
             }
         });
 
+
         // 3. Sự kiện sắp xếp (Sửa lại index cột cho chuẩn với bảng của bạn)
         comboBoxLoc.addActionListener(new ActionListener() {
             @Override
@@ -179,6 +181,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
 
                 RowSorter.setSortKeys(sortKeys);
                 RowSorter.sort();
+                reIndex();
             }
         });
 
@@ -260,7 +263,10 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         wrapper.add(panel, BorderLayout.CENTER);
         return wrapper;
     }
-
+    public void reIndex(){
+        for(int i=0; i<table.getRowCount();i++)
+            table.setValueAt(i+1,i,0);
+    }
     private JPanel taoNoiDung() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -382,6 +388,8 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
             model.addRow(row);
         }
         model.fireTableDataChanged();
+        if(RowSorter!=null)
+            RowSorter.setSortKeys(null);
         comboBoxLoc.setSelectedIndex(0);
 
     }
