@@ -249,6 +249,9 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
 
         rowSorter = new TableRowSorter<>(model);
         table.setRowSorter(rowSorter);
+        java.util.List<RowSorter.SortKey> sortKeys=new java.util.ArrayList<>();
+        sortKeys.add(new RowSorter.SortKey(0,SortOrder.ASCENDING));
+        rowSorter.setSortKeys(sortKeys);
         setupSearchLogic();
 
         JScrollPane scrollPane = new JScrollPane(table);
