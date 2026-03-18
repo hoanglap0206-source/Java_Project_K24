@@ -33,10 +33,6 @@ public class KeKho_BUS {
         return listKK; // Trả về cache, không query lại
     }
 
-    public ArrayList<KeKho> getlistkK(Connection conn){
-        return kkDAO.getListKK(conn);
-    }
-
     public ArrayList<SanPham> getAllSanPham() {
         return listAllSP;
     }
@@ -82,7 +78,10 @@ public class KeKho_BUS {
     public int tinhPhanTramTheoKe(KeKho ke) {
         int tong = tinhTongSoLuongTheoKe(ke.getMaKe());
         int sucChua = ke.getSucChua();
-        return (sucChua == 0) ? 0 : (int)((double) tong / sucChua * 100);
+        if (sucChua == 0)
+            return 0;
+        double phanTram = (double) tong / sucChua * 100;
+        return (int) phanTram;
     }
 
     public String addKK(KeKho kk){
@@ -117,14 +116,6 @@ public class KeKho_BUS {
         }
 
         return "Cập nhật thất bại!";
-    }
-
-    public boolean updatekK(Connection conn, KeKho kk){
-        if(kkDAO.updateKK(conn, kk)) {
-            refreshData();
-            return true;
-        }
-        return false;
     }
 
     public String deleteKK(String maKe) {
