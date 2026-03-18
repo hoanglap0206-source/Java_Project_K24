@@ -7,7 +7,6 @@ import Model.KhachHang;
 import Model.NhanVien;
 import Model.PhieuXuat;
 import Model.SanPham;
-import UI.GiaoDienChinh_Main;
 
 import javax.swing.*;
 import javax.swing.border.*;

@@ -39,7 +39,7 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
     private Timer searchTimer;
     private JComboBox<String> cbNhaCungCap;
 
-    // FIX: Flag ngăn focusLost kích applyFilter trong khi đang reset
+    // Flag ngăn focusLost kích applyFilter trong khi đang reset
     private boolean isResetting = false;
     private boolean coQuyen_Xem = true;
     private boolean coQuyen_Xoa = true;
@@ -68,7 +68,7 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
         });
     }
 
-    // ==================== TIÊU ĐỀ + THANH CÔNG CỤ ====================
+    //TIÊU ĐỀ + THANH CÔNG CỤ
 
     private JPanel taoTieuDe() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -138,12 +138,12 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
         btnReload.setFocusPainted(false);
         btnReload.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnReload.addActionListener(e -> {
-            // FIX: Bật flag trước khi setText để chặn focusLost -> applyFilter
+            //Bật flag trước khi setText để chặn focusLost -> applyFilter
             isResetting = true;
             txtSearch.setText("Tìm kiếm...");
             txtSearch.setForeground(Color.GRAY);
-            resetPlaceholder(tfFrom, "dd/MM/yyyy");
-            resetPlaceholder(tfTo, "dd/MM/yyyy");
+            resetPlaceholder(tfFrom, "dd/mm/yyyy");
+            resetPlaceholder(tfTo, "dd/mm/yyyy");
             cbNhaCungCap.setSelectedIndex(0);
             isResetting = false;
             // Refresh dữ liệu từ DB
@@ -153,7 +153,7 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
             loadDataToTable();
         });
 
-        // Ô NGÀY TỪ
+        // Ô từ ngày
         JLabel lblFrom = new JLabel("Từ ngày:");
         lblFrom.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
@@ -167,7 +167,7 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
         ));
         setPlaceholder(tfFrom, "dd/MM/yyyy");
         setupDateAutoFormat(tfFrom);
-        // FIX: Kiểm tra isResetting trước khi lọc
+        //Kiểm tra isResetting trước khi lọc
         tfFrom.addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
                 if (!isResetting) applyFilter();
@@ -202,7 +202,7 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
         panel.add(lblTo);
         panel.add(tfTo);
 
-        // ===== COMBOBOX NHÀ CUNG CẤP =====
+        //COMBOBOX NHÀ CUNG CẤP
         ArrayList<String> dsNCC = new ArrayList<>();
         dsNCC.add("Tất cả NCC");
         for (NhaCungCap ncc : nccBus.getListNCC()) {
@@ -220,7 +220,7 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
         return panel;
     }
 
-    // ==================== NỘI DUNG BẢNG ====================
+    //NỘI DUNG BẢNG
 
     private JPanel taoNoiDung() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -365,7 +365,7 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
         return panel;
     }
 
-    // ==================== LOAD + LỌC DỮ LIỆU ====================
+    //LOAD + LỌC DỮ LIỆU
 
     public void loadDataToTable() {
         allRows.clear();
@@ -440,9 +440,8 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
 
             // Lọc nhà cung cấp
             String selNCC = (String) cbNhaCungCap.getSelectedItem();
-            if (selNCC != null && !selNCC.equals("Tất cả NCC")) {
+            if (selNCC != null && !selNCC.equals("Tất cả NCC"))
                 if (!ncc.equalsIgnoreCase(selNCC)) continue;
-            }
 
             Object[] displayRow = row.clone();
             displayRow[0] = counter++; // Cập nhật lại STT theo thứ tự hiển thị

@@ -1,6 +1,5 @@
 package GUI;
 
-import UI.TonKho_GUI;
 import BUS.BaoCaoTonKho_BUS;
 import Model.BaoCaoTonKho;
 import Model.SanPham;
