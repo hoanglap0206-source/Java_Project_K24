@@ -87,6 +87,12 @@ public class KeKho_BUS {
 
     public String addKK(KeKho kk){
         if(kk.getMaKe().trim().isEmpty()) return "Mã kệ không được để trống!";
+
+        for (KeKho ke : listKK) {
+            if(ke.getMaKe().equalsIgnoreCase(kk.getMaKe().trim()))
+                return "Mã kệ đã tồn tại!";
+        }
+
         if(kk.getSucChua() <= 0) return "Sức chứa phải lớn hơn 0!";
 
         if(kkDAO.insert(kk)) {
