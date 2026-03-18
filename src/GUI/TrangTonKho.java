@@ -530,3 +530,38 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
         btnDelete.setVisible(coQuyen_Xoa);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Bảng san_pham   đang làm "Cha" của rất nhiều bảng khác
+//các bảng có thể gây ra lỗi
+//bao_cao_ton_kho
+//
+//chitiet_phieu_nhap
+//
+//chitiet_phieu_xuat
+
+//hướng giải quyết ( tạm ẩn hoặc "ngừng kinh doanh")
+
+
+//*khi thêm sản phẩm mới vào( đã thấy xuất hiện )nhưng chưa ai order -> chưa có trong hoá đơn(ct phiếu nhập / xuất) chưa có khoá ngoại
+// có thể xoá đơn giản đc
