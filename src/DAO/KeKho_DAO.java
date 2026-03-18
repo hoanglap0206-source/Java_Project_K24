@@ -30,27 +30,6 @@ public class KeKho_DAO {
         return list;
     }
 
-    public ArrayList<KeKho> getListKK(Connection conn){
-        ArrayList<KeKho> list = new ArrayList<>();
-        String sql = "SELECT ma_ke, suc_chua, vi_tri FROM KE_KHO";
-        try (
-//                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery();
-        ) {
-            while(rs.next()){
-                KeKho kk = new KeKho();
-                kk.setMaKe(rs.getString("ma_ke"));
-                kk.setSucChua(rs.getInt("suc_chua"));
-                kk.setViTri(rs.getString("vi_tri"));
-                list.add(kk);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
     public boolean insert(KeKho kk){
         String sql ="INSERT INTO KE_KHO(ma_ke,suc_chua,vi_tri) VALUES (?, ?,?)";
         try (
@@ -86,39 +65,6 @@ public class KeKho_DAO {
         }
     }
 
-    public boolean updateKK(Connection conn,KeKho kk){
-        String sql =
-                "UPDATE KE_KHO SET suc_chua=?,vi_tri=? WHERE ma_ke=?";
-        try (
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setInt(1,kk.getSucChua());
-            ps.setString(2,kk.getViTri());
-            ps.setString(3,kk.getMaKe());
-            int rows = ps.executeUpdate();
-            return rows > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-//    public boolean updateKhoangTrong(Connection conn,String maKe,int khoangTrong){
-//        String sql =
-//                "UPDATE KE_KHO SET khoang_trong=? WHERE ma_ke=?";
-//        try (
-//                PreparedStatement ps = conn.prepareStatement(sql)
-//        ) {
-//            ps.setInt(1,khoangTrong);
-//            ps.setString(2,maKe);
-//            int rows = ps.executeUpdate();
-//            return rows > 0;
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-//    }
-
     public boolean delete(String maKe){
         String sql = "DELETE FROM KE_KHO WHERE ma_ke=?";
         try (
@@ -131,28 +77,5 @@ public class KeKho_DAO {
             e.printStackTrace();
             return false;
         }
-    }
-
-    public KeKho getKeTheoMa(String maKe){
-        String sql = "SELECT ma_ke, suc_chua, vi_tri,khoang_trong FROM KE_KHO WHERE ma_ke = ?";
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setString(1, maKe);
-            ResultSet rs = ps.executeQuery();
-
-            if(rs.next()){
-                KeKho kk = new KeKho();
-                kk.setMaKe(rs.getString("ma_ke"));
-                kk.setSucChua(rs.getInt("suc_chua"));
-                kk.setViTri(rs.getString("vi_tri"));
-                return kk;
-            }
-
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
     }
 }
