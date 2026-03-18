@@ -145,7 +145,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
 
 
         // Combobox Lọc
-        String[] itemLoc = {"Lọc","1-N", "A-Z","Z-A"};
+        String[] itemLoc = {"Mặc định","MaKH(1-N)", "Tên(A-Z)","Tên(Z-A)"};
          comboBoxLoc = new JComboBox<>(itemLoc);
 
         // 1. Chỉ khai báo style 1 lần duy nhất
@@ -184,7 +184,12 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
                     case 3: // Tên Z-A
                         sortKeys.add(new RowSorter.SortKey(2, SortOrder.DESCENDING));
                         break;
-
+                    case 4: // Chi tiêu Tăng dần (Cột index 5)
+                        sortKeys.add(new RowSorter.SortKey(5, SortOrder.ASCENDING));
+                        break;
+                    case 5: // Chi tiêu Giảm dần (Cột index 5)
+                        sortKeys.add(new RowSorter.SortKey(5, SortOrder.DESCENDING));
+                        break;
                     default: // Mặc định STT tăng dần (Cột index 0)
                         sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
                         break;
@@ -232,7 +237,12 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
         btnAdd    = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
 
-        JButton btnExcel = new JButton("Xuất excel");
+        Image scaledImage = new ImageIcon(
+                getClass().getResource("/Img/Excel.png")
+        ).getImage().getScaledInstance(20,20,Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+
+        JButton btnExcel = new JButton("Xuất excel",scaledIcon);
         btnExcel.addActionListener(e->xuatExcel());
         Style.styleButton(btnExcel);
 
@@ -331,6 +341,8 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
             public boolean isCellEditable(int row, int column){
                 return false;
             }
+
+
         };
 
         table = new JTable(model);

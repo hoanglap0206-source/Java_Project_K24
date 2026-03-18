@@ -132,7 +132,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
 
 
         // Combobox Lọc
-        String[] itemLoc = {"Lọc","1-N","A-Z","Z-A"};
+        String[] itemLoc = {"Mặc định","1-N","A-Z","Z-A"};
         comboBoxLoc = new JComboBox<>(itemLoc);
 
         // Style cơ bản
@@ -193,7 +193,11 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         Style.styleButton(btnDelete);
         btnAdd    = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
-        JButton btnExcel = new JButton("Xuất excel");
+        Image scaledImage = new ImageIcon(
+                getClass().getResource("/Img/Excel.png")
+        ).getImage().getScaledInstance(20,20,Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+        JButton btnExcel = new JButton("Xuất excel",scaledIcon);
         Style.styleButton(btnExcel);
         btnExcel.addActionListener(e->xuatExcel());
 
@@ -255,7 +259,7 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
             String sdt=table.getModel().getValueAt(modelRow,3).toString();
             String dc=table.getModel().getValueAt(modelRow,4).toString();
 
-            NhaCungCap ncc=new NhaCungCap(ma,ten,sdt,dc);
+            NhaCungCap ncc=new NhaCungCap(ma,ten,dc,sdt);
 
             new FormNCC(this,"SUA",ncc).setVisible(true);
         });

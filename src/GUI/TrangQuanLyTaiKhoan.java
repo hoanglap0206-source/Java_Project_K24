@@ -94,7 +94,11 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         btnEdit    = new JButton("Chỉnh sửa"); Style.styleButton(btnEdit);
         btnDelete  = new JButton("Xóa");       Style.styleButton(btnDelete);
         btnAdd     = new JButton("+ Thêm");    Style.styleButton(btnAdd);
-        JButton btnExcel = new JButton("Xuất excel"); Style.styleButton(btnExcel);
+        Image scaledImage = new ImageIcon(
+                getClass().getResource("/Img/Excel.png")
+        ).getImage().getScaledInstance(20,20,Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+        JButton btnExcel = new JButton("Xuất excel",scaledIcon); Style.styleButton(btnExcel);
         btnExcel.addActionListener(e -> xuatExcel());
 
         panel.add(pnlSearch); panel.add(btnRefresh);

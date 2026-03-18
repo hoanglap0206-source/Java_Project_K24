@@ -300,7 +300,11 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
         btnEdit = new JButton("Chỉnh sửa"); Style.styleButton(btnEdit);
         btnDelete = new JButton("Xóa"); Style.styleButton(btnDelete);
         btnAdd = new JButton("+ Thêm"); Style.styleButton(btnAdd);
-        btnExcel = new JButton("Xuất excel"); Style.styleButton(btnExcel);
+        Image scaledImage = new ImageIcon(
+                getClass().getResource("/Img/Excel.png")
+        ).getImage().getScaledInstance(20,20,Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+        btnExcel = new JButton("Xuất excel",scaledIcon); Style.styleButton(btnExcel);
 
         panel.add(pnlSearchInput); panel.add(btnRefresh);panel.add(cbLoc);
         panel.add(btnEdit); panel.add(btnDelete); panel.add(btnAdd); panel.add(btnExcel);

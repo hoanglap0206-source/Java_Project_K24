@@ -34,12 +34,14 @@ public class NCC_BUS {
             return "Mã nhà cung cấp không đúng định dạng (Phải là NCCxx ví dụ NCC01)";
         if(isduplicateMaNCC(NCC.getMaNCC()))
             return "Mã nhà cung cấp đã tồn tại trên hệ thống";
-        if(NCC.getTenNCC().isEmpty())
+        if(NCC.getTenNCC().trim().isEmpty())
             return "Tên nhà cung cấp không được để trống!";
 
-        if(NCC.getSdt().isEmpty())
+        if(NCC.getSdt().trim().isEmpty())
             return"Số điên thoại không được để trống!";
-        if(NCC.getDiaChi().isEmpty())
+        if(!NCC.getSdt().matches("\\d{10}"))
+            return "Số điện thoại phải có đúng 10 số";
+        if(NCC.getDiaChi().trim()  .isEmpty())
             return"Địa chỉ không được để trống!";
 
 
@@ -50,16 +52,30 @@ public class NCC_BUS {
         return "Thêm Nhà Cung Cấp thất bại!";
     }
 
-    public String updateNCC(NhaCungCap NCC){
-        if(nccDAO.update(NCC)){
-            for(int i=0;i< listNCC.size();i++){
-                if(listNCC.get(i).getMaNCC().equalsIgnoreCase(NCC.getMaNCC()))
-                    listNCC.set(i,NCC);
-            }
+    public String updateNCC(NhaCungCap NCC) {
+        // 1. Validate dữ liệu trước khi gọi DAO
+        if (NCC.getMaNCC() == null || !Check.isValidNCC(NCC.getMaNCC()))
+            return "Mã nhà cung cấp không hợp lệ!";
+
+        if (NCC.getTenNCC().trim().isEmpty())
+            return "Tên nhà cung cấp không được để trống!";
+
+        if (NCC.getSdt().trim().isEmpty())
+            return "Số điện thoại không được để trống!";
+
+        if (!NCC.getSdt().matches("\\d{10}")) // Kiểm tra SĐT phải là 10 số
+            return "Số điện thoại phải có 10 chữ số!";
+
+        if (NCC.getDiaChi().trim().isEmpty())
+            return "Địa chỉ không được để trống!";
+
+        // 2. Chỉ khi dữ liệu sạch mới gọi xuống Database
+        if (nccDAO.update(NCC)) {
+            this.refeshData(); // Cập nhật lại list trong bộ nhớ
             return "Cập nhật thành công!";
         }
 
-        return "Cập nhật thất bại!";
+        return "Cập nhật thất bại tại hệ thống!";
     }
 
     public String deleteNCC(String maNCC){

@@ -127,8 +127,13 @@ public class TrangSanPham extends JPanel {
         Style.styleButton(btnAdd);
         btnRefresh = new JButton("↻ Làm mới");
         Style.styleButton(btnRefresh);
-        JButton btnExcel = new JButton("Xuất excel");
+        Image scaledImage = new ImageIcon(
+                getClass().getResource("/Img/Excel.png")
+        ).getImage().getScaledInstance(20,20,Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+        JButton btnExcel = new JButton("Xuất excel",scaledIcon);
         Style.styleButton(btnExcel);
+
         btnExcel.addActionListener(e -> xuatExcel());
 
         // Thêm vào panel

@@ -82,7 +82,7 @@ public class FormNCC extends JDialog {
             return;
         }
 
-        NhaCungCap nccMoi = new NhaCungCap(ma, ten, sdt, diaChi);
+        NhaCungCap nccMoi = new NhaCungCap(ma, ten, diaChi, sdt);
         String mess;
 
         // 2. Gọi đúng đối tượng nccMoi vừa tạo

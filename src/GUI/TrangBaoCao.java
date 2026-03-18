@@ -82,8 +82,11 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
             if (rowSorter != null) rowSorter.setRowFilter(null);
             loadBaoCao();
         });
-
-        JButton btnExcel = new JButton("📊 Xuất excel");
+        Image scaledImage = new ImageIcon(
+                getClass().getResource("/Img/Excel.png")
+        ).getImage().getScaledInstance(20,20,Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+        JButton btnExcel = new JButton(" Xuất excel",scaledIcon);
         btnExcel.setBackground(Color.WHITE);
         btnExcel.setFocusPainted(false);
 
