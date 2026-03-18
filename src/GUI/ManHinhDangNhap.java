@@ -39,6 +39,14 @@ public class ManHinhDangNhap extends JFrame {
         initLeft(content);
         initRight(content);
         add(content, BorderLayout.CENTER);
+
+        //Tự động focus vào ô mã nhân viên đầu tiên
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowOpened(java.awt.event.WindowEvent e) {
+                txtUsername.requestFocusInWindow();
+            }
+        });
     }
 
     //THANH TIÊU ĐỀ TÙY CHỈNH
@@ -177,6 +185,7 @@ public class ManHinhDangNhap extends JFrame {
 
         gbc.gridy++;
         txtUsername = createUnderlineField();
+        txtUsername.addActionListener(e -> txtPassword.requestFocusInWindow());
         right.add(txtUsername, gbc);
 
         gbc.gridy++;
@@ -184,6 +193,7 @@ public class ManHinhDangNhap extends JFrame {
 
         gbc.gridy++;
         txtPassword = createUnderlinePassword();
+        txtPassword.addActionListener(e -> handleLogin());
         right.add(txtPassword, gbc);
 
         gbc.gridy++;

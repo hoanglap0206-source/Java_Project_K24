@@ -266,10 +266,10 @@ public class TrangPhanQuyen extends JPanel {
                 box.setFont(new Font("Segoe UI", Font.BOLD, 13));
 
                 if (isChecked) {
-                    box.setBackground(new Color(40, 167, 69));
+                    box.setBackground(new Color(111, 179, 255));
                     box.setForeground(Color.WHITE);
-                    box.setText("✓");
-                    box.setBorder(new LineBorder(new Color(30, 130, 60), 1, true));
+                    box.setText("v");
+                    box.setBorder(new LineBorder(new Color(111, 140, 255), 1, true));
                 } else {
                     box.setBackground(new Color(248, 248, 248));
                     box.setText("");

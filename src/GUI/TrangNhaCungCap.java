@@ -330,40 +330,87 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
     }
 
     private void xuatExcel() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Chọn nơi lưu file");
-        if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-            String path = chooser.getSelectedFile().getPath();
-            if (!path.endsWith(".xlsx")) path += ".xlsx";
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu file Excel");
+        fileChooser.setSelectedFile(new java.io.File("DanhSachNhaCungCap.xlsx"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "Excel Files (*.xlsx)", "xlsx"));
 
-            try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
-                org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet("Danh Sách Nhà Cung Cấp");
+        if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
-                // Tạo tiêu đề cột (Header)
-                org.apache.poi.xssf.usermodel.XSSFRow headerRow = sheet.createRow(0);
-                for (int i = 0; i < table.getColumnCount(); i++) {
-                    headerRow.createCell(i).setCellValue(table.getColumnName(i));
-                }
+        java.io.File file = fileChooser.getSelectedFile();
+        if (!file.getName().endsWith(".xlsx"))
+            file = new java.io.File(file.getAbsolutePath() + ".xlsx");
 
-                // Đổ dữ liệu từ JTable vào Excel
-                for (int i = 0; i < table.getRowCount(); i++) {
-                    org.apache.poi.xssf.usermodel.XSSFRow row = sheet.createRow(i + 1);
-                    for (int j = 0; j < table.getColumnCount(); j++) {
-                        Object value = table.getValueAt(i, j);
-                        row.createCell(j).setCellValue(value != null ? value.toString() : "");
-                    }
-                }
+        try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook =
+                     new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
 
-                // Tự động căn chỉnh độ rộng cột
-                for (int i = 0; i < table.getColumnCount(); i++) sheet.autoSizeColumn(i);
+            org.apache.poi.ss.usermodel.Sheet sheet =
+                    workbook.createSheet("Danh sách nhà cung cấp");
 
-                try (java.io.FileOutputStream out = new java.io.FileOutputStream(path)) {
-                    workbook.write(out);
-                }
-                JOptionPane.showMessageDialog(this, "Xuất Excel thành công!");
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Lỗi xuất Excel: " + e.getMessage());
+            // Style tiêu đề
+            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setFontHeightInPoints((short) 12);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(
+                    new org.apache.poi.xssf.usermodel.XSSFColor(
+                            new byte[]{(byte)200, (byte)220, (byte)240}, null));
+            headerStyle.setFillPattern(
+                    org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(
+                    org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            headerStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            // Style dữ liệu
+            org.apache.poi.ss.usermodel.CellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            dataStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            dataStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+
+            // Dòng tiêu đề — bỏ cột "Xem chi tiết" (index 5)
+            String[] cols = {"STT", "Mã NCC", "Tên NCC", "SĐT", "Địa chỉ"};
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < cols.length; i++) {
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                cell.setCellValue(cols[i]);
+                cell.setCellStyle(headerStyle);
             }
+
+            // Ghi dữ liệu từ model (chỉ 5 cột đầu, bỏ cột "Xem chi tiết")
+            for (int r = 0; r < model.getRowCount(); r++) {
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(r + 1);
+                for (int c = 0; c < cols.length; c++) {
+                    org.apache.poi.ss.usermodel.Cell cell = row.createCell(c);
+                    Object val = model.getValueAt(r, c);
+                    cell.setCellValue(val != null ? val.toString() : "");
+                    cell.setCellStyle(dataStyle);
+                }
+            }
+
+            // Tự động điều chỉnh độ rộng cột
+            for (int i = 0; i < cols.length; i++) sheet.autoSizeColumn(i);
+
+            // Ghi file
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+                workbook.write(fos);
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thành công!\nFile: " + file.getAbsolutePath(),
+                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Xuất Excel thất bại: " + ex.getMessage(),
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 
