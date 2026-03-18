@@ -94,9 +94,11 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
             }
 
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Chọn vị trí lưu file Excel");
-            // Mặc định tên file là Mã Báo Cáo
-            fileChooser.setSelectedFile(new java.io.File(txtMaBC.getText() + ".xlsx"));
+            fileChooser.setDialogTitle("Chọn vị trí lưu file Báo Cáo");
+
+            // Lấy mã báo cáo làm tên file, nếu trống thì tạo tên mặc định
+            String tenFile = txtMaBC.getText().isEmpty() ? "BaoCao_" + new SimpleDateFormat("ddMMyyyy_HHmmss").format(new Date()) : txtMaBC.getText();
+            fileChooser.setSelectedFile(new java.io.File(tenFile + ".xlsx"));
 
             int userSelection = fileChooser.showSaveDialog(this);
             if (userSelection == JFileChooser.APPROVE_OPTION) {
@@ -107,33 +109,76 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
                 try (java.io.FileOutputStream out = new java.io.FileOutputStream(filePath);
                      org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
 
-                    org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet("Báo Cáo");
+                    // Lấy tên Loại báo cáo để đặt tên cho Sheet
+                    String tenSheet = cboloai.getSelectedItem().toString();
+                    org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet(tenSheet);
 
-                    // 1. Tạo dòng Header (Chỉ lấy tới cột Thành Tiền, bỏ nút Xem)
+                    // --- TẠO STYLE CHỮ IN ĐẬM CHO HEADER VÀ TỔNG CỘNG ---
+                    org.apache.poi.xssf.usermodel.XSSFCellStyle boldStyle = workbook.createCellStyle();
+                    org.apache.poi.xssf.usermodel.XSSFFont font = workbook.createFont();
+                    font.setBold(true);
+                    boldStyle.setFont(font);
+
+                    // 1. Ghi dòng Header (Tiêu đề bảng)
                     org.apache.poi.xssf.usermodel.XSSFRow headerRow = sheet.createRow(0);
+                    // table.getColumnCount() - 1 để LỌC BỎ CỘT "XEM CHI TIẾT" CUỐI CÙNG
                     for (int i = 0; i < table.getColumnCount() - 1; i++) {
-                        headerRow.createCell(i).setCellValue(table.getColumnName(i));
+                        org.apache.poi.xssf.usermodel.XSSFCell cell = headerRow.createCell(i);
+                        cell.setCellValue(table.getColumnName(i));
+                        cell.setCellStyle(boldStyle); // Tô đậm tiêu đề
                     }
 
-                    // 2. Chép dữ liệu từ bảng ra file
+                    // 2. Chép dữ liệu từ bảng ra file Excel
                     for (int i = 0; i < table.getRowCount(); i++) {
                         org.apache.poi.xssf.usermodel.XSSFRow row = sheet.createRow(i + 1);
                         for (int j = 0; j < table.getColumnCount() - 1; j++) {
                             Object value = table.getValueAt(i, j);
-                            row.createCell(j).setCellValue(value != null ? value.toString() : "");
+
+                            if (value != null) {
+                                // Cột 3 (SL Nhập), Cột 4 (SL Xuất), Cột 5 (Đơn giá) -> ÉP VỀ DẠNG SỐ
+                                if (j == 3 || j == 4 || j == 5) {
+                                    String strNum = value.toString().replaceAll("[,\\s]", "");
+                                    try {
+                                        row.createCell(j).setCellValue(Double.parseDouble(strNum));
+                                    } catch (NumberFormatException ex) {
+                                        row.createCell(j).setCellValue(value.toString());
+                                    }
+                                } else {
+                                    row.createCell(j).setCellValue(value.toString());
+                                }
+                            } else {
+                                row.createCell(j).setCellValue("");
+                            }
                         }
                     }
 
-                    // 3. Chép dòng Tổng Tiền xuống cuối
-                    org.apache.poi.xssf.usermodel.XSSFRow totalRow = sheet.createRow(table.getRowCount() + 2);
-                    totalRow.createCell(5).setCellValue("TỔNG CỘNG:");
+                    // 3. Chép dòng Tổng Tiền xuống cuối cùng
+                    int lastRowNum = table.getRowCount() + 2;
+                    org.apache.poi.xssf.usermodel.XSSFRow totalRow = sheet.createRow(lastRowNum);
 
-                    // Lọc bỏ thẻ HTML để lấy số tiền thuần túy
-                    String tongTienRaw = lblTong.getText().replaceAll("<[^>]*>", "").replace("TỔNG TIỀN ĐÃ THANH TOÁN:", "").trim();
-                    totalRow.createCell(6).setCellValue(tongTienRaw);
+                    org.apache.poi.xssf.usermodel.XSSFCell lblTotalCell = totalRow.createCell(4); // Cột ghi chữ "TỔNG CỘNG"
+                    lblTotalCell.setCellValue("TỔNG CỘNG:");
+                    lblTotalCell.setCellStyle(boldStyle);
+
+                    // Lọc bỏ thẻ HTML và chữ dư thừa để lấy đúng số tiền
+                    String tongTienRaw = lblTong.getText().replaceAll("<[^>]*>", "").replace("TỔNG TIỀN ĐÃ THANH TOÁN:", "").replaceAll("VNĐ", "").trim();
+                    String tienSo = tongTienRaw.replaceAll("[,\\s]", ""); // Bỏ dấu phẩy để thành số nguyên
+
+                    org.apache.poi.xssf.usermodel.XSSFCell valueTotalCell = totalRow.createCell(5); // Cột ghi giá trị tiền
+                    try {
+                        valueTotalCell.setCellValue(Double.parseDouble(tienSo));
+                    } catch (Exception ex) {
+                        valueTotalCell.setCellValue(tongTienRaw);
+                    }
+                    valueTotalCell.setCellStyle(boldStyle);
+
+                    // 4. Tự động kéo dãn độ rộng các cột cho đẹp
+                    for (int i = 0; i < table.getColumnCount() - 1; i++) {
+                        sheet.autoSizeColumn(i);
+                    }
 
                     workbook.write(out);
-                    JOptionPane.showMessageDialog(this, "Xuất Excel thành công!\nĐã lưu tại: " + filePath);
+                    JOptionPane.showMessageDialog(this, "Xuất Excel thành công!\nĐã lưu tại: " + filePath, "Thành công", JOptionPane.INFORMATION_MESSAGE);
 
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(this, "Lỗi khi xuất file: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);

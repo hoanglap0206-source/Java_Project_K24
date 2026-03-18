@@ -243,14 +243,66 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
             public void changedUpdate(javax.swing.event.DocumentEvent e) { s(); }
             private void s() { String t = txtSearch.getText(); rowSorter.setRowFilter(t.trim().isEmpty() || t.equals("Tìm kiếm") ? null : RowFilter.regexFilter("(?i)" + t)); }
         });
+        String[] itemLoc = {"Lọc", "1-N", "A-Z", "Z-A"};
+        JComboBox<String> cbLoc = new JComboBox<>(itemLoc);
+        cbLoc.setBackground(new Color(214, 238, 253));
+        cbLoc.setPreferredSize(new Dimension(90, 30));
+        cbLoc.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        cbLoc.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        cbLoc.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                lbl.setHorizontalAlignment(SwingConstants.CENTER);
+                return lbl;
+            }
+        });
+
+        cbLoc.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (rowSorter == null) return;
+
+                java.util.List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+                int luachon = cbLoc.getSelectedIndex();
+
+                switch (luachon) {
+                    case 1: // 1-N: Sắp xếp theo Mã SP (Cột index 0)
+                        sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
+                        break;
+                    case 2: // A-Z: Sắp xếp theo Tên SP (Cột index 1)
+                        sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
+                        break;
+                    case 3: // Z-A: Sắp xếp theo Tên SP ngược lại
+                        sortKeys.add(new RowSorter.SortKey(1, SortOrder.DESCENDING));
+                        break;
+                    default: // Mặc định khi chọn "Lọc"
+                        sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
+                        break;
+                }
+                rowSorter.setSortKeys(sortKeys);
+                rowSorter.sort();
+            }
+        });
 
         btnRefresh = new JButton("⟳ Làm mới"); Style.styleButton(btnRefresh);
+        btnRefresh.addActionListener(e -> {
+            txtSearch.setText("Tìm kiếm");
+            txtSearch.setForeground(Color.GRAY);
+            cbLoc.setSelectedIndex(0); // Reset Combobox về chữ "Lọc"
+            if (rowSorter != null) rowSorter.setRowFilter(null);
+
+            bus.refreshData();
+            loadDataToTable();
+            hideFormPanel();
+        });
+        Style.styleButton(btnRefresh);
         btnEdit = new JButton("Chỉnh sửa"); Style.styleButton(btnEdit);
         btnDelete = new JButton("Xóa"); Style.styleButton(btnDelete);
         btnAdd = new JButton("+ Thêm"); Style.styleButton(btnAdd);
         btnExcel = new JButton("Xuất excel"); Style.styleButton(btnExcel);
 
-        panel.add(pnlSearchInput); panel.add(btnRefresh);
+        panel.add(pnlSearchInput); panel.add(btnRefresh);panel.add(cbLoc);
         panel.add(btnEdit); panel.add(btnDelete); panel.add(btnAdd); panel.add(btnExcel);
         wrapper.add(panel, BorderLayout.CENTER);
         return wrapper;
