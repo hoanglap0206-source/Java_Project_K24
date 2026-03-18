@@ -250,16 +250,23 @@ public class ManHinhDangNhap extends JFrame {
         }
 
         NV_BUS nvBus = new NV_BUS();
-        if (nvBus.login(txtAcc, txtPass)) {
+        Model.NhanVien nv= nvBus.checkLogin(txtAcc,txtPass);
+        if (nv != null) {
+            // Đăng nhập thành công
             ManHinhChinh mainFrame = new ManHinhChinh(txtAcc);
             mainFrame.setVisible(true);
-            SwingUtilities.invokeLater(() -> new PopupChaoMung(mainFrame, nvBus.getTenNV_BUS(txtAcc)));
+            SwingUtilities.invokeLater(() -> new PopupChaoMung(mainFrame, nv.getHoTen()));
             this.dispose();
         } else {
-            JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu");
-            txtUsername.setText("");
+            // Đăng nhập thất bại (Có thể do sai pass HOẶC bị khóa)
+            // Bạn có thể thông báo chung để tăng tính bảo mật
+            JOptionPane.showMessageDialog(this,
+                    "Tài khoản/Mật khẩu không chính xác hoặc đã bị khóa!",
+                    "Lỗi đăng nhập",
+                    JOptionPane.ERROR_MESSAGE);
+
             txtPassword.setText("");
-            txtUsername.requestFocusInWindow();
+            txtPassword.requestFocusInWindow();
         }
     }
 

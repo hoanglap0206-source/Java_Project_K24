@@ -25,15 +25,29 @@ public class NV_BUS {
      * @param matKhau Mật khẩu
      * @return Đối Tượng NhanVien nếu đúng, null nếu sai
      */
-    public NhanVien checkLogin(String maNV,String matKhau){
-        for(NhanVien nv: listNV){
-            if(nv.getMaNV().equalsIgnoreCase(maNV) && nv.getMatKhau().equalsIgnoreCase(matKhau))
-            {
-                if("Đang làm việc".equals(nv.getTrangThai())) return nv;
+    // 1. Hàm checkLogin trả về đối tượng (Dùng khi cần lấy thông tin nhân viên sau đăng nhập)
+    // 1. Hàm checkLogin: Trả về đối tượng NhanVien (Dùng khi cần lấy thông tin Họ tên, Chức vụ sau khi login)
+    public NhanVien checkLogin(String maNV, String matKhau) {
+        for (NhanVien nv : listNV) {
+            if (nv.getMaNV().equalsIgnoreCase(maNV) && nv.getMatKhau().equals(matKhau)) {
+                // Kiểm tra trạng thái: chỉ cho phép "HoatDong" hoặc "Active"
+                if ("HoatDong".equalsIgnoreCase(nv.getTrangThai()) || "Active".equalsIgnoreCase(nv.getTrangThai())) {
+                    return nv;
+                } else {
+                    // Log để kiểm tra nếu cần
+                    System.out.println("Tài khoản " + maNV + " đã bị khóa.");
+                    return null;
+                }
             }
         }
         return null;
     }
+
+//    // 2. Hàm login: Trả về true/false (Gọi lại checkLogin để đồng bộ logic chặn tài khoản bị khóa)
+//    public boolean login(String acc, String pass) {
+//        return checkLogin(acc, pass) != null;
+//    }
+
     /**
      *Tìm kiếm nhân viên theo mã nhân viên
      */
