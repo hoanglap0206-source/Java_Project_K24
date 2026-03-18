@@ -70,7 +70,7 @@ public class KeKho_DAO {
 
     public boolean update(KeKho kk){
         String sql =
-                "UPDATE KE_KHO SET suc_chua=?,vi_tri=?WHERE ma_ke=?";
+                "UPDATE KE_KHO SET suc_chua=?,vi_tri=? WHERE ma_ke=?";
         try (
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)

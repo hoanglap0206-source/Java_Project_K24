@@ -407,7 +407,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
     }
 
     private void themKe(){
-
         JTextField txtMa = new JTextField();
         JTextField txtViTri = new JTextField();
         JTextField txtSucChua = new JTextField();

@@ -20,7 +20,6 @@ public class KeKho_BUS {
         loadAllData(); // Load 1 lần khi khởi tạo
     }
 
-    // Load tất cả dữ liệu 1 lần
     private void loadAllData() {
         listKK = kkDAO.getAllKeKho();
         listAllSP = spDAO.getAllSanPham();
