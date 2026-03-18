@@ -454,7 +454,7 @@ public class TrangXuatKho extends JPanel {
                     return;
                 }
                 tableModelRight.setValueAt(slCu + soLuong, i, 3);
-                tongTien += soLuong * donGia + (10/100)*soLuong*donGia;
+                tongTien += (long)(soLuong * donGia + 0.1f *soLuong*donGia);
                 txtTongTien.setText(String.valueOf(tongTien));
                 txtSoLuong.setText("");
                 return;
@@ -467,7 +467,7 @@ public class TrangXuatKho extends JPanel {
         tableModelRight.addRow(new Object[]{
                 stt, maSP, tenSP, soLuong, donGia
         });
-        tongTien += soLuong * donGia;
+        tongTien += (long)(soLuong * donGia + 0.1f *soLuong*donGia);
         String txtTien = String.valueOf(tongTien);
         txtTongTien.setText(txtTien);
         txtSoLuong.setText("");
@@ -566,7 +566,7 @@ public class TrangXuatKho extends JPanel {
             );
 //                        Cập nhật STT sau khi xóa dòng
             tableModelRight.setValueAt(i+1,i,0);
-            sumMoney += quantity * money +(10/100)*quantity*money;
+            sumMoney += (long)(quantity * money + 0.1f *quantity*money);
         }
         txtTongTien.setText(String.valueOf(sumMoney));
     }
@@ -619,7 +619,7 @@ public class TrangXuatKho extends JPanel {
                 double money = Double.parseDouble(
                         tableModelRight.getValueAt(i, 4).toString()
                 );
-                sumMoney += quantity * money + (10/100)*quantity*money;
+                sumMoney += (quantity * money + 0.1f *quantity*money);
             }
             txtTongTien.setText(String.valueOf(sumMoney));
         });
