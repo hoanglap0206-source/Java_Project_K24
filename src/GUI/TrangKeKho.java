@@ -110,7 +110,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         });
 
         // Nút làm mới
-        btnLamMoi = new JButton("⟳");
+        btnLamMoi = new JButton("Làm mới");
         Style.styleButton(btnLamMoi);
 
         // Combobox Lọc
@@ -238,7 +238,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
     private JPanel taoTheKe(String ten, int percent){
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
-        card.setBorder(new LineBorder(new Color(200,200,200), 1, true));
+        card.setBorder(new LineBorder(new Color(100,180,255), 2, true));
 
         card.setPreferredSize(new Dimension(170,70));
         card.setMaximumSize(new Dimension(170,70));
@@ -279,7 +279,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 selectedMaKe = ten; // lưu kệ đang chọn
                 capNhatBang(ten);
                 if (selectedCard != null) {
-                    selectedCard.setBorder(new LineBorder(new Color(200,200,200),1,true));
+                    selectedCard.setBorder(new LineBorder(new Color(100,180,255),1,true));
                 } // bỏ hightlight kệ cũ
 
                 card.setBorder(new LineBorder(Color.BLUE,2,true));
@@ -403,7 +403,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
             }
         }
 
-        veSoDoTheoDanhSach(listKeTim);
+        veSoDoKe(listKeTim);
     }
 
     private void themKe(){
@@ -418,7 +418,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         };
 
         int option = JOptionPane.showConfirmDialog(
-                null, msg, "Thêm kệ", JOptionPane.OK_CANCEL_OPTION
+                null, msg, "Thêm kệ", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
         );
 
         if(option != JOptionPane.OK_OPTION) return;
@@ -442,7 +442,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
     }
 
     private void suaKe(){
-
         if(selectedMaKe == null){
             JOptionPane.showMessageDialog(null,"Chưa chọn kệ!");
             return;
@@ -463,7 +462,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         };
 
         int option = JOptionPane.showConfirmDialog(
-                null, msg, "Sửa kệ", JOptionPane.OK_CANCEL_OPTION
+                null, msg, "Sửa kệ", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
         );
 
         if(option != JOptionPane.OK_OPTION) return;
@@ -596,7 +595,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
     private void loadSoDo() {
         bus.refreshData();
         ArrayList<KeKho> listKe = bus.getListKK();
-        veSoDoTheoDanhSach(listKe);
+        veSoDoKe(listKe);
         selectedCard = null; // đảm bảo không còn tham chiếu đến card cũ
         selectedMaKe = null; // tương tự, không tham chiếu đến mã kệ cũ
         capNhatTongSanPham();
@@ -626,10 +625,10 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         }
 
         // Vẽ lại sơ đồ với danh sách đã lọc
-        veSoDoTheoDanhSach(listKeLoc);
+        veSoDoKe(listKeLoc);
     }
 
-    private void veSoDoTheoDanhSach(ArrayList<KeKho> danhSachKe) {
+    private void veSoDoKe(ArrayList<KeKho> danhSachKe) {
         soDoKe.removeAll();
 
         int cols = 5;
