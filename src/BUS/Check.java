@@ -3,25 +3,25 @@ package BUS;
 public class Check {
     public static boolean isValidManv(String manv){
         if(manv == null) return false;
-        String laMaNV = "^NV\\d{2}$";
+        String laMaNV = "^NV\\d+$";
         return manv.matches(laMaNV);
     }
 
     public static boolean isValidNCC(String ncc){
         if(ncc == null) return false;
-        String laNCC = "^NCC\\d{2}$";
+        String laNCC = "^NCC\\d+$";
         return ncc.matches(laNCC);
     }
 
     public static boolean isValidKH(String kh){
         if(kh == null) return false;
-        String laKH = "^KH\\d{2}$";
+        String laKH = "^KH\\d+$";
         return kh.matches(laKH);
     }
 
     public static boolean isValidSP(String sp){
         if(sp == null) return false;
-        String laSP = "^SP\\d{2}$";
+        String laSP = "^SP\\d+$";
         return sp.matches(laSP);
     }
 

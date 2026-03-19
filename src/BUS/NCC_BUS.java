@@ -89,6 +89,22 @@ public class NCC_BUS {
         }
         return "Xoá Thất bại!";
     }
+    public String getNewMaKH(){
+        String lastMa= nccDAO.getNextMaKH();
+        if(lastMa==null||lastMa.isEmpty())
+            return "NCC1";
+        try {
+            String prefix ="NCC";
+            int NumberPart=Integer.parseInt(lastMa.substring(3));
+            int numNext=NumberPart+1;
+
+            return prefix+numNext;
+        }catch(Exception e){
+            e.printStackTrace();
+            return "NCC"+(new java.util.Random().nextInt(1000));
+
+        }
+    }
     public ThongKeNCCDTO getThongKe(String maNCC){
         return nccDAO.getThongKeTuSQL(maNCC);
     }

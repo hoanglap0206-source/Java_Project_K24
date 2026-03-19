@@ -120,4 +120,19 @@ public class NCC_DAO {
         } catch (Exception e) { e.printStackTrace(); }
         return list;
     }
+    public String getNextMaKH(){
+        String sql="SELECT ma_ncc FROM NHA_CUNG_CAP ORDER BY LENGTH(ma_ncc) DESC, ma_ncc DESC LIMIT 1";
+        try(Connection conn= DBConnection.getConnection();
+            PreparedStatement ps=  conn.prepareStatement(sql);
+            ResultSet rs= ps.executeQuery()){
+            if(rs.next()){
+                String lastMa= rs.getString("ma_ncc");
+                int number = Integer.parseInt(lastMa.substring(3));
+                return String.format("NCC%010d",number);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return "NCC1";
+    }
 }

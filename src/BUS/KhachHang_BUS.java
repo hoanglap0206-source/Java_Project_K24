@@ -31,7 +31,8 @@ public class KhachHang_BUS {
                 return "Lỗi: Mã khách hàng [" + kh.getMaKH() + "] đã tồn tại!";
             }
         }
-
+        if(!Check.isValidNCC(kh.getMaKH()))
+            return "Mã khách hàng không đúng định dạng (Phải là KHxx ví dụ KH01)";
         if(kh.getHoTenKH().trim().isEmpty())
             return"Họ tên không được để trống!";
         if(kh.getSdt().trim().isEmpty())
@@ -57,12 +58,15 @@ public class KhachHang_BUS {
             return"Số điện thoại không được để trống!";
         if(kh.getDiaChi().trim().isEmpty())
             return"Địa chỉ không được để trống!";
-        if(khDAO.insert(kh)) {
+        if(khDAO.update(kh)) {
             listKH.add(kh);
             return"Thêm khách hàng thành công!";
         }
 
-        if(khDAO.update(kh)) return "Cập nhật thành công!";
+        if(khDAO.update(kh)) {
+            refeshData();
+            return "Cập nhật thành công!";
+        }
         return "Cập nhật thất bại!";
     }
 
@@ -76,6 +80,22 @@ public class KhachHang_BUS {
             return"Xoá khách hàng thành công!";
         }
         return"Xoá Khách hàng thất bại!";
+    }
+    public String getNewMaKH(){
+        String lastMa= khDAO.getNextMaKH();
+        if(lastMa==null||lastMa.isEmpty())
+            return "KH1";
+        try {
+            String prefix ="KH";
+            int NumberPart=Integer.parseInt(lastMa.substring(2));
+            int numNext=NumberPart+1;
+
+            return prefix+numNext;
+        }catch(Exception e){
+            e.printStackTrace();
+            return "KH"+(new java.util.Random().nextInt(1000));
+
+        }
     }
     public void refreshList() {
         this.listKH = khDAO.getAllKhachHang(); // Quét lại toàn bộ DB
