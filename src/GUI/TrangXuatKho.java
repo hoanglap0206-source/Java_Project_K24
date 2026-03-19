@@ -753,7 +753,7 @@ public class TrangXuatKho extends JPanel {
                 row.createCell(3).setCellValue(maKH);
                 row.getCell(3).setCellStyle(dataStyle);
 
-                for (int c = 1; c < cols.length; c++) {
+                for (int c = 1; c < tableModelRight.getColumnCount(); c++) {
                     org.apache.poi.ss.usermodel.Cell cell = row.createCell(c+3);
                     Object val = tableModelRight.getValueAt(r, c);
                     cell.setCellValue(val != null ? val.toString() : "");
