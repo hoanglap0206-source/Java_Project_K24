@@ -399,6 +399,11 @@ public class TrangXuatKho extends JPanel {
                 JOptionPane.showMessageDialog(this, "Không có sản phẩm để Xuất ");
                 return;
             }
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            String maPX = "PX" + dateTime
+                    .format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
+            this.ma_PX = maPX;
             int response = JOptionPane.showConfirmDialog(
                     this,
                     "Bạn có muốn xuất Excel trước khi tạo phiếu?",
@@ -410,7 +415,7 @@ public class TrangXuatKho extends JPanel {
             if (response == JOptionPane.YES_OPTION) {
                 xuatExcel();
             }
-            TaoPX();
+            TaoPX(maPX,dateTime);
             spBus.refeshdata();
         });
         return panel;
@@ -637,12 +642,8 @@ public class TrangXuatKho extends JPanel {
         comboBoxLoc.setSelectedIndex(0);
     }
 
-    public void TaoPX(){
-        LocalDateTime dateTime = LocalDateTime.now();
+    public void TaoPX(String maPX,LocalDateTime dateTime){
 
-        String maPX = "PX" + dateTime
-                .format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
-        this.ma_PX = maPX;
         String MaKH = txtKH.getText().trim();
         if(MaKH.isEmpty() || MaKH.equalsIgnoreCase("Mã Khách hàng")){
             JOptionPane.showMessageDialog(this, "Vui lòng chọn mã Khách hàng","Cảnh báo",
@@ -753,7 +754,7 @@ public class TrangXuatKho extends JPanel {
                 row.createCell(3).setCellValue(maKH);
                 row.getCell(3).setCellStyle(dataStyle);
 
-                for (int c = 1; c < cols.length; c++) {
+                for (int c = 1; c < tableModelRight.getColumnCount(); c++) {
                     org.apache.poi.ss.usermodel.Cell cell = row.createCell(c+3);
                     Object val = tableModelRight.getValueAt(r, c);
                     cell.setCellValue(val != null ? val.toString() : "");
