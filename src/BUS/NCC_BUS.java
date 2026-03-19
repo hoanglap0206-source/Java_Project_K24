@@ -15,7 +15,6 @@ public class NCC_BUS {
         this.listNCC=nccDAO.getAllNCC();
     }
 
-
     public ArrayList<NhaCungCap> getListNCC(){
         return this.listNCC;
     }

@@ -9,7 +9,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 
 public class ManHinhDangNhap extends JFrame {
-
     private JTextField txtUsername;
     private JPasswordField txtPassword;
 
