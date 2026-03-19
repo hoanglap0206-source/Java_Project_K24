@@ -129,13 +129,8 @@ public class TrangSanPham extends JPanel {
         Style.styleButton(btnAdd);
         btnRefresh = new JButton("↻ Làm mới");
         Style.styleButton(btnRefresh);
-        Image scaledImage = new ImageIcon(
-                getClass().getResource("/Img/Excel.png")
-        ).getImage().getScaledInstance(20,20,Image.SCALE_SMOOTH);
-        ImageIcon scaledIcon = new ImageIcon(scaledImage);
-        JButton btnExcel = new JButton("Xuất excel",scaledIcon);
+        JButton btnExcel = new JButton("Xuất excel");
         Style.styleButton(btnExcel);
-
         btnExcel.addActionListener(e -> xuatExcel());
 
         // Thêm vào panel
@@ -464,8 +459,11 @@ public class TrangSanPham extends JPanel {
         String gia = model.getValueAt(row, 5).toString().replace("đ","").replace(",","");
         txtGia.setText(gia);
         cboKeKho.setSelectedItem(model.getValueAt(row, 6).toString());
-        cboKeKho.setEnabled(false); // không cho đổi kệ khi sửa
+        cboKeKho.setEnabled(false);
         txtMaSP.setEditable(false);
+        txtMaSP.setBackground(new Color(245, 247, 250));
+        txtMaSP.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+        txtMaSP.setForeground(new Color(100, 110, 130));
         txtSoLuong.setEditable(false);
         showFormPanel();
     }
@@ -538,7 +536,13 @@ public class TrangSanPham extends JPanel {
         txtSoLuong.setText("0"); txtGia.setText("");
         if (cboDVT != null) cboDVT.setSelectedIndex(0);
         if (cboKeKho != null && cboKeKho.getItemCount() > 0) { cboKeKho.setSelectedIndex(0); cboKeKho.setEnabled(true); }
-        txtMaSP.setEditable(true); txtSoLuong.setEditable(false);
+        txtMaSP.setEditable(true);
+        txtMaSP.setBackground(Color.WHITE);
+        txtMaSP.setForeground(Color.BLACK);
+        txtMaSP.setBorder(new CompoundBorder(
+                new LineBorder(new Color(198, 218, 245), 1, true),
+                new EmptyBorder(4, 10, 4, 10)));
+        txtSoLuong.setEditable(false);
         lblFormTitle.setText("THÊM SẢN PHẨM");
     }
 

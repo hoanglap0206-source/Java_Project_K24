@@ -440,7 +440,11 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         int row = table.getSelectedRow();
         if (row == -1) { JOptionPane.showMessageDialog(this, "Vui lòng chọn tài khoản cần sửa!"); return; }
         lblFormTitle.setText("SỬA TÀI KHOẢN");
-        txtMaNV.setText(model.getValueAt(row, 3).toString()); txtMaNV.setEditable(false);
+        txtMaNV.setText(model.getValueAt(row, 3).toString());
+        txtMaNV.setEditable(false);
+        txtMaNV.setBackground(new Color(245, 247, 250));
+        txtMaNV.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+        txtMaNV.setForeground(new Color(100, 110, 130));
         txtHoTen.setText(model.getValueAt(row, 1).toString());
         txtSDT.setText(model.getValueAt(row, 2).toString());
         txtMatKhau.setText(model.getValueAt(row, 6).toString());
@@ -515,6 +519,11 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         if (cboNhomQuyen.getItemCount() > 0) cboNhomQuyen.setSelectedIndex(0); // ← ĐỔI
         cboTrangThai.setSelectedIndex(0);
         txtMaNV.setEditable(true);
+        txtMaNV.setBackground(Color.WHITE);
+        txtMaNV.setForeground(Color.BLACK);
+        txtMaNV.setBorder(new CompoundBorder(
+                new LineBorder(new Color(198, 218, 245), 1, true),
+                new EmptyBorder(4, 10, 4, 10)));
     }
 
     // XUẤT EXCEL

@@ -19,11 +19,19 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
+<<<<<<< HEAD
           <root url="file://$MODULE_DIR$/libs/poi-551 (1)" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
         <jarDirectory url="file://$MODULE_DIR$/libs/poi-551 (1)" recursive="false" />
+=======
+          <root url="file://$USER_HOME$/Downloads/poi-551" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+        <jarDirectory url="file://$USER_HOME$/Downloads/poi-551" recursive="false" />
+>>>>>>> 562f834 (upd)
       </library>
     </orderEntry>
   </component>
