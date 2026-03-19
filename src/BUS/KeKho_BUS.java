@@ -25,6 +25,10 @@ public class KeKho_BUS {
         listAllSP = spDAO.getAllSanPham();
     }
 
+    public ArrayList<KeKho> getlistkK(Connection conn){
+        return kkDAO.getAllKeKhoB(conn);
+    }
+
     public void refreshData() {
         loadAllData();
     }
