@@ -327,7 +327,7 @@ public class TrangXuatKho extends JPanel {
         centerWrapper.add(vatPanel, BorderLayout.SOUTH);
 
         // Dòng số lượng
-        JPanel soLuongPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel soLuongPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         soLuongPanel.setBackground(Color.WHITE);
 
         JLabel lblSoLuong = new JLabel("SỐ LƯỢNG");
@@ -337,18 +337,18 @@ public class TrangXuatKho extends JPanel {
         soLuongPanel.add(txtSoLuongRight);
 
         // Nút
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.setBackground(Color.WHITE);
 
-        btnXuat = new JButton("Xuất excel");
+//        btnXuat = new JButton("Xuất excel");
         btnSua = new JButton("Sửa số lượng");
         btnXoa = new JButton("Xóa sản phẩm");
 
-        Style.styleButton(btnXuat);
+//        Style.styleButton(btnXuat);
         Style.styleButton(btnSua);
         Style.styleButton(btnXoa);
 
-        buttonPanel.add(btnXuat);
+//        buttonPanel.add(btnXuat);
         buttonPanel.add(btnSua);
         buttonPanel.add(btnXoa);
 
@@ -399,6 +399,11 @@ public class TrangXuatKho extends JPanel {
                 JOptionPane.showMessageDialog(this, "Không có sản phẩm để Xuất ");
                 return;
             }
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            String maPX = "PX" + dateTime
+                    .format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
+            this.ma_PX = maPX;
             int response = JOptionPane.showConfirmDialog(
                     this,
                     "Bạn có muốn xuất Excel trước khi tạo phiếu?",
@@ -410,7 +415,7 @@ public class TrangXuatKho extends JPanel {
             if (response == JOptionPane.YES_OPTION) {
                 xuatExcel();
             }
-            TaoPX();
+            TaoPX(maPX,dateTime);
             spBus.refeshdata();
         });
         return panel;
@@ -627,7 +632,7 @@ public class TrangXuatKho extends JPanel {
     public void bTnRightEvent(){
         btnXoa.addActionListener(e -> deleteSP());
         UpdateSP();
-        btnXuat.addActionListener(e->xuatExcel());
+//        btnXuat.addActionListener(e->xuatExcel());
     }
 
     private void resetForm() {
@@ -637,12 +642,8 @@ public class TrangXuatKho extends JPanel {
         comboBoxLoc.setSelectedIndex(0);
     }
 
-    public void TaoPX(){
-        LocalDateTime dateTime = LocalDateTime.now();
+    public void TaoPX(String maPX,LocalDateTime dateTime){
 
-        String maPX = "PX" + dateTime
-                .format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
-        this.ma_PX = maPX;
         String MaKH = txtKH.getText().trim();
         if(MaKH.isEmpty() || MaKH.equalsIgnoreCase("Mã Khách hàng")){
             JOptionPane.showMessageDialog(this, "Vui lòng chọn mã Khách hàng","Cảnh báo",
@@ -729,7 +730,7 @@ public class TrangXuatKho extends JPanel {
             dataStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
 
             // Dòng tiêu đề — khớp với cột bảng (bỏ cột Trạng thái nếu muốn, ở đây giữ đủ)
-            String[] cols = {"STT", "Mã PX","Mã NV","Mã KH","Mã SP", "Tên SP", "Số lượng", "Đơn giá","Ngày tạo"};
+            String[] cols = {"STT", "Mã PX","Mã NV","Mã KH","Mã SP", "Tên SP", "Số lượng", "Ngày tạo","Đơn giá"};
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
             for (int i = 0; i < cols.length; i++) {
                 org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
@@ -753,7 +754,7 @@ public class TrangXuatKho extends JPanel {
                 row.createCell(3).setCellValue(maKH);
                 row.getCell(3).setCellStyle(dataStyle);
 
-                for (int c = 1; c < cols.length; c++) {
+                for (int c = 1; c < tableModelRight.getColumnCount(); c++) {
                     org.apache.poi.ss.usermodel.Cell cell = row.createCell(c+3);
                     Object val = tableModelRight.getValueAt(r, c);
                     cell.setCellValue(val != null ? val.toString() : "");

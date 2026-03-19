@@ -30,6 +30,26 @@ public class KeKho_DAO {
         return list;
     }
 
+    public ArrayList<KeKho> getAllKeKhoB(Connection conn){
+        ArrayList<KeKho> list = new ArrayList<>();
+        String sql = "SELECT ma_ke, suc_chua, vi_tri FROM KE_KHO";
+        try (
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+        ) {
+            while(rs.next()){
+                KeKho kk = new KeKho();
+                kk.setMaKe(rs.getString("ma_ke"));
+                kk.setSucChua(rs.getInt("suc_chua"));
+                kk.setViTri(rs.getString("vi_tri"));
+                list.add(kk);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public boolean insert(KeKho kk){
         String sql ="INSERT INTO KE_KHO(ma_ke,suc_chua,vi_tri) VALUES (?, ?,?)";
         try (
