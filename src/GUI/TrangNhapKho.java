@@ -368,6 +368,11 @@ public class TrangNhapKho extends JPanel {
                 JOptionPane.showMessageDialog(this, "Không có sản phẩm cần nhập!");
                 return;
             }
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            String maPN = "PN" + dateTime
+                    .format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
+            this.ma_PN = maPN;
             int response = JOptionPane.showConfirmDialog(
                     this,
                     "Bạn có muốn xuất Excel trước khi tạo phiếu?",
@@ -379,7 +384,7 @@ public class TrangNhapKho extends JPanel {
             if (response == JOptionPane.YES_OPTION) {
                 xuatExcel();
             }
-            taoPN();
+            taoPN(maPN,dateTime);
             spBus.refeshdata();
         });
 
@@ -589,13 +594,7 @@ public class TrangNhapKho extends JPanel {
         comboBoxLoc.setSelectedIndex(0);
     }
 
-    public void taoPN(){
-        LocalDateTime dateTime = LocalDateTime.now();
-
-        String maPN = "PN" + dateTime
-                .format(DateTimeFormatter.ofPattern("ddMMyyyyHHmmss"));
-        this.ma_PN = maPN;
-
+    public void taoPN(String maPN,LocalDateTime dateTime){
         String ManCC = txtNCC.getText().trim();
         if(ManCC.isEmpty() || ManCC.equalsIgnoreCase("Mã nhà cung cấp")){
             JOptionPane.showMessageDialog(this, "Vui lòng nhập mã Nhà Cung Cấp","Cảnh báo",
