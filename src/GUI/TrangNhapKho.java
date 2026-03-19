@@ -298,7 +298,7 @@ public class TrangNhapKho extends JPanel {
         }
 
         // Số lượng mới
-        JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         editPanel.setBackground(Color.WHITE);
 
         JLabel lblSoLuongRight = new JLabel("Số lượng mới:");
@@ -311,11 +311,11 @@ public class TrangNhapKho extends JPanel {
         editPanel.add(txtSoLuongRight);
 
         // Nút chức năng
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.setBackground(Color.WHITE);
 
-        btnXuat = new JButton("Xuất Excel");
-        Style.styleButton(btnXuat);
+//        btnXuat = new JButton("Xuất Excel");
+//        Style.styleButton(btnXuat);
 
         btnSua = new JButton("Sửa số lượng");
         Style.styleButton(btnSua);
@@ -323,7 +323,7 @@ public class TrangNhapKho extends JPanel {
         btnXoa = new JButton("Xóa sản phẩm");
         Style.styleButton(btnXoa);
 
-        buttonPanel.add(btnXuat);
+//        buttonPanel.add(btnXuat);
         buttonPanel.add(btnSua);
         buttonPanel.add(btnXoa);
 
@@ -462,7 +462,7 @@ public class TrangNhapKho extends JPanel {
     public void bTnRightEvent(){
         btnXoa.addActionListener(e -> deleteSP());
         UpdateSP();
-        btnXuat.addActionListener(e->xuatExcel());
+//        btnXuat.addActionListener(e->xuatExcel());
     }
 
     private void handleAddProduct() {
@@ -681,7 +681,7 @@ public class TrangNhapKho extends JPanel {
             dataStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
 
             // Dòng tiêu đề — khớp với cột bảng (bỏ cột Trạng thái nếu muốn, ở đây giữ đủ)
-            String[] cols = {"STT", "Mã PN","Mã NV","Mã Nhà CC","Mã SP", "Tên SP", "Số lượng", "Giá nhập","Ngày tạo"};
+            String[] cols = {"STT", "Mã PN","Mã NV","Mã Nhà CC","Mã SP", "Tên SP", "Số lượng", "Ngày tạo","Giá nhập"};
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
             for (int i = 0; i < cols.length; i++) {
                 org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
