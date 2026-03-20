@@ -17,8 +17,10 @@ public class TonKho_DAO {
         ArrayList<BaoCaoTonKho> list = new ArrayList<>();
 
         String sql = "SELECT tk.ma_bc, tk.ton, tk.canh_bao_hh, " +
-                "sp.ma_sku, sp.ten_sp, sp.dvt, sp.sl, sp.gia, sp.ma_ke " +
-                "FROM bao_cao_ton_kho tk JOIN SAN_PHAM sp ON tk.ma_bc = sp.ma_sku";
+                "sp.ma_sku, sp.ten_sp, sp.dvt, sp.gia, sp.ma_ke " +
+                "FROM bao_cao_ton_kho tk " +
+                "JOIN SAN_PHAM sp ON tk.ma_sku = sp.ma_sku " +
+                "WHERE sp.trang_thai = 1";
 
         try (
                 Connection conn = DBConnection.getConnection();
@@ -37,7 +39,7 @@ public class TonKho_DAO {
                 BaoCaoTonKho tk = new BaoCaoTonKho();
 
                 tk.setMaBC(rs.getString("ma_bc"));
-                tk.setsLTon(rs.getInt("sl"));
+                tk.setsLTon(rs.getInt("ton"));
                 tk.setCanhBaoHH(rs.getInt("canh_bao_hh"));
 
                 tk.setSanPham(sp);
@@ -54,34 +56,36 @@ public class TonKho_DAO {
     public boolean insert(BaoCaoTonKho bc) {
         boolean ketQua = false;
 
-        String sqlSP = "INSERT INTO SAN_PHAM (ma_sku, ten_sp, dvt, sl, gia, ma_ke) VALUES (?, ?, ?, ?, ?, ?)";
-        String sqlBC = "INSERT INTO bao_cao_ton_kho (ma_bc, ton, canh_bao_hh,ma_sku) VALUES (?, ?, ?,?)";
+        String sqlBC = "INSERT INTO bao_cao_ton_kho (ma_bc, ton, canh_bao_hh, ma_sku) VALUES (?, ?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE ton = ?, canh_bao_hh = ?";
+
+        String sqlSP = "UPDATE san_pham SET trang_thai = 1 WHERE ma_sku = ?";
 
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
 
             conn.setAutoCommit(false);
-
-
-            try (PreparedStatement psSP = conn.prepareStatement(sqlSP)) {
-                psSP.setString(1, bc.getSanPham().getMaSP());
-                psSP.setString(2, bc.getSanPham().getTenSP());
-                psSP.setString(3, bc.getSanPham().getDonViTinh());
-                psSP.setInt(4, bc.getsLTon()); // Lưu số lượng
-                psSP.setFloat(5, bc.getSanPham().getGiaTien());
-                psSP.setString(6, bc.getSanPham().getMaKe());
-
-                psSP.executeUpdate();
-            }
-
-
             try (PreparedStatement psBC = conn.prepareStatement(sqlBC)) {
+                // Tham số cho phần INSERT
                 psBC.setString(1, bc.getMaTonKho());
                 psBC.setInt(2, bc.getsLTon());
                 psBC.setInt(3, bc.getCanhBaoHH());
                 psBC.setString(4, bc.getSanPham().getMaSP());
+
+                // Tham số cho phần ON DUPLICATE KEY UPDATE
+                psBC.setInt(5, bc.getsLTon());
+                psBC.setInt(6, bc.getCanhBaoHH());
+
                 psBC.executeUpdate();
+            }
+
+
+
+
+            try (PreparedStatement psSP = conn.prepareStatement(sqlSP)) {
+                psSP.setString(1, bc.getSanPham().getMaSP());
+                psSP.executeUpdate();
             }
 
             conn.commit();
@@ -156,45 +160,24 @@ public class TonKho_DAO {
     }
 
 
-    public boolean delete(String maBC) {
+    public boolean delete(String maSP) {
         boolean ketQua = false;
 
-        String sqlBC = "DELETE FROM bao_cao_ton_kho WHERE ma_bc = ?";
-        String sqlSP = "DELETE FROM SAN_PHAM WHERE ma_sku = ?";
+        // --- ĐÃ SỬA: Chuyển sang lệnh UPDATE để ẩn sản phẩm ---
+        String sql = "UPDATE san_pham SET trang_thai = 0 WHERE ma_sku = ?";
+        // -----------------------------------------------------
 
-        Connection conn = null;
-        try {
-            conn = DBConnection.getConnection();
-            conn.setAutoCommit(false);
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            ps.setString(1, maSP);
 
-            try (PreparedStatement psBC = conn.prepareStatement(sqlBC)) {
-                psBC.setString(1, maBC);
-                psBC.executeUpdate();
-            }
-
-
-            try (PreparedStatement psSP = conn.prepareStatement(sqlSP)) {
-                psSP.setString(1, maBC);
-                psSP.executeUpdate();
-            }
-
-            conn.commit();
-            ketQua = true;
+            int rows = ps.executeUpdate();
+            if (rows > 0) ketQua = true;
 
         } catch (SQLException e) {
-            try {
-                if (conn != null) conn.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-            System.err.println("Lỗi Delete: " + e.getMessage());
-        } finally {
-            try {
-                if (conn != null) conn.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            System.err.println("Lỗi Xóa ảo Tồn Kho: " + e.getMessage());
+            e.printStackTrace();
         }
         return ketQua;
     }

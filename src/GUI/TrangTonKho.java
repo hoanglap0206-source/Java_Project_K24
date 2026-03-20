@@ -33,7 +33,8 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
     private JSplitPane splitPane;
     private JPanel panelForm;
     private JLabel lblFormTitle;
-    private JTextField txtMaSP, txtTenSP, txtSL, txtDG, txtCanhBao, txtMaKe;
+    private JTextField txtMaSP, txtSL, txtDG, txtCanhBao, txtMaKe;
+    private JComboBox<String> cbTenSP;
     private JComboBox<String> cbDVT;
     private boolean isEditMode = false;
 
@@ -141,7 +142,8 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
 
 
         txtMaSP = new JTextField();
-        txtTenSP = new JTextField();
+        cbTenSP = new JComboBox<>();
+        loadComboboxTenSP();
         cbDVT = new JComboBox<>(new String[]{"Lon", "Chai", "Thùng"});
         txtSL = new JTextField();
         txtDG = new JTextField();
@@ -149,7 +151,7 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
         txtMaKe = new JTextField();
 
         pnl.add(nhomField("Mã sản phẩm", txtMaSP)); pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomField("Tên sản phẩm", txtTenSP)); pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomCombo("Tên sản phẩm", cbTenSP)); pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomCombo("Đơn vị tính", cbDVT)); pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Số lượng", txtSL)); pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Đơn giá", txtDG)); pnl.add(Box.createVerticalStrut(10));
@@ -315,11 +317,34 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
 
     private void addEvents() {
         btnAdd.addActionListener(e -> {
-            lblFormTitle.setText("THÊM SẢN PHẨM");
-            txtMaSP.setEditable(true);
+            lblFormTitle.setText("THÊM SẢN PHẨM TỒN KHO");
+
             clearForm();
             isEditMode = false;
+            txtMaSP.setEditable(false);
+            txtDG.setEditable(false);
+            txtMaKe.setEditable(false);
+            cbDVT.setEnabled(false);
             showFormPanel();
+            cbTenSP.setEnabled(true);
+            if(cbTenSP.getItemCount() > 0) cbTenSP.setSelectedIndex(-1);
+        });
+        cbTenSP.addActionListener(e -> {
+            if(cbTenSP.getSelectedIndex()==-1){
+                return;
+            }
+            String dachon=cbTenSP.getSelectedItem().toString();
+            SanPham_BUS spbus=new SanPham_BUS();
+            for(SanPham sp:spbus.getAll()){
+                if(sp.getTenSP().equalsIgnoreCase(dachon)){
+                    txtMaSP.setText(sp.getMaSP());
+                    cbDVT.setSelectedItem(sp.getDonViTinh());
+                    txtDG.setText(String.format("%.0f", sp.getGiaTien()));
+                    txtMaKe.setText(sp.getMaKe() != null ? sp.getMaKe() : "");
+                    txtSL.requestFocus();
+                    break;
+                }
+            }
         });
 
         btnEdit.addActionListener(e -> {
@@ -329,10 +354,9 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
                 return;
             }
 
-            lblFormTitle.setText("SỬA SẢN PHẨM");
+            lblFormTitle.setText("SỬA SẢN PHẨM TỒN KHO");
             txtMaSP.setText(model.getValueAt(row, 0).toString());
-            txtMaSP.setEditable(false);
-            txtTenSP.setText(model.getValueAt(row, 1).toString());
+            cbTenSP.setSelectedItem(model.getValueAt(row, 1).toString());
             cbDVT.setSelectedItem(model.getValueAt(row, 2).toString());
             txtSL.setText(model.getValueAt(row, 3).toString());
             txtDG.setText(model.getValueAt(row, 4).toString().replace(",", "").replace(".", ""));
@@ -340,6 +364,10 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
             txtMaKe.setText(model.getValueAt(row, 6) != null ? model.getValueAt(row, 6).toString() : "");
 
             isEditMode = true;
+            txtMaSP.setEditable(false);
+            cbTenSP.setEnabled(false);
+            cbDVT.setEnabled(false);
+            txtDG.setEditable(false);
             showFormPanel();
         });
 
@@ -456,16 +484,40 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
     private void luuDuLieu() {
         try {
             String ma = txtMaSP.getText().trim();
-            String ten = txtTenSP.getText().trim();
-            if (ma.isEmpty() || ten.isEmpty()) { JOptionPane.showMessageDialog(this, "Mã và tên không được để trống!"); return; }
+            if (cbTenSP.getSelectedIndex() == -1) {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn Tên Sản Phẩm từ danh sách!");
+                return;
+            }
+            String ten = cbTenSP.getSelectedItem().toString();
+            if (ma.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Mã sản phẩm đang trống!\nVui lòng gõ Tên sản phẩm và BẤM ENTER để hệ thống tự tìm Mã SP trước khi Lưu.", "Thiếu thông tin", JOptionPane.WARNING_MESSAGE);
+                cbTenSP.requestFocus(); // Đẩy chuột về lại ô Tên SP
+                return; // Dừng lại, không chạy code bên dưới nữa
+            }
+            if ( ten.isEmpty()) { JOptionPane.showMessageDialog(this, "Mã và tên không được để trống!"); return; }
             String strSL = txtSL.getText().replaceAll("[,\\s]", "");
 
             int sl = Integer.parseInt(strSL);
+
+            if (sl<0){
+                JOptionPane.showMessageDialog(this, "Số lượng tồn kho không được là số âm!", "Lỗi nhập liệu", JOptionPane.ERROR_MESSAGE);
+                txtSL.requestFocus();
+                txtSL.selectAll();
+                return;
+            }
 
             String strGia = txtDG.getText().replaceAll("[,\\s]", "");
             float gia = Float.parseFloat(strGia);
             String strCanhBao = txtCanhBao.getText().replaceAll("[,\\s]", "");
             int canhbao = Integer.parseInt(strCanhBao);
+
+            if (canhbao < 0) {
+
+                JOptionPane.showMessageDialog(this, "Số ngày cảnh báo không được là số âm!", "Lỗi nhập liệu", JOptionPane.ERROR_MESSAGE);
+                txtCanhBao.requestFocus();
+                txtCanhBao.selectAll();
+                return;
+            }
 
             SanPham sp = new SanPham(); sp.setMaSP(ma); sp.setTenSP(ten); sp.setDonViTinh(cbDVT.getSelectedItem().toString()); sp.setGiaTien(gia); sp.setMaKe(txtMaKe.getText().trim());
             BaoCaoTonKho bc = new BaoCaoTonKho(); bc.setMaBC(ma); bc.setsLTon(sl); bc.setCanhBaoHH(canhbao); bc.setSanPham(sp);
@@ -494,10 +546,20 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
             model.addRow(new Object[]{ tk.getSanPham().getMaSP(), tk.getSanPham().getTenSP(), tk.getSanPham().getDonViTinh(), tk.getsLTon(), String.format("%,.0f", tk.getSanPham().getGiaTien()), tk.getCanhBaoHH(), tk.getSanPham().getMaKe() });
         }
     }
+    public void loadComboboxTenSP(){
+        cbTenSP.removeAllItems();
+        SanPham_BUS spbus=new SanPham_BUS();
+        for(SanPham sp:spbus.getAll()){
+            cbTenSP.addItem(sp.getTenSP());
+
+        }
+        cbTenSP.setSelectedIndex(-1);
+    }
 
     private void clearForm() {
-        txtMaSP.setText(""); txtTenSP.setText(""); txtSL.setText("0"); txtDG.setText("0"); txtCanhBao.setText("10"); txtMaKe.setText("");
+        txtMaSP.setText(""); txtSL.setText("0"); txtDG.setText("0"); txtCanhBao.setText("10"); txtMaKe.setText("");
         cbDVT.setSelectedIndex(0);
+        if (cbTenSP.getItemCount() > 0) cbTenSP.setSelectedIndex(-1); // Thêm dòng này
     }
 
     private void showFormPanel() {
