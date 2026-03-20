@@ -77,6 +77,7 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
 
         loadDataToTable();
         addEvents();
+        kiemTraVaTruNgayCanhBao();
     }
 
 
@@ -600,6 +601,73 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
     private void hideFormPanel() {
         panelForm.setVisible(false);
     }
+
+    private void kiemTraVaTruNgayCanhBao() {
+        try {
+
+            java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(TrangTonKho.class);
+
+            // Lấy ngày hôm nay
+            java.time.LocalDate today = java.time.LocalDate.now();
+
+            // Lấy "Ngày mở app lần cuối" (Nếu app mở lần đầu tiên, mặc định là ngày hôm nay)
+            String lastRunStr = prefs.get("LAST_RUN_DATE", today.toString());
+            java.time.LocalDate lastRun = java.time.LocalDate.parse(lastRunStr);
+
+            // Tính xem app đã bị tắt bao nhiêu ngày
+            long soNgayBiHut = java.time.temporal.ChronoUnit.DAYS.between(lastRun, today);
+
+            if (soNgayBiHut > 0) {
+                boolean hasChanges = false;
+
+                // Quét toàn bộ kho, trừ BÙ số ngày bị hụt cho tất cả sản phẩm
+                for (BaoCaoTonKho bc : bus.getAll()) {
+                    if (bc.getCanhBaoHH() > 0) {
+                        int ngayMoi = (int) (bc.getCanhBaoHH() - soNgayBiHut);
+                        // Không cho phép số ngày âm, bét nhất là 0 (Đã hết hạn)
+                        bc.setCanhBaoHH(Math.max(ngayMoi, 0));
+
+                        bus.updateBaoCao(bc); // Lưu xuống DB
+                        hasChanges = true;
+                    }
+                }
+
+                // Cập nhật lại giao diện nếu có thay đổi
+                if (hasChanges) {
+                    loadDataToTable();
+                    System.out.println("Đã tự động trừ bù " + soNgayBiHut + " ngày trong lúc tắt app!");
+                }
+
+                // Cập nhật lại "Ngày mở app lần cuối" thành hôm nay để ngày mai tính tiếp
+                prefs.put("LAST_RUN_DATE", today.toString());
+            }
+
+            // BẬT TIMER VÔ CỰC (Xử lý trường hợp người dùng treo máy qua đêm không tắt app)
+            // Cứ mỗi 1 tiếng (3.600.000 ms) nó sẽ quét 1 lần xem đã sang ngày mới chưa
+            Timer midnightTimer = new Timer(3600000, e -> {
+                java.time.LocalDate currentDay = java.time.LocalDate.now();
+                java.time.LocalDate savedDay = java.time.LocalDate.parse(prefs.get("LAST_RUN_DATE", currentDay.toString()));
+
+                // Nếu đang treo app mà đồng hồ điểm qua 12h đêm -> Trừ đi 1
+                if (currentDay.isAfter(savedDay)) {
+                    for (BaoCaoTonKho bc : bus.getAll()) {
+                        if (bc.getCanhBaoHH() > 0) {
+                            bc.setCanhBaoHH(bc.getCanhBaoHH() - 1);
+                            bus.updateBaoCao(bc);
+                        }
+                    }
+                    loadDataToTable();
+                    prefs.put("LAST_RUN_DATE", currentDay.toString());
+                    System.out.println("Vừa sang ngày mới, đã tự động trừ 1 ngày!");
+                }
+            });
+            midnightTimer.start(); // Chạy vô cực
+
+        } catch (Exception e) {
+            System.err.println("Lỗi tính ngày tự động: " + e.getMessage());
+        }
+    }
+    // -----------------------------------------------------------------
     public static void main(String[]  args){
         SwingUtilities.invokeLater(()->
         {
