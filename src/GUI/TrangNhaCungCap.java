@@ -81,37 +81,43 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
     }
 
     private JPanel taoPanelForm() {
+        // 1. Panel ngoài cùng (Cố định chiều rộng và border)
         JPanel outer = new JPanel(new BorderLayout());
-        outer.setPreferredSize(new Dimension(340, 0));
+        outer.setPreferredSize(new Dimension(350, 0)); // Tăng nhẹ chiều rộng cho thoải mái
         outer.setBackground(new Color(245, 247, 250));
         outer.setBorder(new MatteBorder(0, 1, 0, 0, new Color(210, 220, 235)));
 
+        // 2. Panel nội dung
         JPanel pnl = new JPanel();
         pnl.setLayout(new BoxLayout(pnl, BoxLayout.Y_AXIS));
         pnl.setBackground(new Color(245, 247, 250));
         pnl.setBorder(new EmptyBorder(30, 24, 24, 24));
 
-        lblFormTitle = new JLabel("THÊM NHÀ CUNG CẤP");
-        lblFormTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        // Tiêu đề
+        lblFormTitle = new JLabel("THÊM KHÁCH HÀNG");
+        lblFormTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblFormTitle.setForeground(new Color(30, 80, 160));
         lblFormTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JSeparator sep = new JSeparator();
         sep.setForeground(new Color(198, 220, 255));
         sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        pnl.add(lblFormTitle); pnl.add(Box.createVerticalStrut(8));
-        pnl.add(sep); pnl.add(Box.createVerticalStrut(20));
+        sep.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        pnl.add(lblFormTitle);
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(sep);
+        pnl.add(Box.createVerticalStrut(25));
+
+        // Khởi tạo các ô nhập liệu
         txtMaNCC = new JTextField();
         txtTenNCC = new JTextField();
         txtSdt = new JTextField();
         txtDiaChi = new JTextField();
 
-
-        pnl.add(lblFormTitle);
-        pnl.add(Box.createVerticalStrut(25));
+        // Thêm các nhóm input (Bỏ đoạn add trùng lặp lblFormTitle ở đây)
         pnl.add(taoNhomInput("Mã khách hàng:", txtMaNCC));
         pnl.add(Box.createVerticalStrut(10));
-
         pnl.add(taoNhomInput("Họ và tên:", txtTenNCC));
         pnl.add(Box.createVerticalStrut(10));
         pnl.add(taoNhomInput("Số điện thoại:", txtSdt));
@@ -119,27 +125,42 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         pnl.add(taoNhomInput("Địa chỉ:", txtDiaChi));
         pnl.add(Box.createVerticalStrut(10));
 
+        // Tạo khoảng trống co dãn để đẩy các nút xuống dưới nếu cần
+        pnl.add(Box.createVerticalStrut(20));
 
-        // Nút bấm
-        JPanel pnlBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        pnlBtns.setOpaque(false);
+        // 3. Panel chứa nút bấm
         JButton btnSave = new JButton("💾  Lưu");
-        JButton btnCancel = new JButton("✕  Hủy");
-
-        // Style cho nút (Bạn có thể dùng class Style của mình)
-        btnSave.setBackground(new Color(37, 120, 220));
-        btnSave.setForeground(Color.WHITE);
-        btnCancel.setBackground(new Color(220, 225, 235));
-        btnCancel.setForeground(Color.WHITE);
-
+        styleButton(btnSave, new Color(37, 120, 220), Color.WHITE);
         btnSave.addActionListener(e -> xuLyLuu());
+
+        JButton btnCancel = new JButton("✕  Hủy");
+        styleButton(btnCancel, new Color(220, 225, 235), new Color(60, 60, 60));
         btnCancel.addActionListener(e -> hideForm());
 
-        pnlBtns.add(btnSave);
-        pnlBtns.add(btnCancel);
-        pnl.add(pnlBtns);
+        JPanel pnlBtn = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        pnlBtn.setBackground(new Color(245, 247, 250));
+        pnlBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45)); // Giới hạn chiều cao panel nút
 
-        return pnl;
+        pnlBtn.add(btnSave);
+        pnlBtn.add(btnCancel);
+
+        pnl.add(pnlBtn);
+
+        // QUAN TRỌNG: Thêm pnl vào outer và trả về outer
+        outer.add(pnl, BorderLayout.NORTH);
+        return outer;
+    }
+
+    // Hàm hỗ trợ style nút cho gọn code
+    private void styleButton(JButton btn, Color bg, Color fg) {
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(110, 38));
     }
     private void showForm(String mode, NhaCungCap ncc) {
         this.currentMode = mode;
@@ -153,11 +174,18 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
             txtSdt.setText("");
             txtDiaChi.setText("");
 
-            txtTenNCC.requestFocus();
+            panelForm.setVisible(true);
+            SwingUtilities.invokeLater(()->{
+                txtTenNCC.requestFocusInWindow();
+            });
+
+            splitPane.setDividerLocation(this.getWidth()-350);
         } else {
             lblFormTitle.setText("SỬA THÔNG TIN KH");
-            txtTenNCC.setText(ncc.getMaNCC());
+            txtMaNCC.setText(ncc.getMaNCC());
             txtMaNCC.setEditable(false);
+            txtMaNCC.setBackground(new Color(230, 230, 230));
+
             txtTenNCC.setText(ncc.getTenNCC());
             txtSdt.setText(ncc.getSdt());
             txtDiaChi.setText(ncc.getDiaChi());
@@ -165,7 +193,11 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
             txtTenNCC.requestFocus();
         }
         panelForm.setVisible(true);
-        splitPane.setDividerLocation(this.getWidth() - 300);
+        SwingUtilities.invokeLater(()->{
+            txtTenNCC.requestFocusInWindow();
+        });
+
+        splitPane.setDividerLocation(this.getWidth()-350);
     }
 
     private void hideForm() { panelForm.setVisible(false); }
@@ -209,30 +241,30 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
     private JPanel taoThanhCongCu() {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(Color.WHITE);
-        wrapper.setBorder(new EmptyBorder(15,20,5,20));
+        wrapper.setBorder(new EmptyBorder(15, 20, 5, 20));
 
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT,12,8));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
         panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(4,10,4,10));
+        panel.setBorder(new EmptyBorder(4, 10, 4, 10));
 
 
         // Thanh tìm kiếm
-        String place="Tìm kiếm (VD:NCC1)";
+        String place = "Tìm kiếm (VD:NCC1)";
         JTextField txtSearch = new JTextField(place);
         txtSearch.setColumns(15);
-        txtSearch.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
+        txtSearch.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         txtSearch.setForeground(Color.GRAY);
 
         JPanel pnlSearchInput = new JPanel(new BorderLayout());
         pnlSearchInput.setBackground(Color.WHITE);
-        pnlSearchInput.setPreferredSize(new Dimension(260,30));
+        pnlSearchInput.setPreferredSize(new Dimension(260, 30));
         pnlSearchInput.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198,226,255), 2, true),
-                new EmptyBorder(0,2,0,0)
+                new LineBorder(new Color(198, 226, 255), 2, true),
+                new EmptyBorder(0, 2, 0, 0)
         ));
 
         JButton btnSearchIcon = new JButton("🔍");
-        btnSearchIcon.setBackground(new Color(214,238,253));
+        btnSearchIcon.setBackground(new Color(214, 238, 253));
         btnSearchIcon.setBorderPainted(false); //bỏ đường viền
         btnSearchIcon.setFocusPainted(false);//bỏ đường viền nét đứt
         btnSearchIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));//thay đổi hình con chuột thành bàn tay
@@ -259,9 +291,9 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
                 }
             }
         });
-        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener(){
-            private void  filter(){
-                SwingUtilities.invokeLater(()->{
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void filter() {
+                SwingUtilities.invokeLater(() -> {
                     {
                         String text = txtSearch.getText();
                         if (text.equals(place) || text.trim().isEmpty()) {
@@ -276,31 +308,43 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
 
 
             }
-            @Override public void insertUpdate(javax.swing.event.DocumentEvent e){filter();}
-            @Override public void removeUpdate(javax.swing.event.DocumentEvent e){filter();}
-            @Override public void changedUpdate(javax.swing.event.DocumentEvent e){filter();}
+
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                filter();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                filter();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                filter();
+            }
         });
 
 
         // Nút làm mới
         JButton btnLamMoi = new JButton("↻ Làm mới");
-        btnLamMoi.addActionListener(e->{
+        btnLamMoi.addActionListener(e -> {
             txtSearch.setText(place);
             txtSearch.setForeground(Color.GRAY);
-            if(RowSorter!=null)  RowSorter.setRowFilter(null);
+            if (RowSorter != null) RowSorter.setRowFilter(null);
 
             fillToTable();
 
             nccBUS.refeshData();
             this.revalidate(); //resest bố cục
             this.repaint(); //resest giao diện
-            JOptionPane.showMessageDialog(this,"Dữ Liệu được cập thành công!");
+            JOptionPane.showMessageDialog(this, "Dữ Liệu được cập thành công!");
         });
         Style.styleButton(btnLamMoi);
 
 
         // Combobox Lọc
-        String[] itemLoc = {"Mặc định","1-N","A-Z","Z-A"};
+        String[] itemLoc = {"Mặc định", "1-N", "A-Z", "Z-A"};
         comboBoxLoc = new JComboBox<>(itemLoc);
 
         // Style cơ bản
@@ -355,19 +399,19 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
 
 
         // Các nút khác
-        btnEdit   = new JButton("Chỉnh sửa");
+        btnEdit = new JButton("Chỉnh sửa");
         Style.styleButton(btnEdit);
         btnDelete = new JButton("Xóa");
         Style.styleButton(btnDelete);
-        btnAdd    = new JButton("+ Thêm");
+        btnAdd = new JButton("+ Thêm");
         Style.styleButton(btnAdd);
         Image scaledImage = new ImageIcon(
                 getClass().getResource("/Img/Excel.png")
-        ).getImage().getScaledInstance(20,20,Image.SCALE_SMOOTH);
+        ).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
-        JButton btnExcel = new JButton("Xuất excel",scaledIcon);
+        JButton btnExcel = new JButton("Xuất excel", scaledIcon);
         Style.styleButton(btnExcel);
-        btnExcel.addActionListener(e->xuatExcel());
+        btnExcel.addActionListener(e -> xuatExcel());
 
 
         // Thêm vào panel
@@ -380,56 +424,64 @@ public class TrangNhaCungCap extends JPanel implements QuyenTrang {
         panel.add(btnExcel);
 
         btnAdd.addActionListener(e -> showForm("THEM", null));
-        btnDelete.addActionListener(e->{
+        btnDelete.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if(row==-1){
-                JOptionPane.showMessageDialog(this,"Vui lòng chọn nhà cung cấp cần xoá từ bảng!");
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn nhà cung cấp cần xoá từ bảng!");
                 table.requestFocus();
                 return;
             }
-            int modelRow= table.convertRowIndexToModel(row);
-            String maNCC=model.getValueAt(modelRow,1).toString();
-            String tenNCC=table.getValueAt(row,2).toString();
+            int modelRow = table.convertRowIndexToModel(row);
+            String maNCC = model.getValueAt(modelRow, 1).toString();
+            String tenNCC = table.getValueAt(row, 2).toString();
 
             //hộp thoại để tránh bấm nhầm
             int choice = JOptionPane.showConfirmDialog(
                     this,
-                    "Bạn có chắc chắn muốn xoá nhà cung cấp"+tenNCC+"("+maNCC+")?",
+                    "Bạn có chắc chắn muốn xoá nhà cung cấp" + tenNCC + "(" + maNCC + ")?",
                     "Xác nhận",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE
             );
 
-            if(choice== JOptionPane.YES_OPTION){
+            if (choice == JOptionPane.YES_OPTION) {
                 String result = nccBUS.deleteNCC(maNCC);
-                if(result.toLowerCase().contains("thành công!")){
-                    JOptionPane.showMessageDialog(this,result);
+                if (result.toLowerCase().contains("thành công!")) {
+                    JOptionPane.showMessageDialog(this, result);
                     fillToTable();
 
-                }
-                else {
+                } else {
                     JOptionPane.showMessageDialog(this, "Lỗi: " + result);
                 }
             }
 
         });
-        btnEdit = new JButton("Chỉnh sửa");
         btnEdit.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Chọn NCC cần sửa!");
-                table.requestFocus(); // Focus vào bảng nếu chưa chọn dòng
+                JOptionPane.showMessageDialog(this, "Chọn nhà cung cấp cần sửa!");
+                table.requestFocusInWindow(); // Focus vào bảng nếu chưa chọn dòng
                 return;
             }
-            int modelRow = table.convertRowIndexToModel(row);
-            String ma = model.getValueAt(modelRow, 1).toString();
-            String ten = model.getValueAt(modelRow, 2).toString();
-            String sdt = model.getValueAt(modelRow, 3).toString();
-            String dc = model.getValueAt(modelRow, 4).toString();
-            NhaCungCap ncc = new NhaCungCap(ma,ten,dc,sdt);
-            showForm("SUA", ncc);
+            try {
+                // Lấy index chuẩn từ Model (tránh lỗi khi lọc/sắp xếp bảng)
+                int modelRow = table.convertRowIndexToModel(row);
+
+                // Lấy dữ liệu an toàn
+                String ma = model.getValueAt(modelRow, 1).toString();
+                String ten = model.getValueAt(modelRow, 2).toString();
+                String sdt = model.getValueAt(modelRow, 3).toString();
+                String dc = model.getValueAt(modelRow, 4).toString();
+
+                // Tạo đối tượng và hiển thị Form
+                NhaCungCap ncc = new NhaCungCap(ma, ten, dc, sdt);
+                showForm("SUA", ncc);
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi lấy dữ liệu: " + ex.getMessage());
+            }
         });
-        wrapper.add(panel, BorderLayout.CENTER);
+        wrapper.add(panel,BorderLayout.CENTER);
         return wrapper;
     }
     public void reIndex(){

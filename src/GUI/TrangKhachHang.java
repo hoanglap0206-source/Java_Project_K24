@@ -66,88 +66,90 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
         add(panelContent, BorderLayout.CENTER);
     }
     private JPanel taoPanelForm() {
+        // 1. Panel ngoài cùng (Cố định chiều rộng và border)
         JPanel outer = new JPanel(new BorderLayout());
-        outer.setPreferredSize(new Dimension(340, 0));
+        outer.setPreferredSize(new Dimension(350, 0)); // Tăng nhẹ chiều rộng cho thoải mái
         outer.setBackground(new Color(245, 247, 250));
         outer.setBorder(new MatteBorder(0, 1, 0, 0, new Color(210, 220, 235)));
 
+        // 2. Panel nội dung
         JPanel pnl = new JPanel();
         pnl.setLayout(new BoxLayout(pnl, BoxLayout.Y_AXIS));
         pnl.setBackground(new Color(245, 247, 250));
         pnl.setBorder(new EmptyBorder(30, 24, 24, 24));
 
+        // Tiêu đề
         lblFormTitle = new JLabel("THÊM KHÁCH HÀNG");
-        lblFormTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lblFormTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblFormTitle.setForeground(new Color(30, 80, 160));
         lblFormTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JSeparator sep = new JSeparator();
         sep.setForeground(new Color(198, 220, 255));
         sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        pnl.add(lblFormTitle); pnl.add(Box.createVerticalStrut(8));
-        pnl.add(sep); pnl.add(Box.createVerticalStrut(20));
+        sep.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        pnl.add(lblFormTitle);
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(sep);
+        pnl.add(Box.createVerticalStrut(25));
+
+        // Khởi tạo các ô nhập liệu
         txtMaKH = new JTextField();
         txtTenKH = new JTextField();
         txtSdt = new JTextField();
         txtDiaChi = new JTextField();
-
-        //chi tiêu
         txtChiTieu = new JTextField("0");
-        txtChiTieu.setEditable(false); // Nên để false vì chi tiêu tự động tính từ hóa đơn
-        txtChiTieu.setBackground(new Color(235, 235, 235));
-        pnl.add(lblFormTitle);
-        pnl.add(Box.createVerticalStrut(25));
+        txtChiTieu.setEditable(false);
+        txtChiTieu.setBackground(new Color(230, 230, 230));
+
+        // Thêm các nhóm input (Bỏ đoạn add trùng lặp lblFormTitle ở đây)
         pnl.add(taoNhomInput("Mã khách hàng:", txtMaKH));
         pnl.add(Box.createVerticalStrut(10));
-        // chữ mờ
-        txtMaKH.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
-                // Khi người dùng click vào ô
-                if (txtMaKH.getText().equals("Mã khách hàng(VD:kh01)")) {
-                    txtMaKH.setText("");           // Xóa chữ "Tìm kiếm"
-                    txtMaKH.setForeground(Color.BLACK); // Đổi màu chữ sang đen để người dùng nhập
-                }
-            }
-
-            @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
-                // Khi người dùng click ra chỗ khác mà không nhập gì
-                if (txtMaKH.getText().isEmpty()) {
-                    txtMaKH.setForeground(Color.GRAY);
-                    txtMaKH.setText("Mã khách hàng(VD:KH01)");    // Hiện lại chữ gợi ý
-                }
-            }
-        });
         pnl.add(taoNhomInput("Họ và tên:", txtTenKH));
         pnl.add(Box.createVerticalStrut(10));
         pnl.add(taoNhomInput("Số điện thoại:", txtSdt));
         pnl.add(Box.createVerticalStrut(10));
         pnl.add(taoNhomInput("Địa chỉ:", txtDiaChi));
         pnl.add(Box.createVerticalStrut(10));
-        pnl.add(taoNhomInput("Chi tiêu",txtChiTieu));
+        pnl.add(taoNhomInput("Chi tiêu:", txtChiTieu));
+
+        // Tạo khoảng trống co dãn để đẩy các nút xuống dưới nếu cần
         pnl.add(Box.createVerticalStrut(20));
 
-        // Nút bấm
-        JPanel pnlBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        pnlBtns.setOpaque(false);
+        // 3. Panel chứa nút bấm
         JButton btnSave = new JButton("💾  Lưu");
-        JButton btnCancel = new JButton("✕  Hủy");
-
-        // Style cho nút (Bạn có thể dùng class Style của mình)
-        btnSave.setBackground(new Color(37, 120, 220));
-        btnSave.setForeground(Color.WHITE);
-        btnCancel.setBackground(new Color(220, 225, 235));
-        btnCancel.setForeground(Color.WHITE);
-
+        styleButton(btnSave, new Color(37, 120, 220), Color.WHITE);
         btnSave.addActionListener(e -> xuLyLuu());
+
+        JButton btnCancel = new JButton("✕  Hủy");
+        styleButton(btnCancel, new Color(220, 225, 235), new Color(60, 60, 60));
         btnCancel.addActionListener(e -> hideForm());
 
-        pnlBtns.add(btnSave);
-        pnlBtns.add(btnCancel);
-        pnl.add(pnlBtns);
+        JPanel pnlBtn = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        pnlBtn.setBackground(new Color(245, 247, 250));
+        pnlBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30)); // Giới hạn chiều cao panel nút
 
-        return pnl;
+        pnlBtn.add(btnSave);
+        pnlBtn.add(btnCancel);
+
+        pnl.add(pnlBtn);
+
+        // Thêm scrollPane vào CENTER thay vì NORTH để nó chiếm trọn không gian
+        outer.add(pnl, BorderLayout.CENTER);
+        return outer;
+    }
+
+    // Hàm hỗ trợ style nút cho gọn code
+    private void styleButton(JButton btn, Color bg, Color fg) {
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(90, 30));
     }
     private JPanel taoNhomInput(String label, JTextField tf) {
         JPanel p = new JPanel();
@@ -230,18 +232,25 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
             txtSdt.setText("");
             txtDiaChi.setText("");
             txtChiTieu.setText("0");
-            txtTenKH.requestFocus();
+            panelForm.setVisible(true);
+            SwingUtilities.invokeLater(()->{
+                txtTenKH.requestFocusInWindow();
+            });
+            splitPane.setDividerLocation(this.getWidth()-350);
         } else {
             lblFormTitle.setText("SỬA THÔNG TIN KH");
             txtMaKH.setText(kh.getMaKH());
             txtMaKH.setEditable(false);
+            txtMaKH.setBackground(new Color(230, 230, 230));
+
             txtTenKH.setText(kh.getHoTenKH());
             txtSdt.setText(kh.getSdt());
             txtDiaChi.setText(kh.getDiaChi());
-            txtChiTieu.setText(kh.getCT());
-            txtTenKH.requestFocus();
         }
         panelForm.setVisible(true);
+        SwingUtilities.invokeLater(()->{
+            txtTenKH.requestFocusInWindow();
+        });
         splitPane.setDividerLocation(this.getWidth() - 300);
     }
 
@@ -490,25 +499,26 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
         });
         btnEdit.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if(row ==-1){
-                JOptionPane.showMessageDialog(this,"Vui lòng chọn khách hàng cần sửa!");
-                table.requestFocus();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn khách hàng cần sửa từ bảng!");
                 return;
             }
+
+            // Lấy chỉ số dòng thực tế trong model (phòng trường hợp bảng đang bị sắp xếp/lọc)
             int modelRow = table.convertRowIndexToModel(row);
+
+            // Trích xuất dữ liệu từ Model
             String ma = model.getValueAt(modelRow, 1).toString();
             String ten = model.getValueAt(modelRow, 2).toString();
             String sdt = model.getValueAt(modelRow, 3).toString();
             String dc = model.getValueAt(modelRow, 4).toString();
+            // Giả sử cột 5 là Chi tiêu hoặc bạn lấy từ đối tượng KH trong BUS
+            String ct = model.getValueAt(modelRow, 5).toString();
 
-            // Lấy chi tiêu, xóa bỏ định dạng " VNĐ" và dấu phẩy để lấy con số thuần túy
-            String chiTieuFormatted = model.getValueAt(modelRow, 5).toString();
-            String chiTieuRaw = chiTieuFormatted.replaceAll("[^\\d]", "");
+            // Tạo đối tượng tạm để truyền vào Form
+            KhachHang kh = new KhachHang(ma, ten, dc, sdt, ct);
 
-            // 3. Tạo đối tượng khách hàng đầy đủ (không làm ảnh hưởng logic chi tiêu)
-            KhachHang kh = new KhachHang(ma, ten, dc, sdt, chiTieuRaw);
-
-            // 4. Hiển thị form bên phải (Side Panel)
+            // Hiển thị form ở chế độ SUA
             showForm("SUA", kh);
         });
         wrapper.add(panel, BorderLayout.CENTER);
