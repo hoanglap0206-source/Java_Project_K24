@@ -95,16 +95,38 @@ public class PhanQuyen_BUS {
         return pqDAO.getAllChucNang_QuyenCuaNV(maNV);
     }
 
-    // Lưu ngay khi người dùng click checkbox
+    // Lưu ngay khi người dùng click checkbox (tick thủ công → is_custom = TRUE)
     public void LuuThayDoiPQ(PhanQuyen pq){
-        // Nếu tất cả quyền đều false thì Xóa khỏi database để không hiển thị
-        if (!pq.isXem() && !pq.isThem() && !pq.isSua() && !pq.isXoa())
-            pqDAO.delete(pq.getNhanVien().getMaNV(), pq.getChucNang().getMaCN());
-        else // Nếu đã tồn tại quyền thì Cập nhật, nếu chưa có thì Thêm mới
-            if(pqDAO.checkExists(pq.getNhanVien().getMaNV(), pq.getChucNang().getMaCN()))
+        String maNV = pq.getNhanVien().getMaNV();
+        String maCN = pq.getChucNang().getMaCN();
+
+        if (!pq.isXem() && !pq.isThem() && !pq.isSua() && !pq.isXoa()) {
+            pqDAO.delete(maNV, maCN);
+        } else {
+            // Tick thủ công → đánh dấu is_custom = TRUE để nhóm không ghi đè được nữa
+            pq.setCustom(true);
+            if (pqDAO.checkExists(maNV, maCN))
                 pqDAO.update(pq);
             else
                 pqDAO.insert(pq);
+        }
+        refeshData();
+    }
+
+    /**
+     * Reset quyền 1 chức năng của NV về kế thừa nhóm.
+     * Lấy quyền hiện tại của nhóm rồi ghi lại PHAN_QUYEN với is_custom = FALSE.
+     */
+    public void resetVeNhom(String maNV, String maNhom, String maCN) {
+        DAO.NhomQuyen_DAO nhomDAO = new DAO.NhomQuyen_DAO();
+        java.util.ArrayList<Model.NhomQuyenCT> list = nhomDAO.getBangQuyenCuaNhom(maNhom);
+        for (Model.NhomQuyenCT ct : list) {
+            if (ct.getChucNang().getMaCN().equals(maCN)) {
+                pqDAO.resetToNhom(maNV, maCN,
+                        ct.isXem(), ct.isXoa(), ct.isSua(), ct.isThem());
+                break;
+            }
+        }
         refeshData();
     }
 }

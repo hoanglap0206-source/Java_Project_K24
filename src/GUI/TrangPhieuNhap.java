@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.awt.print.*;
 
 public class TrangPhieuNhap extends JPanel implements QuyenTrang {
 
@@ -551,6 +552,16 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
         btnExcel.addActionListener(e -> xuatExcel());
         panel.add(btnExcel);
 
+        JButton btnIn = new JButton("\uD83D\uDDA8  In danh sách");
+        btnIn.setBackground(new Color(214, 230, 255));
+        btnIn.setBorder(new CompoundBorder(
+                new LineBorder(new Color(150, 190, 255), 1, true),
+                new EmptyBorder(4, 12, 4, 12)));
+        btnIn.setFocusPainted(false);
+        btnIn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnIn.addActionListener(e -> inDanhSach());
+        panel.add(btnIn);
+
         return panel;
     }
 
@@ -641,6 +652,64 @@ public class TrangPhieuNhap extends JPanel implements QuyenTrang {
                     "Xuất Excel thất bại: " + ex.getMessage(),
                     "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // IN DANH SÁCH PHIẾU NHẬP
+    private void inDanhSach() {
+        if (model.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Không có dữ liệu để in!", "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        PrinterJob job = PrinterJob.getPrinterJob();
+        job.setJobName("Danh sách phiếu nhập");
+        PageFormat pf = job.defaultPage();
+        pf.setOrientation(PageFormat.PORTRAIT);
+        final PageFormat finalPf = pf;
+        String[] cols = {"STT", "Mã phiếu nhập", "Ngày nhập", "NCC", "Tổng tiền", "Trạng thái"};
+        float[] colW = {30, 100, 85, 80, 110, 100};
+        Printable printable = (g, pageFormat, pageIndex) -> {
+            if (pageIndex > 0) return Printable.NO_SUCH_PAGE;
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g;
+            float ox = (float) finalPf.getImageableX();
+            float oy = (float) finalPf.getImageableY();
+            float w  = (float) finalPf.getImageableWidth();
+            g2.translate(ox, oy);
+            float rowH = 16f, curY = 0f;
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            g2.setColor(new java.awt.Color(37, 100, 180));
+            g2.drawString("DANH SÁCH PHIẾU NHẬP", 0, curY + 14); curY += 24;
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 10));
+            float cx = 0;
+            for (int i = 0; i < cols.length; i++) {
+                g2.setColor(new java.awt.Color(200, 218, 240));
+                g2.fillRect((int)cx,(int)curY,(int)colW[i],(int)rowH);
+                g2.setColor(java.awt.Color.BLACK);
+                g2.drawRect((int)cx,(int)curY,(int)colW[i],(int)rowH);
+                g2.drawString(cols[i], cx+3, curY+rowH-4);
+                cx += colW[i];
+            }
+            curY += rowH;
+            g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+            for (int r = 0; r < model.getRowCount(); r++) {
+                cx = 0;
+                for (int c = 0; c < 6; c++) {
+                    g2.setColor(r%2==0 ? java.awt.Color.WHITE : new java.awt.Color(242,247,255));
+                    g2.fillRect((int)cx,(int)curY,(int)colW[c],(int)rowH);
+                    g2.setColor(new java.awt.Color(200,215,235));
+                    g2.drawRect((int)cx,(int)curY,(int)colW[c],(int)rowH);
+                    g2.setColor(java.awt.Color.BLACK);
+                    Object val = model.getValueAt(r, c);
+                    g2.drawString(val!=null?val.toString():"", cx+3, curY+rowH-4);
+                    cx += colW[c];
+                }
+                curY += rowH;
+            }
+            return Printable.PAGE_EXISTS;
+        };
+        Window owner = SwingUtilities.getWindowAncestor(this);
+        new PrintPreviewDialog(owner, printable, finalPf,
+                "Danh sách phiếu nhập").setVisible(true);
     }
 
     @Override

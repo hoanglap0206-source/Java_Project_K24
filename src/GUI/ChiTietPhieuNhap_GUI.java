@@ -4,114 +4,269 @@ import BUS.ChiTietPN_BUS;
 import Model.ChiTiet_PhieuNhap;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.border.*;
+import javax.swing.table.*;
 import java.awt.*;
+import java.awt.print.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class ChiTietPhieuNhap_GUI extends JDialog {
 
-    private DefaultTableModel model;
-    private JTable table;
-    private ChiTietPN_BUS ctBus = new ChiTietPN_BUS();
-    private DecimalFormat df = new DecimalFormat("#,### VNĐ");
+    private final String maPN;
+    private final String ngayNhap;
+    private final String ncc;
+    private final String tongTien;
 
-    public ChiTietPhieuNhap_GUI(JFrame frame, String maPN, String ngayNhap, String ncc, String tongTien) {
-        super(frame, "Chi tiết Phiếu Nhập", true);
-        setSize(750, 500);
-        setLocationRelativeTo(frame);
-        setLayout(new BorderLayout());
+    private final ChiTietPN_BUS ctBus = new ChiTietPN_BUS();
+    private final DecimalFormat df = new DecimalFormat("#,### VNĐ");
+
+    private DefaultTableModel tableModel;
+    private JTable table;
+
+    public ChiTietPhieuNhap_GUI(Frame owner,
+                                String maPN, String ngayNhap,
+                                String ncc, String tongTien) {
+        super(owner, "Chi tiết phiếu nhập — " + maPN, true);
+        this.maPN     = maPN;
+        this.ngayNhap = ngayNhap;
+        this.ncc      = ncc;
+        this.tongTien = tongTien;
+
+        setLayout(new BorderLayout(0, 0));
         getContentPane().setBackground(Color.WHITE);
 
-        // Tiêu đề
-        JPanel pnlHeader = new JPanel(new GridLayout(2, 2, 10, 10));
-        pnlHeader.setBackground(Color.WHITE);
-        pnlHeader.setBorder(new EmptyBorder(15, 20, 15, 20));
+        add(taoHeader(),  BorderLayout.NORTH);
+        add(taoContent(), BorderLayout.CENTER);
+        add(taoFooter(),  BorderLayout.SOUTH);
 
-        JLabel lblTitle = new JLabel("CHI TIẾT PHIẾU NHẬP: " + maPN);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblTitle.setForeground(new Color(0, 51, 102));
+        setSize(720, 520);
+        setMinimumSize(new Dimension(620, 420));
+        setLocationRelativeTo(owner);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    }
 
-        // Thông tin Phiếu nhập
-        pnlHeader.add(lblTitle);
-        pnlHeader.add(new JLabel(""));
-        pnlHeader.add(createInfoLabel("Ngày nhập: ", ngayNhap));
-        pnlHeader.add(createInfoLabel("Nhà cung cấp: ", ncc));
+    // ── HEADER ────────────────────────────────────────────
+    private JPanel taoHeader() {
+        JPanel pnl = new JPanel(new BorderLayout());
+        pnl.setBackground(new Color(37, 100, 180));
+        pnl.setBorder(new EmptyBorder(14, 20, 14, 20));
 
-        add(pnlHeader, BorderLayout.NORTH);
+        JLabel lblTitle = new JLabel("PHIẾU NHẬP HÀNG");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblTitle.setForeground(Color.WHITE);
 
-        // Bảng chi tiết các sản phẩm có trong phiếu nhập
-        JPanel pnlTable = new JPanel(new BorderLayout());
-        pnlTable.setBorder(new EmptyBorder(0, 20, 10, 20));
-        pnlTable.setBackground(Color.WHITE);
+        JPanel pnlRight = new JPanel(new GridLayout(3, 2, 4, 2));
+        pnlRight.setOpaque(false);
+        pnlRight.add(headerLbl("Mã phiếu:"));    pnlRight.add(headerVal(maPN));
+        pnlRight.add(headerLbl("Ngày nhập:"));   pnlRight.add(headerVal(ngayNhap));
+        pnlRight.add(headerLbl("Nhà cung cấp:")); pnlRight.add(headerVal(ncc));
 
-        String[] cols = {"STT", "Mã SP", "Tên Sản Phẩm", "Số Lượng", "Đơn Giá", "Thành Tiền"};
-        model = new DefaultTableModel(cols, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+        pnl.add(lblTitle, BorderLayout.WEST);
+        pnl.add(pnlRight, BorderLayout.EAST);
+        return pnl;
+    }
+
+    // ── BẢNG CHI TIẾT ─────────────────────────────────────
+    private JPanel taoContent() {
+        JPanel pnl = new JPanel(new BorderLayout(0, 8));
+        pnl.setBackground(Color.WHITE);
+        pnl.setBorder(new EmptyBorder(12, 16, 8, 16));
+
+        String[] cols = {"STT", "Mã SP", "Tên sản phẩm", "Số lượng", "Đơn giá", "Thành tiền"};
+        tableModel = new DefaultTableModel(cols, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
         };
-        table = new JTable(model);
+        table = new JTable(tableModel);
         table.setRowHeight(30);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        table.getTableHeader().setForeground(Color.WHITE);
-        table.getTableHeader().setBackground(new Color(52, 73, 94));
-        table.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        table.getTableHeader().setBackground(new Color(200, 220, 240));
+        table.getTableHeader().setReorderingAllowed(false);
+        table.setGridColor(new Color(220, 230, 245));
+        table.setShowGrid(true);
 
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            if (i != 2) // Căn giữa tất cả trừ Tên Sản Phẩm
-                table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-        }
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 0; i < cols.length; i++)
+            table.getColumnModel().getColumn(i).setCellRenderer(center);
 
-        pnlTable.add(new JScrollPane(table), BorderLayout.CENTER);
-        add(pnlTable, BorderLayout.CENTER);
+        // Dòng xen kẽ màu
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override public Component getTableCellRendererComponent(
+                    JTable t, Object val, boolean sel, boolean foc, int row, int col) {
+                Component c = super.getTableCellRendererComponent(t, val, sel, foc, row, col);
+                if (!sel) c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(245, 250, 255));
+                setHorizontalAlignment(SwingConstants.CENTER);
+                return c;
+            }
+        });
 
-        // Phần Footer
-        JPanel pnlFooter = new JPanel(new BorderLayout());
-        pnlFooter.setBackground(Color.WHITE);
-        pnlFooter.setBorder(new EmptyBorder(15, 30, 30, 30));
+        loadData();
 
-        JLabel lblTongCongText = new JLabel("TỔNG CỘNG: ");
-        lblTongCongText.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(new LineBorder(new Color(190, 210, 235)));
 
-        JLabel lblValue = new JLabel(tongTien);
-        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblValue.setForeground(new Color(38, 195, 106));
+        // Tổng tiền phía dưới bảng
+        JPanel pnlSum = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 4));
+        pnlSum.setOpaque(false);
+        JLabel lblSum = new JLabel("Tổng cộng: " + tongTien);
+        lblSum.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblSum.setForeground(new Color(30, 100, 200));
+        pnlSum.add(lblSum);
 
-        JPanel pnlTotal = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        pnlTotal.setOpaque(false);
-        pnlTotal.add(lblTongCongText);
-        pnlTotal.add(lblValue);
-
-        pnlFooter.add(pnlTotal, BorderLayout.EAST);
-        add(pnlFooter, BorderLayout.SOUTH);
-
-        // Tải dữ liệu vào bảng
-        loadData(maPN);
+        pnl.add(scroll,  BorderLayout.CENTER);
+        pnl.add(pnlSum,  BorderLayout.SOUTH);
+        return pnl;
     }
 
-    private JLabel createInfoLabel(String title, String value) {
-        JLabel lbl = new JLabel("<html><b>" + title + "</b> " + value + "</html>");
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        return lbl;
+    // ── FOOTER (nút In + Đóng) ────────────────────────────
+    private JPanel taoFooter() {
+        JPanel pnl = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 10));
+        pnl.setBackground(new Color(245, 248, 252));
+        pnl.setBorder(new MatteBorder(1, 0, 0, 0, new Color(210, 220, 235)));
+
+        JButton btnIn = makeBtn("🖨  In phiếu", new Color(37, 120, 220), Color.WHITE);
+        btnIn.addActionListener(e -> inPhieu());
+
+        JButton btnDong = makeBtn("Đóng", new Color(220, 225, 235), new Color(60, 60, 60));
+        btnDong.addActionListener(e -> dispose());
+
+        pnl.add(btnIn);
+        pnl.add(btnDong);
+        return pnl;
     }
 
-    private void loadData(String maPN) {
+    // ── LOAD DATA ─────────────────────────────────────────
+    private void loadData() {
+        tableModel.setRowCount(0);
         ArrayList<ChiTiet_PhieuNhap> list = ctBus.getChiTietByMaPN_DB(maPN);
         int stt = 1;
         for (ChiTiet_PhieuNhap ct : list) {
-            model.addRow(new Object[]{
+            tableModel.addRow(new Object[]{
                     stt++,
                     ct.getSanPham().getMaSP(),
-                    ct.getSanPham().getTenSP(), // Lấy tên sản phẩm đã JOIN từ DAO
+                    ct.getSanPham().getTenSP(),
                     ct.getSoLuong(),
                     df.format(ct.getDonGia()),
                     df.format(ct.getThanhTien())
             });
         }
+    }
+
+    // ── IN PHIẾU ──────────────────────────────────────────
+    private void inPhieu() {
+        PrinterJob job = PrinterJob.getPrinterJob();
+        PageFormat pf = job.defaultPage();
+        pf.setOrientation(PageFormat.PORTRAIT);
+
+        final PageFormat finalPf = pf;
+        Printable printable = (graphics, pageFormat, pageIndex) -> {
+            if (pageIndex > 0) return Printable.NO_SUCH_PAGE;
+
+            Graphics2D g2 = (Graphics2D) graphics;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+            float x = (float) finalPf.getImageableX();
+            float y = (float) finalPf.getImageableY();
+            float w = (float) finalPf.getImageableWidth();
+
+            g2.translate(x, y);
+
+            // Tiêu đề
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            g2.setColor(new Color(37, 100, 180));
+            drawCentered(g2, "PHIẾU NHẬP HÀNG", w, 0);
+
+            g2.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+            g2.setColor(Color.BLACK);
+            float lineH = 18f;
+            float curY = 28f;
+
+            g2.drawString("Mã phiếu : " + maPN,      0, curY);
+            g2.drawString("Ngày nhập: " + ngayNhap,  w / 2f, curY); curY += lineH;
+            g2.drawString("NCC      : " + ncc,        0, curY); curY += lineH + 4;
+
+            // Bảng chi tiết
+            String[] headers = {"STT", "Mã SP", "Tên sản phẩm", "SL", "Đơn giá", "Thành tiền"};
+            float[] colW = {30, 70, w - 30 - 70 - 40 - 90 - 90, 40, 90, 90};
+            float rowH = 16f;
+
+            // Header bảng
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 10));
+            g2.setColor(new Color(37, 100, 180));
+            float cx = 0;
+            for (int i = 0; i < headers.length; i++) {
+                g2.drawRect((int)cx, (int)curY, (int)colW[i], (int)rowH);
+                g2.drawString(headers[i], cx + 3, curY + rowH - 4);
+                cx += colW[i];
+            }
+            curY += rowH;
+
+            // Dữ liệu
+            g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+            g2.setColor(Color.BLACK);
+            for (int r = 0; r < tableModel.getRowCount(); r++) {
+                cx = 0;
+                for (int c = 0; c < headers.length; c++) {
+                    g2.setColor(r % 2 == 0 ? Color.WHITE : new Color(240, 246, 255));
+                    g2.fillRect((int)cx, (int)curY, (int)colW[c], (int)rowH);
+                    g2.setColor(new Color(200, 210, 230));
+                    g2.drawRect((int)cx, (int)curY, (int)colW[c], (int)rowH);
+                    g2.setColor(Color.BLACK);
+                    String val = tableModel.getValueAt(r, c) != null
+                            ? tableModel.getValueAt(r, c).toString() : "";
+                    g2.drawString(val, cx + 3, curY + rowH - 4);
+                    cx += colW[c];
+                }
+                curY += rowH;
+            }
+
+            // Tổng tiền
+            curY += 15;
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            g2.setColor(new Color(30, 100, 200));
+            g2.drawString("Tổng cộng: " + tongTien, w - 200, curY);
+
+            return Printable.PAGE_EXISTS;
+        };
+
+        new PrintPreviewDialog(this, printable, finalPf,
+                "Phiếu nhập — " + maPN).setVisible(true);
+    }
+
+    // ── HELPERS ───────────────────────────────────────────
+    private void drawCentered(Graphics2D g2, String text, float width, float y) {
+        FontMetrics fm = g2.getFontMetrics();
+        float tx = (width - fm.stringWidth(text)) / 2f;
+        g2.drawString(text, tx, y + fm.getAscent());
+    }
+
+    private JLabel headerLbl(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        l.setForeground(new Color(200, 225, 255));
+        return l;
+    }
+
+    private JLabel headerVal(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        l.setForeground(Color.WHITE);
+        return l;
+    }
+
+    private JButton makeBtn(String text, Color bg, Color fg) {
+        JButton btn = new JButton(text);
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(130, 34));
+        btn.setOpaque(true);
+        return btn;
     }
 }

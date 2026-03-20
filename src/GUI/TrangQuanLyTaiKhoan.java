@@ -1,7 +1,9 @@
 package GUI;
 
 import Model.NhanVien;
+import Model.NhomQuyen;
 import BUS.NV_BUS;
+import BUS.NhomQuyen_BUS;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -20,6 +22,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
     private JTable table;
     private DefaultTableModel model;
     private NV_BUS nvBUS = new NV_BUS();
+    private NhomQuyen_BUS nhomBUS = new NhomQuyen_BUS(); // ← THÊM MỚI
 
     private Set<Integer> visiblePasswordRows = new HashSet<>();
     private ArrayList<Object[]> allRows = new ArrayList<>();
@@ -33,7 +36,8 @@ public class TrangQuanLyTaiKhoan extends JPanel {
 
     private JTextField txtMaNV, txtHoTen, txtSDT;
     private JPasswordField txtMatKhau;
-    private JComboBox<String> cboChucVu, cboTrangThai;
+    private JComboBox<NhomQuyen> cboNhomQuyen; // ← ĐỔI: String → NhomQuyen
+    private JComboBox<String> cboTrangThai;
     private JButton btnAdd, btnEdit, btnDelete, btnRefresh;
 
     public TrangQuanLyTaiKhoan() {
@@ -46,8 +50,8 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         searchTimer = new Timer(400, e -> applyFilter());
         searchTimer.setRepeats(false);
         txtSearch.getDocument().addDocumentListener(new DocumentListener() {
-            @Override public void insertUpdate(DocumentEvent e) { restartTimer(); }
-            @Override public void removeUpdate(DocumentEvent e) { restartTimer(); }
+            @Override public void insertUpdate(DocumentEvent e)  { restartTimer(); }
+            @Override public void removeUpdate(DocumentEvent e)  { restartTimer(); }
             @Override public void changedUpdate(DocumentEvent e) {}
         });
         addEvents();
@@ -96,9 +100,9 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         btnAdd     = new JButton("+ Thêm");    Style.styleButton(btnAdd);
         Image scaledImage = new ImageIcon(
                 getClass().getResource("/Img/Excel.png")
-        ).getImage().getScaledInstance(20,20,Image.SCALE_SMOOTH);
+        ).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
-        JButton btnExcel = new JButton("Xuất excel",scaledIcon); Style.styleButton(btnExcel);
+        JButton btnExcel = new JButton("Xuất excel", scaledIcon); Style.styleButton(btnExcel);
         btnExcel.addActionListener(e -> xuatExcel());
 
         panel.add(pnlSearch); panel.add(btnRefresh);
@@ -136,7 +140,8 @@ public class TrangQuanLyTaiKhoan extends JPanel {
     // ==================== BẢNG ====================
 
     private JScrollPane taoBang() {
-        String[] cols = {"STT", "Họ tên", "Số điện thoại", "Username", "Vai trò", "Trạng thái", "Mật khẩu", "Hiện mật khẩu"};
+        String[] cols = {"STT", "Họ tên", "Số điện thoại", "Username", "Nhóm quyền", "Trạng thái", "Mật khẩu", "Hiện mật khẩu"};
+        // ↑ ĐỔI: "Vai trò" → "Nhóm quyền"
         model = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int row, int col) { return col == 7; }
         };
@@ -153,7 +158,6 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         center.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i < cols.length; i++) table.getColumnModel().getColumn(i).setCellRenderer(center);
 
-        // Căn trái cột Họ tên (cột 1)
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
         leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
         leftRenderer.setBorder(new EmptyBorder(0, 8, 0, 0));
@@ -195,7 +199,6 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         return sp;
     }
 
-    // Helper tạo nút Xem/Ẩn với màu tương ứng
     private void styleToggleBtn(JButton btn, boolean visible) {
         btn.setText(visible ? "Ẩn" : "Xem");
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -254,15 +257,19 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         txtHoTen   = new JTextField();
         txtSDT     = new JTextField();
         txtMatKhau = new JPasswordField();
-        cboChucVu    = new JComboBox<>(new String[]{"Admin", "QuanLy", "ThuKho", "BanHang"});
+
+        // ── ĐỔI: cboChucVu (String) → cboNhomQuyen (NhomQuyen) load từ DB ──
+        cboNhomQuyen = new JComboBox<>();
+        refreshNhomCombo();
+
         cboTrangThai = new JComboBox<>(new String[]{"HoatDong", "BiKhoa"});
 
-        pnl.add(nhomField("Mã nhân viên", txtMaNV));    pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomField("Họ và tên", txtHoTen));      pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomField("Số điện thoại", txtSDT));    pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomPasswordField());                    pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomCombo("Vai trò", cboChucVu));       pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomCombo("Trạng thái", cboTrangThai)); pnl.add(Box.createVerticalStrut(24));
+        pnl.add(nhomField("Mã nhân viên", txtMaNV));        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomField("Họ và tên", txtHoTen));          pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomField("Số điện thoại", txtSDT));        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomPasswordField());                        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomComboNhom("Nhóm quyền", cboNhomQuyen)); pnl.add(Box.createVerticalStrut(10)); // ← ĐỔI
+        pnl.add(nhomComboStr("Trạng thái", cboTrangThai));  pnl.add(Box.createVerticalStrut(24));
 
         JButton btnSave = new JButton("💾  Lưu");
         btnSave.setBackground(new Color(37, 120, 220)); btnSave.setForeground(Color.WHITE);
@@ -330,7 +337,32 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         return g;
     }
 
-    private JPanel nhomCombo(String label, JComboBox<String> combo) {
+    // Combo dùng cho NhomQuyen (generic NhomQuyen)
+    private JPanel nhomComboNhom(String label, JComboBox<NhomQuyen> combo) {
+        JPanel g = new JPanel();
+        g.setLayout(new BoxLayout(g, BoxLayout.Y_AXIS));
+        g.setBackground(new Color(245, 247, 250));
+        g.setAlignmentX(Component.LEFT_ALIGNMENT);
+        g.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
+
+        JLabel lbl = new JLabel(label);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lbl.setForeground(new Color(80, 100, 130));
+        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        combo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        combo.setBackground(Color.WHITE);
+        combo.setBorder(new LineBorder(new Color(198, 218, 245), 1, true));
+        combo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        combo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        g.add(lbl); g.add(Box.createVerticalStrut(4));
+        g.add(combo);
+
+        return g;
+    }
+
+    // Combo dùng cho String (trạng thái)
+    private JPanel nhomComboStr(String label, JComboBox<String> combo) {
         JPanel g = new JPanel(); g.setLayout(new BoxLayout(g, BoxLayout.Y_AXIS));
         g.setBackground(new Color(245, 247, 250)); g.setAlignmentX(Component.LEFT_ALIGNMENT);
         g.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
@@ -346,6 +378,14 @@ public class TrangQuanLyTaiKhoan extends JPanel {
     private void showFormPanel() { panelForm.setVisible(true); splitPane.setDividerLocation(getWidth() - 340); }
     private void hideFormPanel() { panelForm.setVisible(false); }
 
+    // Nạp lại danh sách nhóm vào combo (dùng khi refresh hoặc sau khi tạo nhóm mới)
+    private void refreshNhomCombo() {
+        nhomBUS.refreshData();
+        cboNhomQuyen.removeAllItems();
+        for (NhomQuyen nhom : nhomBUS.getAll())
+            cboNhomQuyen.addItem(nhom); // NhomQuyen.toString() trả về tenNhom
+    }
+
     // ==================== LOAD / TÌM KIẾM ====================
 
     private void loadDataFromBUS() {
@@ -353,7 +393,8 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         int stt = 1;
         for (NhanVien nv : nvBUS.getAll()) {
             String status = "HoatDong".equalsIgnoreCase(nv.getTrangThai()) ? "Active" : "Banned";
-            Object[] row = { stt++, nv.getHoTen(), nv.getSDT(), nv.getMaNV(), nv.getChucVu(), status, nv.getMatKhau(), "" };
+            Object[] row = { stt++, nv.getHoTen(), nv.getSDT(), nv.getMaNV(),
+                    nv.getTenNhom(), status, nv.getMatKhau(), "" };
             allRows.add(row); model.addRow(row);
         }
     }
@@ -365,8 +406,10 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         for (Object[] row : allRows) {
             if (!kw.isEmpty()) {
                 String k = kw.toLowerCase();
-                boolean match = row[1].toString().toLowerCase().contains(k) || row[2].toString().toLowerCase().contains(k)
-                        || row[3].toString().toLowerCase().contains(k) || row[4].toString().toLowerCase().contains(k)
+                boolean match = row[1].toString().toLowerCase().contains(k)
+                        || row[2].toString().toLowerCase().contains(k)
+                        || row[3].toString().toLowerCase().contains(k)
+                        || (row[4] != null && row[4].toString().toLowerCase().contains(k))
                         || row[5].toString().toLowerCase().contains(k);
                 if (!match) continue;
             }
@@ -385,7 +428,13 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         btnRefresh.addActionListener(e -> handleRefresh());
     }
 
-    private void handleAdd() { clearForm(); lblFormTitle.setText("THÊM TÀI KHOẢN"); txtMaNV.setEditable(true); showFormPanel(); }
+    private void handleAdd() {
+        clearForm();
+        refreshNhomCombo();
+        lblFormTitle.setText("THÊM TÀI KHOẢN");
+        txtMaNV.setEditable(true);
+        showFormPanel();
+    }
 
     private void handleEdit() {
         int row = table.getSelectedRow();
@@ -395,7 +444,17 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         txtHoTen.setText(model.getValueAt(row, 1).toString());
         txtSDT.setText(model.getValueAt(row, 2).toString());
         txtMatKhau.setText(model.getValueAt(row, 6).toString());
-        cboChucVu.setSelectedItem(model.getValueAt(row, 4).toString());
+
+        //chọn đúng nhóm trong combo dựa vào tenNhom ở cột 4
+        String tenNhomHienTai = model.getValueAt(row, 4) != null
+                ? model.getValueAt(row, 4).toString() : "";
+        for (int i = 0; i < cboNhomQuyen.getItemCount(); i++) {
+            if (cboNhomQuyen.getItemAt(i).getTenNhom().equals(tenNhomHienTai)) {
+                cboNhomQuyen.setSelectedIndex(i);
+                break;
+            }
+        }
+
         cboTrangThai.setSelectedItem("Active".equals(model.getValueAt(row, 5).toString()) ? "HoatDong" : "BiKhoa");
         showFormPanel();
     }
@@ -418,15 +477,32 @@ public class TrangQuanLyTaiKhoan extends JPanel {
     }
 
     private void saveNhanVien() {
-        String maNV = txtMaNV.getText().trim(), hoTen = txtHoTen.getText().trim();
-        String sdt = txtSDT.getText().trim(), matKhau = new String(txtMatKhau.getPassword()).trim();
+        String maNV    = txtMaNV.getText().trim();
+        String hoTen   = txtHoTen.getText().trim();
+        String sdt     = txtSDT.getText().trim();
+        String matKhau = new String(txtMatKhau.getPassword()).trim();
+
         if (maNV.isEmpty() || hoTen.isEmpty() || matKhau.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Mã NV, họ tên và mật khẩu không được để trống!"); return;
         }
+
+        // lấy maNhom từ combo thay vì getChucVu
+        NhomQuyen nhomChon = (NhomQuyen) cboNhomQuyen.getSelectedItem();
+        if (nhomChon == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn nhóm quyền!"); return;
+        }
+
         NhanVien nv = new NhanVien();
-        nv.setMaNV(maNV); nv.setHoTen(hoTen); nv.setSDT(sdt); nv.setMatKhau(matKhau);
-        nv.setChucVu(cboChucVu.getSelectedItem().toString()); nv.setTrangThai(cboTrangThai.getSelectedItem().toString());
-        String msg = lblFormTitle.getText().equals("THÊM TÀI KHOẢN") ? nvBUS.addNV(nv) : nvBUS.updateNV(nv);
+        nv.setMaNV(maNV);
+        nv.setHoTen(hoTen);
+        nv.setSDT(sdt);
+        nv.setMatKhau(matKhau);
+        nv.setMaNhom(nhomChon.getMaNhom());
+        nv.setTenNhom(nhomChon.getTenNhom());
+        nv.setTrangThai(cboTrangThai.getSelectedItem().toString());
+
+        String msg = lblFormTitle.getText().equals("THÊM TÀI KHOẢN")
+                ? nvBUS.addNV(nv) : nvBUS.updateNV(nv);
         JOptionPane.showMessageDialog(this, msg);
         if (msg.toLowerCase().contains("thành công")) {
             nvBUS.refesh(); loadDataFromBUS(); clearForm(); hideFormPanel();
@@ -436,9 +512,12 @@ public class TrangQuanLyTaiKhoan extends JPanel {
     private void clearForm() {
         txtMaNV.setText(""); txtHoTen.setText(""); txtSDT.setText("");
         txtMatKhau.setText(""); txtMatKhau.setEchoChar('•');
-        cboChucVu.setSelectedIndex(0); cboTrangThai.setSelectedIndex(0);
+        if (cboNhomQuyen.getItemCount() > 0) cboNhomQuyen.setSelectedIndex(0); // ← ĐỔI
+        cboTrangThai.setSelectedIndex(0);
         txtMaNV.setEditable(true);
     }
+
+    // XUẤT EXCEL
 
     private void xuatExcel() {
         JFileChooser fileChooser = new JFileChooser();
@@ -457,7 +536,6 @@ public class TrangQuanLyTaiKhoan extends JPanel {
 
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Danh sách tài khoản");
 
-            // Style tiêu đề
             org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
             org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
             headerFont.setBold(true);
@@ -472,7 +550,6 @@ public class TrangQuanLyTaiKhoan extends JPanel {
             headerStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
             headerStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
 
-            // Style dữ liệu
             org.apache.poi.ss.usermodel.CellStyle dataStyle = workbook.createCellStyle();
             dataStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
             dataStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
@@ -480,7 +557,6 @@ public class TrangQuanLyTaiKhoan extends JPanel {
             dataStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
             dataStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
 
-            // Tiêu đề — bỏ cột Mật khẩu và cột nút Hiện mật khẩu
             String[] cols = {"STT", "Họ tên", "Số điện thoại", "Username", "Vai trò", "Trạng thái"};
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
             for (int i = 0; i < cols.length; i++) {
@@ -489,7 +565,6 @@ public class TrangQuanLyTaiKhoan extends JPanel {
                 cell.setCellStyle(headerStyle);
             }
 
-            // Ghi dữ liệu — chỉ lấy 6 cột đầu (bỏ cột Mật khẩu và nút)
             for (int r = 0; r < model.getRowCount(); r++) {
                 org.apache.poi.ss.usermodel.Row row = sheet.createRow(r + 1);
                 for (int c = 0; c < cols.length; c++) {

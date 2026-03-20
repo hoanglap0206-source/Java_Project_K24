@@ -280,7 +280,7 @@ public class TrangHoSo extends JPanel {
         lblValues[0].setText(nv.getMaNV());
         lblValues[1].setText(nv.getHoTen());
         lblValues[2].setText(nv.getSDT());
-        lblValues[3].setText(nv.getChucVu());
+        lblValues[3].setText(nv.getTenNhom());
 
         // Tính tổng số đơn & tổng chi tiêu (nhập + xuất)
         int tongDon = 0;

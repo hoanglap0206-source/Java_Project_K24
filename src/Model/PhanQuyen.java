@@ -7,64 +7,37 @@ public class PhanQuyen {
     private boolean xoa = false;
     private boolean sua = false;
     private boolean them = false;
+    private boolean custom = false;
 
-    public PhanQuyen() {
-    }
+    public PhanQuyen() {}
 
     public PhanQuyen(NhanVien nhanVien, ChucNang chucNang, boolean xem, boolean xoa, boolean sua, boolean them) {
         this.nhanVien = nhanVien;
         this.chucNang = chucNang;
-        this.xem = xem;
-        this.xoa = xoa;
-        this.sua = sua;
+        this.xem  = xem;
+        this.xoa  = xoa;
+        this.sua  = sua;
         this.them = them;
     }
 
-    public NhanVien getNhanVien() {
-        return nhanVien;
-    }
+    public NhanVien getNhanVien(){ return nhanVien; }
+    public void setNhanVien(NhanVien nhanVien){ this.nhanVien = nhanVien; }
 
-    public void setNhanVien(NhanVien nhanVien) {
-        this.nhanVien = nhanVien;
-    }
+    public ChucNang getChucNang(){ return chucNang; }
+    public void setChucNang(ChucNang chucNang){ this.chucNang = chucNang; }
 
-    public ChucNang getChucNang() {
-        return chucNang;
-    }
+    public boolean isXem(){ return xem; }
+    public void setXem(boolean xem){ this.xem = xem; }
 
-    public void setChucNang(ChucNang chucNang) {
-        this.chucNang = chucNang;
-    }
+    public boolean isXoa(){ return xoa; }
+    public void setXoa(boolean xoa){ this.xoa = xoa; }
 
-    public boolean isXem() {
-        return xem;
-    }
+    public boolean isSua(){ return sua; }
+    public void setSua(boolean sua){ this.sua = sua; }
 
-    public void setXem(boolean xem) {
-        this.xem = xem;
-    }
+    public boolean isThem(){ return them; }
+    public void setThem(boolean them){ this.them = them; }
 
-    public boolean isXoa() {
-        return xoa;
-    }
-
-    public void setXoa(boolean xoa) {
-        this.xoa = xoa;
-    }
-
-    public boolean isSua() {
-        return sua;
-    }
-
-    public void setSua(boolean sua) {
-        this.sua = sua;
-    }
-
-    public boolean isThem() {
-        return them;
-    }
-
-    public void setThem(boolean them) {
-        this.them = them;
-    }
+    public boolean isCustom(){ return custom; }
+    public void setCustom(boolean custom){ this.custom = custom; }
 }
