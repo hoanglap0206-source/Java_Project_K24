@@ -34,7 +34,6 @@ public class TrangHoSo extends JPanel {
     private static final Font  FONT_TBL_HDR = new Font("Segoe UI", Font.BOLD, 13);
     private static final Font  FONT_TBL     = new Font("Segoe UI", Font.PLAIN, 13);
 
-    //  Tên trường hiển thị
     private final String[] FIELD_NAMES = {"Mã nhân viên", "Tên nhân viên", "Số điện thoại", "Chức vụ", "Tổng số đơn hàng", "Tổng chi tiêu"};
 
     private JLabel[] lblValues;
@@ -59,8 +58,8 @@ public class TrangHoSo extends JPanel {
     }
 
     private void initBUS() {
-        pnBUS   = new PhieuNhap_BUS();
-        pxBUS   = new PhieuXuat_BUS();
+        pnBUS = new PhieuNhap_BUS();
+        pxBUS = new PhieuXuat_BUS();
         ctpnBUS = new ChiTietPN_BUS();
         ctpxBUS = new ChiTietPX_BUS();
     }

@@ -30,6 +30,7 @@ public class NCC_BUS {
 
     public String addNCC(NhaCungCap NCC){
         //Kiểm tra thêm nhà cung cấp có đúng định dạng không
+
         if(!Check.isValidNCC(NCC.getMaNCC()))
             return "Mã nhà cung cấp không đúng định dạng (Phải là NCCxx ví dụ NCC01)";
         if(isduplicateMaNCC(NCC.getMaNCC()))
