@@ -477,7 +477,37 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
                     ex.printStackTrace();
                 }
             }
+
         });
+        //hàm tự động trừ //
+        /*
+        Timer demoTimer = new Timer(10000, e -> {
+            boolean hasChanges = false;
+
+            // Lướt qua từng dòng trên bảng (trong RAM)
+            for (BaoCaoTonKho bc : bus.getAll()) {
+                if (bc.getCanhBaoHH() > 0) {
+                    bc.setCanhBaoHH(bc.getCanhBaoHH() - 1); // Trừ đi 1
+
+                    // Gọi DAO để trừ luôn dưới Database cho chắc
+                    // (Bạn cần tạo thêm 1 hàm updateCanhBao trong DAO/BUS cho nhẹ,
+                    // hoặc dùng luôn hàm updateBaoCao hiện tại cũng được)
+                    bus.updateBaoCao(bc);
+                    hasChanges = true;
+                }
+            }
+
+            // Nếu có dòng nào bị trừ, thì load lại cái bảng JTable để thầy cô thấy số nhảy
+            if (hasChanges) {
+                loadDataToTable();
+                System.out.println("Đã tự động trừ 1 ngày cảnh báo (Demo Mode)!");
+            }
+        });
+
+        // Bắt đầu đếm giờ
+        demoTimer.start();
+
+         */
     }
 
 

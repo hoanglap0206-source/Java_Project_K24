@@ -13,6 +13,7 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.print.PageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.SwingConstants;
@@ -321,12 +322,30 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
         lblTong.setFont(new Font("Arial", Font.PLAIN, 14));
 
         btnAdd = new JButton("In báo cáo");
+        Style.styleButton(btnAdd);
+
         btnAdd.setBackground(new Color(14, 129, 239));
 
-        btnAdd.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(null,"Đã in thành công");
+        btnAdd.addActionListener(e->{
+            if(table.getRowCount()==0){
+                JOptionPane.showMessageDialog(this, "Không có dữ liệu để in!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            try{
+                java.text.MessageFormat head = new java.text.MessageFormat("BÁO CÁO KHO HÀNG");
+                java.text.MessageFormat footer = new java.text.MessageFormat("Trang {0}");
+                java.awt.print.Printable printable=table.getPrintable(JTable.PrintMode.FIT_WIDTH,head,footer);
+
+                java.awt.print.PrinterJob job=java.awt.print.PrinterJob.getPrinterJob();
+                java.awt.print.PageFormat pageFormat=job.defaultPage();
+                pageFormat.setOrientation(PageFormat.LANDSCAPE);
+
+                Window parentWindow = SwingUtilities.getWindowAncestor(this);
+                PrintPreviewDialog previewDialog = new PrintPreviewDialog(parentWindow, printable, pageFormat, "Báo Cáo Kho Hàng");
+                previewDialog.setVisible(true);
+            }catch (Exception ex){
+                JOptionPane.showMessageDialog(this, "Có lỗi khi chuẩn bị trang in: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
             }
         });
 
