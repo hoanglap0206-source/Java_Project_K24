@@ -73,7 +73,7 @@ public class SanPham_BUS {
             // tìm kệ mới
             boolean daChuyen = false;
 
-            ArrayList<KeKho> listKe = kkBUS.getlistkK(conn);
+            ArrayList<KeKho> listKe = kkBUS.getListKK();
 
             for (KeKho kkho : listKe) {
 
@@ -161,7 +161,7 @@ public class SanPham_BUS {
         return null;
     }
     private KeKho timKeKhoTheoMa(String maKe,Connection conn) {
-        for (KeKho kk : kkBUS.getlistkK(conn)) {  // hoặc dùng list cache nếu có
+        for (KeKho kk : kkBUS.getListKK()) {  // hoặc dùng list cache nếu có
             if (kk.getMaKe().equalsIgnoreCase(maKe)) {
                 return kk;
             }

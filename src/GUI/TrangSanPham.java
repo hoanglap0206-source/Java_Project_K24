@@ -45,6 +45,8 @@ public class TrangSanPham extends JPanel {
     private ArrayList<Object[]> allRows = new ArrayList<>();
     private JComboBox<String> comboBoxLoc;
 
+
+
     public TrangSanPham() {
         setLayout(new BorderLayout());
         setBackground(new Color(255, 255, 255));

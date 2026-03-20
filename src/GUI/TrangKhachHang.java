@@ -26,29 +26,237 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
     private JButton btnDelete;
     private  JComboBox<String> comboBoxLoc;
 
+    private JSplitPane splitPane;
+    private JPanel panelForm;
+    private JLabel lblFormTitle;
+    private JTextField txtMaKH, txtTenKH, txtSdt, txtDiaChi,txtChiTieu;
+    private String currentMode = "THEM";
+
     public TrangKhachHang() {
         setLayout(new BorderLayout());
         setBackground(new Color(255, 255, 255));
-
-        // 1. Khởi tạo Model và Table trước (để lấy dữ liệu gốc cho Sorter)
-        String[] columns = {"STT", "Mã KH", "Tên KH", "SĐT", "Địa chỉ", "Chi tiêu"};
-        model = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        table = new JTable(model);
-        rowSorter = new TableRowSorter<>(model);
-        table.setRowSorter(rowSorter);
-
-
-        add(taoThanhCongCu(), BorderLayout.NORTH);
-        add(taoNoiDung(), BorderLayout.CENTER);
-
+        initUI();
         fillToTable();
     }
+    private void initUI() {
+        // 1. Thanh công cụ (Tìm kiếm, Thêm, Sửa, Xóa)
+        add(taoThanhCongCu(), BorderLayout.NORTH);
 
+        // 2. Nội dung chính: Bảng bên trái, Form bên phải
+        JPanel panelContent = new JPanel(new BorderLayout());
+        panelContent.setBackground(Color.WHITE);
+        panelContent.setBorder(new EmptyBorder(10, 20, 20, 20));
+
+        // Tạo bảng
+        JScrollPane scrollPane = taoBang();
+
+        // Tạo Form nhập liệu (Side Panel)
+        panelForm = taoPanelForm();
+        panelForm.setVisible(false); // Mặc định ẩn
+
+        // JSplitPane chia đôi màn hình
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPane, panelForm);
+        splitPane.setResizeWeight(1.0);
+        splitPane.setDividerSize(0);
+        splitPane.setBorder(null);
+
+        panelContent.add(new JLabel("DANH SÁCH KHÁCH HÀNG", JLabel.LEFT), BorderLayout.NORTH); // Tiêu đề nhỏ
+        panelContent.add(splitPane, BorderLayout.CENTER);
+
+        add(panelContent, BorderLayout.CENTER);
+    }
+    private JPanel taoPanelForm() {
+        // 1. Panel ngoài cùng (Cố định chiều rộng và border)
+        JPanel outer = new JPanel(new BorderLayout());
+        outer.setPreferredSize(new Dimension(350, 0)); // Tăng nhẹ chiều rộng cho thoải mái
+        outer.setBackground(new Color(245, 247, 250));
+        outer.setBorder(new MatteBorder(0, 1, 0, 0, new Color(210, 220, 235)));
+
+        // 2. Panel nội dung
+        JPanel pnl = new JPanel();
+        pnl.setLayout(new BoxLayout(pnl, BoxLayout.Y_AXIS));
+        pnl.setBackground(new Color(245, 247, 250));
+        pnl.setBorder(new EmptyBorder(30, 24, 24, 24));
+
+        // Tiêu đề
+        lblFormTitle = new JLabel("THÊM KHÁCH HÀNG");
+        lblFormTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblFormTitle.setForeground(new Color(30, 80, 160));
+        lblFormTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JSeparator sep = new JSeparator();
+        sep.setForeground(new Color(198, 220, 255));
+        sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        sep.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        pnl.add(lblFormTitle);
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(sep);
+        pnl.add(Box.createVerticalStrut(25));
+
+        // Khởi tạo các ô nhập liệu
+        txtMaKH = new JTextField();
+        txtTenKH = new JTextField();
+        txtSdt = new JTextField();
+        txtDiaChi = new JTextField();
+        txtChiTieu = new JTextField("0");
+        txtChiTieu.setEditable(false);
+        txtChiTieu.setBackground(new Color(230, 230, 230));
+
+        // Thêm các nhóm input (Bỏ đoạn add trùng lặp lblFormTitle ở đây)
+        pnl.add(taoNhomInput("Mã khách hàng:", txtMaKH));
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(taoNhomInput("Họ và tên:", txtTenKH));
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(taoNhomInput("Số điện thoại:", txtSdt));
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(taoNhomInput("Địa chỉ:", txtDiaChi));
+        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(taoNhomInput("Chi tiêu:", txtChiTieu));
+
+        // Tạo khoảng trống co dãn để đẩy các nút xuống dưới nếu cần
+        pnl.add(Box.createVerticalStrut(20));
+
+        // 3. Panel chứa nút bấm
+        JButton btnSave = new JButton("💾  Lưu");
+        styleButton(btnSave, new Color(37, 120, 220), Color.WHITE);
+        btnSave.addActionListener(e -> xuLyLuu());
+
+        JButton btnCancel = new JButton("✕  Hủy");
+        styleButton(btnCancel, new Color(220, 225, 235), new Color(60, 60, 60));
+        btnCancel.addActionListener(e -> hideForm());
+
+        JPanel pnlBtn = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        pnlBtn.setBackground(new Color(245, 247, 250));
+        pnlBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30)); // Giới hạn chiều cao panel nút
+
+        pnlBtn.add(btnSave);
+        pnlBtn.add(btnCancel);
+
+        pnl.add(pnlBtn);
+
+        // Thêm scrollPane vào CENTER thay vì NORTH để nó chiếm trọn không gian
+        outer.add(pnl, BorderLayout.CENTER);
+        return outer;
+    }
+
+    // Hàm hỗ trợ style nút cho gọn code
+    private void styleButton(JButton btn, Color bg, Color fg) {
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(90, 30));
+    }
+    private JPanel taoNhomInput(String label, JTextField tf) {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setBackground(new Color(245, 247, 250));
+        p.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lbl = new JLabel(label);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        tf.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(new Color(200, 200, 200)),
+                new EmptyBorder(5, 10, 5, 10)
+        ));
+
+        p.add(lbl);
+        p.add(Box.createVerticalStrut(5));
+        p.add(tf);
+        p.add(Box.createVerticalStrut(15));
+        return p;
+    }
+    private void xuLyLuu() {
+        String ma = txtMaKH.getText().trim();
+        String ten = txtTenKH.getText().trim();
+        String sdt = txtSdt.getText().trim();
+        String dc = txtDiaChi.getText().trim();
+        String ct = txtChiTieu.getText().replaceAll("[^0-9]", "");
+        if(ct.isEmpty()) ct = "0";
+
+        // --- PHẦN RÀNG BUỘC (VALIDATION) ---
+
+        // 1. Kiểm tra Tên khách hàng
+        if (ten.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Tên khách hàng không được để trống!", "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            txtTenKH.requestFocus(); // Focus vào ô tên
+            return;
+        }
+
+        // 2. Kiểm tra Số điện thoại (Phải là 10 số)
+        if (sdt.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Số điện thoại không được để trống!", "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            txtSdt.requestFocus();
+            return;
+        }
+        if (!sdt.matches("\\d{10}")) {
+            JOptionPane.showMessageDialog(this, "Số điện thoại phải có đúng 10 chữ số!", "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
+            txtSdt.requestFocus();
+            return;
+        }
+
+        // 3. Kiểm tra Địa chỉ
+        if (dc.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Địa chỉ không được để trống!", "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            txtDiaChi.requestFocus();
+            return;
+        }
+
+        // --- THỰC HIỆN LƯU ---
+        KhachHang kh = new KhachHang(ma, ten, dc, sdt, ct);
+        String res = currentMode.equals("THEM") ? khBUS.addKhachHang(kh) : khBUS.updateKH(kh);
+
+        if (res.toLowerCase().contains("thành công")) {
+            JOptionPane.showMessageDialog(this, res, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            khBUS.refeshData(); // Cập nhật lại list trong BUS
+            fillToTable();      // Vẽ lại bảng
+            hideForm();         // Đóng form
+        } else {
+            JOptionPane.showMessageDialog(this, res, "Lỗi hệ thống", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    private void showForm(String mode, KhachHang kh) {
+        this.currentMode = mode;
+        if (mode.equals("THEM")) {
+            lblFormTitle.setText("THÊM KHÁCH HÀNG");
+            String maKH = khBUS.getNewMaKH();
+            txtMaKH.setText(maKH);
+            txtMaKH.setEditable(false);
+            txtMaKH.setBackground(new Color(235, 235, 235));
+            txtTenKH.setText("");
+            txtSdt.setText("");
+            txtDiaChi.setText("");
+            txtChiTieu.setText("0");
+            panelForm.setVisible(true);
+            SwingUtilities.invokeLater(()->{
+                txtTenKH.requestFocusInWindow();
+            });
+            splitPane.setDividerLocation(this.getWidth()-350);
+        } else {
+            lblFormTitle.setText("SỬA THÔNG TIN KH");
+            txtMaKH.setText(kh.getMaKH());
+            txtMaKH.setEditable(false);
+            txtMaKH.setBackground(new Color(230, 230, 230));
+
+            txtTenKH.setText(kh.getHoTenKH());
+            txtSdt.setText(kh.getSdt());
+            txtDiaChi.setText(kh.getDiaChi());
+        }
+        panelForm.setVisible(true);
+        SwingUtilities.invokeLater(()->{
+            txtTenKH.requestFocusInWindow();
+        });
+        splitPane.setDividerLocation(this.getWidth() - 300);
+    }
+
+    private void hideForm() {
+        panelForm.setVisible(false);
+    }
     private JPanel taoThanhCongCu() {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(Color.WHITE);
@@ -257,9 +465,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
         panel.add(btnExcel);
 
 
-        btnAdd.addActionListener(e -> {
-            new FormKhachHang(this, "THEM", null).setVisible(true);
-        });
+        btnAdd.addActionListener(e ->showForm("THEM",null));
         btnDelete.addActionListener(e->{
             int row = table.getSelectedRow();
             if(row==-1){
@@ -267,13 +473,13 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
                 return;
             }
             int modelRow= table.convertRowIndexToModel(row);
-            String maKH=table.getValueAt(modelRow,1).toString();
-            //String tenKH=table.getValueAt(row,2).toString();
+            String maKH=model.getValueAt(modelRow,1).toString();
+            String tenKH=model.getValueAt(row,2).toString();
 
             //hộp thoại để tránh bấm nhầm
             int choice = JOptionPane.showConfirmDialog(
                     this,
-                    "Bạn có chắc chắn muốn xoá khách hàng"+maKH+"?",
+                    "Bạn có chắc chắn muốn xoá khách hàng"+tenKH+"("+maKH+")?",
                     "Xác nhận",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE
@@ -282,7 +488,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
             if(choice== JOptionPane.YES_OPTION){
                 String result = khBUS.deleteKH(maKH);
 
-                if(result.contains("Thành công!")){
+                if(result.contains("thành công!")){
                     JOptionPane.showMessageDialog(this,result,"Thông báo",JOptionPane.INFORMATION_MESSAGE);
                     fillToTable();
                 }else{
@@ -294,12 +500,26 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
         btnEdit.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần sửa!");
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn khách hàng cần sửa từ bảng!");
                 return;
             }
-            // Lấy dữ liệu dòng đang chọn từ table để truyền qua form
-            KhachHang kh = khBUS.getListKH().get(row);
-            new FormKhachHang(this, "SUA", kh).setVisible(true);
+
+            // Lấy chỉ số dòng thực tế trong model (phòng trường hợp bảng đang bị sắp xếp/lọc)
+            int modelRow = table.convertRowIndexToModel(row);
+
+            // Trích xuất dữ liệu từ Model
+            String ma = model.getValueAt(modelRow, 1).toString();
+            String ten = model.getValueAt(modelRow, 2).toString();
+            String sdt = model.getValueAt(modelRow, 3).toString();
+            String dc = model.getValueAt(modelRow, 4).toString();
+            // Giả sử cột 5 là Chi tiêu hoặc bạn lấy từ đối tượng KH trong BUS
+            String ct = model.getValueAt(modelRow, 5).toString();
+
+            // Tạo đối tượng tạm để truyền vào Form
+            KhachHang kh = new KhachHang(ma, ten, dc, sdt, ct);
+
+            // Hiển thị form ở chế độ SUA
+            showForm("SUA", kh);
         });
         wrapper.add(panel, BorderLayout.CENTER);
         return wrapper;
@@ -355,6 +575,21 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
 
         rowSorter= new TableRowSorter<>(model);
         table.setRowSorter(rowSorter);
+//        // Tùy chỉnh bộ so sánh cho cột Mã KH (Cột index 1)
+//        rowSorter.setComparator(1, new java.util.Comparator<String>() {
+//            @Override
+//            public int compare(String s1, String s2) {
+//                try {
+//                    // Tách phần số sau chữ "KH"
+//                    int n1 = Integer.parseInt(s1.substring(2));
+//                    int n2 = Integer.parseInt(s2.substring(2));
+//                    return Integer.compare(n1, n2);
+//                } catch (Exception e) {
+//                    // Nếu không phải định dạng KH + số, quay về so sánh chuỗi mặc định
+//                    return s1.compareTo(s2);
+//                }
+//            }
+//        });
         // Căn giữa toàn bộ
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);

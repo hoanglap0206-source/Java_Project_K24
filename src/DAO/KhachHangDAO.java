@@ -85,8 +85,10 @@ public class KhachHangDAO {
             ps.setString(1,kh.getHoTenKH());
             ps.setString(2,kh.getDiaChi());
             ps.setString(3,kh.getSdt());
-            ps.setString(5,kh.getMaKH());
-            ps.setString(4,kh.getCT());
+            double ct = 0;
+            try { ct = Double.parseDouble(kh.getCT()); } catch (Exception e) {}
+            ps.setDouble(4, Double.parseDouble(kh.getCT())); // Vẫn gửi chi tiêu hiện tại
+            ps.setString(5, kh.getMaKH());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
@@ -106,6 +108,21 @@ public class KhachHangDAO {
             e.printStackTrace();
             return false;
         }
+    }
+    public String getNextMaKH(){
+        String sql="SELECT ma_kh FROM KHACH_HANG ORDER BY ma_kh DESC LIMIT 1";
+        try(Connection conn= DBConnection.getConnection();
+            PreparedStatement ps=  conn.prepareStatement(sql);
+            ResultSet rs= ps.executeQuery()){
+            if(rs.next()){
+                String lastMa= rs.getString("ma_kh");
+                int number = Integer.parseInt(lastMa.substring(2));
+                return String.format("KH%010d",number);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return "KH001";
     }
 
 //    public long getTongChiTieuByMaKH(String maKH) {

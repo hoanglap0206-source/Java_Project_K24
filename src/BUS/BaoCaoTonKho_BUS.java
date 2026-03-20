@@ -46,9 +46,23 @@ public class BaoCaoTonKho_BUS {
     public String addBaoCao(BaoCaoTonKho bc) {
         if (bc.getMaTonKho().isEmpty()) return "Mã báo cáo không được để trống!";
 
+        String maSPMoi = bc.getSanPham().getMaSP();
+        boolean daCoTrongKho = false;
+        for (BaoCaoTonKho item : listBaoCao) {
+            if (item.getSanPham().getMaSP().equalsIgnoreCase(maSPMoi)) {
+                daCoTrongKho = true;
+                break;
+            }
+        }
+        if (daCoTrongKho) {
+            return "Sản phẩm [" + bc.getSanPham().getTenSP() + "] ĐÃ CÓ TRONG KHO!\nVui lòng chọn sản phẩm trên bảng và bấm nút 'Chỉnh sửa'.";
+        }
+        if (bc.getsLTon() < 0) {
+            return "Số lượng tồn kho không được là số âm!";
+        }
         if (tonKhoDAO.insert(bc)) {
             listBaoCao.add(bc);
-            return "Thêm báo cáo thành công!";
+            return "Thêm thành công!";
         }
         return "Thêm thất bại!";
     }
@@ -69,11 +83,15 @@ public class BaoCaoTonKho_BUS {
     }
 
 
-    // Tạm ẩn nếu DAO chưa có hàm delete
     public String deleteBaoCao(String maBC) {
+
         if (tonKhoDAO.delete(maBC)) {
-            listBaoCao.removeIf(bc -> bc.getMaTonKho().equals(maBC));
-            return "Xóa thành công!";
+
+
+            listBaoCao.removeIf(bc -> bc.getSanPham().getMaSP().equalsIgnoreCase(maBC));
+
+
+            return "Xóa thành công (Sản phẩm đã được ẩn khỏi danh sách)!";
         }
         return "Xóa thất bại!";
     }
