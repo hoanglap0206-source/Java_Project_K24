@@ -440,6 +440,8 @@ public class TrangNhapKho extends JPanel {
                 if (soLuong <= 0) throw new Exception();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+                txtSoLuongRight.requestFocus();
+                txtSoLuongRight.selectAll();
                 return;
             }
             tableModelRight.setValueAt(soLuong,row,3);
@@ -479,6 +481,8 @@ public class TrangNhapKho extends JPanel {
             if (soLuong <= 0) throw new Exception();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+            txtSoLuong.requestFocus();
+            txtSoLuong.selectAll();
             return;
         }
 
@@ -599,6 +603,7 @@ public class TrangNhapKho extends JPanel {
         if(ManCC.isEmpty() || ManCC.equalsIgnoreCase("Mã nhà cung cấp")){
             JOptionPane.showMessageDialog(this, "Vui lòng nhập mã Nhà Cung Cấp","Cảnh báo",
                     JOptionPane.WARNING_MESSAGE);
+            comboBoxLoc.requestFocus();
             return;
         }
         NhaCungCap ncc = new NhaCungCap();

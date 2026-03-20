@@ -435,6 +435,8 @@ public class TrangXuatKho extends JPanel {
             if (soLuong <= 0) throw new Exception();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+            txtSoLuong.requestFocus();
+            txtSoLuong.selectAll();
             return;
         }
         int quantity = Integer.parseInt(
@@ -447,6 +449,8 @@ public class TrangXuatKho extends JPanel {
         );
         if(soLuong>quantity){
             JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+            txtSoLuong.requestFocus();
+            txtSoLuong.selectAll();
             return;
         }
         for (int i = 0; i < tableModelRight.getRowCount(); i++) {
@@ -455,6 +459,8 @@ public class TrangXuatKho extends JPanel {
                 int slCu = (int) tableModelRight.getValueAt(i, 3);
                 if((slCu+soLuong)>quantity){
                     JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+                    txtSoLuong.requestFocus();
+                    txtSoLuong.selectAll();
                     return;
                 }
                 tableModelRight.setValueAt(slCu + soLuong, i, 3);
@@ -474,7 +480,7 @@ public class TrangXuatKho extends JPanel {
         tongTien += (long)(soLuong * donGia + 0.1f *soLuong*donGia);
         String txtTien = String.valueOf(tongTien);
         txtTongTien.setText(txtTien);
-        txtSoLuong.setText("");
+        txtSoLuong.setText("0");
     }
 
     public void loadTableData() {
@@ -584,6 +590,7 @@ public class TrangXuatKho extends JPanel {
                 if (row == -1) return;
                 // UX: cho con trỏ nhảy sang ô nhập số lượng
                 txtSoLuongRight.requestFocus();
+                txtSoLuongRight.selectAll();
             }
         });
 
@@ -600,6 +607,8 @@ public class TrangXuatKho extends JPanel {
                 if (soLuong <= 0) throw new Exception();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+                txtSoLuongRight.requestFocus();
+                txtSoLuongRight.selectAll();
                 return;
             }
             for(int i=0;i<tableModel.getRowCount();i++){
@@ -608,6 +617,8 @@ public class TrangXuatKho extends JPanel {
                     int soLuongLeft = Integer.parseInt(tableModel.getValueAt(i,2).toString());
                     if (soLuongLeft<soLuong){
                         JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+                        txtSoLuongRight.requestFocus();
+                        txtSoLuongRight.selectAll();
                         return;
                     }
                 }
@@ -648,6 +659,7 @@ public class TrangXuatKho extends JPanel {
         if(MaKH.isEmpty() || MaKH.equalsIgnoreCase("Mã Khách hàng")){
             JOptionPane.showMessageDialog(this, "Vui lòng chọn mã Khách hàng","Cảnh báo",
                     JOptionPane.WARNING_MESSAGE);
+            comboBoxLoc.requestFocus();
             return;
         }
         KhachHang kh = new KhachHang();
