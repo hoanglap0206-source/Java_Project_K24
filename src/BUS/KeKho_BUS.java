@@ -2,8 +2,10 @@ package BUS;
 
 import DAO.KeKho_DAO;
 import DAO.SanPham_DAO;
+import DAO.ChiTietKe_DAO;
 import Model.KeKho;
 import Model.SanPham;
+import Model.ChiTietKe;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -13,6 +15,7 @@ public class KeKho_BUS {
     private ArrayList<SanPham> listAllSP; // Cache tất cả sản phẩm
     private KeKho_DAO kkDAO;
     private SanPham_DAO spDAO;
+    private ChiTietKe_DAO ctDAO = new ChiTietKe_DAO();
 
     public KeKho_BUS(){
         kkDAO = new KeKho_DAO();
@@ -43,9 +46,15 @@ public class KeKho_BUS {
 
     public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
         ArrayList<SanPham> result = new ArrayList<>();
-        for (SanPham sp : listAllSP) {
-            if (sp.getKeKho() != null && maKe.equals(sp.getKeKho().getMaKe())) {
-                result.add(sp);
+        ArrayList<ChiTietKe> listCT = ctDAO.getByMaKe(maKe);
+
+        for (ChiTietKe ct : listCT) {
+            for (SanPham sp : listAllSP) {
+                if (sp.getMaSP().equals(ct.getMaSP())) {
+                    sp.setSoLuong(ct.getSoLuong());
+                    result.add(sp);
+                    break;
+                }
             }
         }
         return result;
@@ -71,11 +80,12 @@ public class KeKho_BUS {
 
     public int tinhTongSoLuongTheoKe(String maKe) {
         int tong = 0;
-        for (SanPham sp : listAllSP) {
-            if (sp.getKeKho() != null && maKe.equals(sp.getKeKho().getMaKe())) {
-                tong += sp.getSoLuong();
-            }
+        ArrayList<ChiTietKe> list = ctDAO.getByMaKe(maKe);
+
+        for (ChiTietKe ct : list) {
+            tong += ct.getSoLuong();
         }
+
         return tong;
     }
 
@@ -89,18 +99,14 @@ public class KeKho_BUS {
     }
 
     public String addKK(KeKho kk){
-        if(kk.getMaKe().trim().isEmpty()) return "Mã kệ không được để trống!";
-
-        for (KeKho ke : listKK) {
-            if(ke.getMaKe().equalsIgnoreCase(kk.getMaKe().trim()))
-                return "Mã kệ đã tồn tại!";
-        }
+        String maMoi = sinhMaKeTuDong();
+        kk.setMaKe(maMoi);
 
         if(kk.getSucChua() <= 0) return "Sức chứa phải lớn hơn 0!";
 
         if(kkDAO.insert(kk)) {
             listKK.add(kk);
-            return "Thêm kệ kho thành công!";
+            return "Thêm kệ kho thành công! Mã: " + maMoi;
         }
         return "Thêm thất bại!";
     }
@@ -123,6 +129,9 @@ public class KeKho_BUS {
     }
 
     public String deleteKK(String maKe) {
+        if(!ctDAO.getByMaKe(maKe).isEmpty()){
+            return "Không thể xoá! Kệ vẫn còn dữ liệu chi tiết.";
+        }
 
         if(maKe == null || maKe.trim().isEmpty()){
             return "Mã kệ không hợp lệ!";
@@ -140,5 +149,22 @@ public class KeKho_BUS {
         }
 
         return "Không tìm thấy kệ để xoá!";
+    }
+
+    public String sinhMaKeTuDong() {
+        int max = 0;
+
+        for (KeKho ke : listKK) {
+            String ma = ke.getMaKe();
+
+            if (ma != null && ma.matches("K\\d{4}")) {
+                int num = Integer.parseInt(ma.substring(1));
+                if (num > max) {
+                    max = num;
+                }
+            }
+        }
+
+        return String.format("K%04d", max + 1);
     }
 }

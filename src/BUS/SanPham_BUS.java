@@ -2,7 +2,9 @@ package BUS;
 
 import DAO.KeKho_DAO;
 import DAO.SanPham_DAO;
+import DAO.ChiTietKe_DAO;
 import DataBase.DBConnection;
+import Model.ChiTietKe;
 import Model.KeKho;
 import Model.SanPham;
 import java.sql.Connection;
@@ -42,6 +44,70 @@ public class SanPham_BUS {
         return 0;
     }
 
+//    public boolean updateSP(Connection conn, DefaultTableModel model) {
+//
+//        for (int i = 0; i < model.getRowCount(); i++) {
+//
+//            String maSP = model.getValueAt(i, 1).toString();
+//            int sL = Integer.parseInt(model.getValueAt(i, 3).toString());
+//
+//            String maKeCu = findMaKe(maSP);
+//            if (maKeCu == null) return false;
+//
+//            int soLuongMoi = tinhSLuong(maSP, sL);
+//
+//            KeKho keCu = timKeKhoTheoMa(maKeCu, conn);
+//            if (keCu == null) return false;
+//
+//            int tongSL = spDAO.SumSLbyMaKe(conn, maKeCu);
+//            int khoangTrong = keCu.getSucChua() - tongSL;
+//
+//            // giữ kệ cũ
+//            if (sL <= khoangTrong) {
+//
+//                if (!spDAO.updateSP(conn, soLuongMoi, maKeCu, maSP))
+//                    return false;
+//
+//                System.out.println("[Giữ kệ] " + maSP + " → " + maKeCu);
+//                continue;
+//            }
+//
+//            // tìm kệ mới
+//            boolean daChuyen = false;
+//
+//            ArrayList<KeKho> listKe = kkBUS.getListKK();
+//
+//            for (KeKho kkho : listKe) {
+//
+//                if (kkho.getMaKe().equals(maKeCu)) continue;
+//
+//                int tongSLKe = spDAO.SumSLbyMaKe(conn, kkho.getMaKe());
+//                int khoangTrongMoi = kkho.getSucChua() - tongSLKe;
+//
+//                if (soLuongMoi <= khoangTrongMoi) {
+//
+//                    if (!spDAO.updateSP(conn, soLuongMoi, kkho.getMaKe(), maSP))
+//                        return false;
+//
+//                    System.out.println("[Chuyển kệ] " + maSP + " → " + kkho.getMaKe());
+//
+//                    daChuyen = true;
+//                    break;
+//                }
+//            }
+//
+//            if (!daChuyen) {
+//                JOptionPane.showMessageDialog(null,
+//                        "Không đủ chỗ cho sản phẩm có mã:  "+ maSP ,
+//                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+//                System.out.println("Không đủ chỗ cho " + maSP);
+//                return false;
+//            }
+//        }
+//
+//        listSP = spDAO.getAllSanPham();
+//        return true;
+//    }
     public boolean updateSP(Connection conn, DefaultTableModel model) {
 
         for (int i = 0; i < model.getRowCount(); i++) {
@@ -49,63 +115,17 @@ public class SanPham_BUS {
             String maSP = model.getValueAt(i, 1).toString();
             int sL = Integer.parseInt(model.getValueAt(i, 3).toString());
 
-            String maKeCu = findMaKe(maSP);
-            if (maKeCu == null) return false;
-
             int soLuongMoi = tinhSLuong(maSP, sL);
 
-            KeKho keCu = timKeKhoTheoMa(maKeCu, conn);
-            if (keCu == null) return false;
-
-            int tongSL = spDAO.SumSLbyMaKe(conn, maKeCu);
-            int khoangTrong = keCu.getSucChua() - tongSL;
-
-            // giữ kệ cũ
-            if (sL <= khoangTrong) {
-
-                if (!spDAO.updateSP(conn, soLuongMoi, maKeCu, maSP))
-                    return false;
-
-                System.out.println("[Giữ kệ] " + maSP + " → " + maKeCu);
-                continue;
-            }
-
-            // tìm kệ mới
-            boolean daChuyen = false;
-
-            ArrayList<KeKho> listKe = kkBUS.getListKK();
-
-            for (KeKho kkho : listKe) {
-
-                if (kkho.getMaKe().equals(maKeCu)) continue;
-
-                int tongSLKe = spDAO.SumSLbyMaKe(conn, kkho.getMaKe());
-                int khoangTrongMoi = kkho.getSucChua() - tongSLKe;
-
-                if (soLuongMoi <= khoangTrongMoi) {
-
-                    if (!spDAO.updateSP(conn, soLuongMoi, kkho.getMaKe(), maSP))
-                        return false;
-
-                    System.out.println("[Chuyển kệ] " + maSP + " → " + kkho.getMaKe());
-
-                    daChuyen = true;
-                    break;
-                }
-            }
-
-            if (!daChuyen) {
-                JOptionPane.showMessageDialog(null,
-                        "Không đủ chỗ cho sản phẩm có mã:  "+ maSP ,
-                        "Lỗi", JOptionPane.ERROR_MESSAGE);
-                System.out.println("Không đủ chỗ cho " + maSP);
+            // BUS không quyết định kệ nữa
+            if (!spDAO.updateSP(conn, soLuongMoi, null, maSP))
                 return false;
-            }
         }
 
         listSP = spDAO.getAllSanPham();
         return true;
     }
+
     public boolean updateSPPX(Connection conn, DefaultTableModel model) {
         System.out.println("Bắt đầu updateSPPX - Số sản phẩm cần cập nhật: " + model.getRowCount());
         for (int i=0;i<model.getRowCount();i++){
@@ -115,16 +135,16 @@ public class SanPham_BUS {
 
             System.out.println("  Xử lý sản phẩm: " + maSP + " | SL xuất: " + sL);
 
-            String maKe = findMaKe(maSP);
-            if (maKe == null) {
-                System.out.println("  → Không tìm thấy maKe cho maSP: " + maSP + " (findMaKe trả về null)");
-                return false;
-            }
+//            String maKe = findMaKe(maSP);
+//            if (maKe == null) {
+//                System.out.println("  → Không tìm thấy maKe cho maSP: " + maSP + " (findMaKe trả về null)");
+//                return false;
+//            } Tạm thời bỏ logic kệ trong BUS
 
             int sLMoi = tinhSLuongConLai(maSP,sL);
             System.out.println("    → SL còn lại sau xuất: " + sLMoi);
 
-            if (!spDAO.updateSP(conn,sLMoi,maKe,maSP)){
+            if (!spDAO.updateSP(conn,sLMoi,null,maSP)){
                 System.out.println("  → Thất bại update SAN_PHAM cho maSP: " + maSP);
                 return  false;
             }
@@ -152,14 +172,15 @@ public class SanPham_BUS {
         }return 0;
     }
 
-    public String findMaKe(String maSP){
-        for (SanPham sp : listSP){
-            if (sp.getMaSP().equalsIgnoreCase(maSP)){
-                return sp.getKeKho().getMaKe();
-            }
-        }
-        return null;
-    }
+//    public String findMaKe(String maSP){
+//        for (SanPham sp : listSP){
+//            if (sp.getMaSP().equalsIgnoreCase(maSP)){
+//                return sp.getKeKho().getMaKe();
+//            }
+//        }
+//        return null;
+//    } không để SanPham_BUS biết sản phẩm nằm ở kệ nào
+
     private KeKho timKeKhoTheoMa(String maKe,Connection conn) {
         for (KeKho kk : kkBUS.getListKK()) {  // hoặc dùng list cache nếu có
             if (kk.getMaKe().equalsIgnoreCase(maKe)) {
@@ -194,14 +215,20 @@ public class SanPham_BUS {
             if(item.getMaSP().equalsIgnoreCase(sp.getMaSP()))
                 return "Mã sản phẩm đã tồn tại";
 
-        // nếu chưa có kệ thì gán mặc định A1
-        if(sp.getKeKho() == null){
+        if(spDAO.insert(sp)) {
+
+            //
             KeKho kk = new KeKho();
             kk.setMaKe("A1");
-            sp.setKeKho(kk);
-        }
 
-        if(spDAO.insert(sp)){
+            new ChiTietKe_DAO().insertOrUpdate(
+                    new ChiTietKe(
+                            kk.getMaKe(),
+                            sp.getMaSP(),
+                            sp.getSoLuong()
+                    )
+            );
+
             listSP.add(sp);
             return "Thêm sản phẩm thành công";
         }
@@ -209,15 +236,26 @@ public class SanPham_BUS {
         return "Thêm sản phẩm thất bại";
     }
 
-
     public String updateSanPham(SanPham sp) {
         if (spDAO.update(sp)) {
+
             for (int i = 0; i < listSP.size(); i++) {
                 if (listSP.get(i).getMaSP().equals(sp.getMaSP())) {
-                    listSP.set(i, sp); // Sử dụng .set để thay thế, không dùng .add
+                    listSP.set(i, sp);
                     break;
                 }
             }
+
+            if (sp.getKeKho() != null) {
+                new ChiTietKe_DAO().insertOrUpdate(
+                        new ChiTietKe(
+                                sp.getKeKho().getMaKe(),
+                                sp.getMaSP(),
+                                sp.getSoLuong()
+                        )
+                );
+            }
+
             return "Cập nhật thành công!";
         }
         return "Cập nhật thất bại!";
