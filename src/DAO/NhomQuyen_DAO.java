@@ -173,4 +173,13 @@ public class NhomQuyen_DAO {
             return ok;
         } catch (Exception e) { e.printStackTrace(); return false; }
     }
+
+    public boolean trungTen(String tenNhom) {
+        String sql = "SELECT 1 FROM NHOM_QUYEN WHERE LOWER(ten_nhom) = LOWER(?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, tenNhom);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        } catch (Exception e) { e.printStackTrace(); return false; }
+    }
 }

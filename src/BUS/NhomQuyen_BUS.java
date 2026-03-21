@@ -25,6 +25,8 @@ public class NhomQuyen_BUS {
             return "Tên nhóm không được để trống!";
         if (dao.isDuplicateMaNhom(nhom.getMaNhom()))
             return "Mã nhóm \"" + nhom.getMaNhom() + "\" đã tồn tại!";
+        if (dao.trungTen(nhom.getTenNhom()))
+            return "Tên nhóm \"" + nhom.getTenNhom() + "\" đã tồn tại!";
         if (dao.insertNhomQuyen(nhom)) {
             listNhom.add(nhom);
             return "Tạo nhóm quyền thành công!";

@@ -408,6 +408,9 @@ public class TrangPhanQuyen extends JPanel {
         body.setBorder(new EmptyBorder(16, 20, 10, 20));
 
         JTextField txtMa  = new JTextField(nhomBUS.getNextMaNhom());
+        txtMa.setEditable(false); //Không cho click
+        txtMa.setBackground(new Color(240, 244, 250));
+
         JTextField txtTen = new JTextField();
         txtTen.setToolTipText("Ví dụ: Quản lý kho, Bán hàng, Admin…");
 
@@ -532,7 +535,10 @@ public class TrangPhanQuyen extends JPanel {
 
             String res = nhomBUS.addNhomQuyen(new NhomQuyen(maNhom, tenNhom));
             if (!res.contains("thành công")) {
-                warnDlg(dlg, res); return;
+                warnDlg(dlg, res);
+                txtTen.selectAll(); //Bôi đen vào ô khi sai để dễ nhập lại
+                txtTen.requestFocusInWindow(); // focus về txtTen khi tên bị trùng
+                return;
             }
 
             // Lưu các quyền đã tích
@@ -563,6 +569,11 @@ public class TrangPhanQuyen extends JPanel {
         dlg.pack();
         dlg.setMinimumSize(new Dimension(580, 540));
         dlg.setLocationRelativeTo(this);
+        dlg.addWindowListener(new WindowAdapter() {
+            @Override public void windowOpened(WindowEvent e) {
+                txtTen.requestFocusInWindow();
+            }
+        });
         dlg.setVisible(true);
     }
 
