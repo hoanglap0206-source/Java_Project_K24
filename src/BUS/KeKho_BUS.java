@@ -13,6 +13,7 @@ import java.util.ArrayList;
 public class KeKho_BUS {
     private ArrayList<KeKho> listKK;
     private ArrayList<SanPham> listAllSP; // Cache tất cả sản phẩm
+    private ArrayList<ChiTietKe> listAllCT;
     private KeKho_DAO kkDAO;
     private SanPham_DAO spDAO;
     private ChiTietKe_DAO ctDAO = new ChiTietKe_DAO();
@@ -20,12 +21,14 @@ public class KeKho_BUS {
     public KeKho_BUS(){
         kkDAO = new KeKho_DAO();
         spDAO = new SanPham_DAO();
+        ctDAO = new ChiTietKe_DAO();
         loadAllData(); // Load 1 lần khi khởi tạo
     }
 
     private void loadAllData() {
         listKK = kkDAO.getAllKeKho();
         listAllSP = spDAO.getAllSanPham();
+        listAllCT = ctDAO.getAll();
     }
 
     public ArrayList<KeKho> getlistkK(Connection conn){
@@ -46,14 +49,21 @@ public class KeKho_BUS {
 
     public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
         ArrayList<SanPham> result = new ArrayList<>();
-        ArrayList<ChiTietKe> listCT = ctDAO.getByMaKe(maKe);
 
-        for (ChiTietKe ct : listCT) {
-            for (SanPham sp : listAllSP) {
-                if (sp.getMaSP().equals(ct.getMaSP())) {
-                    sp.setSoLuong(ct.getSoLuong());
-                    result.add(sp);
-                    break;
+        // Dùng cache listAllCT, không query database
+        for (ChiTietKe ct : listAllCT) {
+            if (ct.getMaKe().equals(maKe)) {
+                for (SanPham sp : listAllSP) {
+                    if (sp.getMaSP().equals(ct.getMaSP())) {
+                        // Clone để tránh ảnh hưởng cache
+                        SanPham spCopy = new SanPham();
+                        spCopy.setMaSP(sp.getMaSP());
+                        spCopy.setTenSP(sp.getTenSP());
+                        spCopy.setDonViTinh(sp.getDonViTinh());
+                        spCopy.setSoLuong(ct.getSoLuong());
+                        result.add(spCopy);
+                        break;
+                    }
                 }
             }
         }
@@ -69,23 +79,21 @@ public class KeKho_BUS {
         return null;
     }
 
-    public int tinhTongSP() {
-        int tong = 0;
-        for (SanPham sp : listAllSP) {
-            tong += sp.getSoLuong();
-        }
-
-        return tong;
+    public int tinhTongSPTrongKho() {
+            int tong = 0;
+            for (ChiTietKe ct : listAllCT) {
+                tong += ct.getSoLuong();
+            }
+            return tong;
     }
 
     public int tinhTongSoLuongTheoKe(String maKe) {
         int tong = 0;
-        ArrayList<ChiTietKe> list = ctDAO.getByMaKe(maKe);
-
-        for (ChiTietKe ct : list) {
-            tong += ct.getSoLuong();
+        for (ChiTietKe ct : listAllCT) {
+            if (ct.getMaKe().equals(maKe)) {
+                tong += ct.getSoLuong();
+            }
         }
-
         return tong;
     }
 
@@ -95,7 +103,7 @@ public class KeKho_BUS {
         if (sucChua == 0)
             return 0;
         double phanTram = (double) tong / sucChua * 100;
-        return (int) phanTram;
+        return (int) Math.round(phanTram);
     }
 
     public String addKK(KeKho kk){
@@ -112,6 +120,9 @@ public class KeKho_BUS {
     }
 
     public String updateKK(KeKho kk){
+        KeKho existing = getKeTheoMa(kk.getMaKe());
+        if(existing == null) return "Không tìm thấy kệ!";
+
         if(kk.getSucChua() <= 0)
             return "Sức chứa phải lớn hơn 0!";
 
@@ -129,26 +140,33 @@ public class KeKho_BUS {
     }
 
     public String deleteKK(String maKe) {
-        if(!ctDAO.getByMaKe(maKe).isEmpty()){
-            return "Không thể xoá! Kệ vẫn còn dữ liệu chi tiết.";
+        KeKho ke = getKeTheoMa(maKe);
+        if(ke == null) {
+            return "Không tìm thấy kệ!";
         }
 
-        if(maKe == null || maKe.trim().isEmpty()){
-            return "Mã kệ không hợp lệ!";
-        }
-
-        if(spDAO.countByMaKe(maKe) > 0){
-            return "Không thể xoá! Kệ vẫn còn sản phẩm.";
+        ArrayList<ChiTietKe> dsSanPham = ctDAO.getByMaKe(maKe);
+        if(!dsSanPham.isEmpty()) {
+            // Chỉ thông báo đơn giản, không liệt kê sản phẩm
+            return "Không thể xóa kệ " + maKe + ". Kệ vẫn đang chứa sản phẩm!";
         }
 
         boolean deleted = kkDAO.delete(maKe);
-
         if(deleted){
             listKK.removeIf(k -> k.getMaKe().equals(maKe));
-            return "Xóa kệ kho thành công!";
+            return "Xóa kệ " + maKe + " thành công!";
         }
 
-        return "Không tìm thấy kệ để xoá!";
+        return "Xóa thất bại!";
+    }
+
+    private String layTenSanPham(String maSP) {
+        for(SanPham sp : listAllSP) {
+            if(sp.getMaSP().equals(maSP)) {
+                return sp.getTenSP();
+            }
+        }
+        return "Không xác định";
     }
 
     public String sinhMaKeTuDong() {

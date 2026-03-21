@@ -649,4 +649,6 @@ public class TrangSanPham extends JPanel {
                     "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
 }

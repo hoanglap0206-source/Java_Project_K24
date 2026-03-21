@@ -560,4 +560,57 @@ public class SanPham_DAO {
 
         return list;
     }
+
+    // Lấy sản phẩm theo mã (mới)
+    public SanPham getSanPhamByMa(String maSP) {
+        String sql = "SELECT ma_sku, ten_sp, dvt, sl, gia FROM SAN_PHAM WHERE ma_sku = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, maSP);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                SanPham sp = new SanPham();
+                sp.setMaSP(rs.getString("ma_sku"));
+                sp.setTenSP(rs.getString("ten_sp"));
+                sp.setDonViTinh(rs.getString("dvt"));
+                sp.setSoLuong(rs.getInt("sl"));
+                sp.setGiaTien(rs.getFloat("gia"));
+                return sp;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // Lấy sản phẩm theo mã (mới, có truyền Connection)
+    public SanPham getSanPhamByMa(String maSP, Connection conn) {
+        String sql = "SELECT ma_sku, ten_sp, dvt, sl, gia FROM SAN_PHAM WHERE ma_sku = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, maSP);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                SanPham sp = new SanPham();
+                sp.setMaSP(rs.getString("ma_sku"));
+                sp.setTenSP(rs.getString("ten_sp"));
+                sp.setDonViTinh(rs.getString("dvt"));
+                sp.setSoLuong(rs.getInt("sl"));
+                sp.setGiaTien(rs.getFloat("gia"));
+                return sp;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }
