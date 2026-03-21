@@ -14,6 +14,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterJob;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.SwingConstants;
@@ -24,7 +26,7 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
     private DefaultTableModel model;
     private BaoCao_BUS bus;
     private TableRowSorter<DefaultTableModel> rowSorter;
-    private JButton btnAdd;
+    private JButton btnIn;
 
     private JComboBox<String> cboloai;
     private JTextField txtTuNgay;
@@ -321,47 +323,151 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
         lblTong = new JLabel("<html>TỔNG TIỀN ĐÃ THANH TOÁN: <font color='#1A932B'><b>0 VNĐ</b></font></html>");
         lblTong.setFont(new Font("Arial", Font.PLAIN, 14));
 
-        btnAdd = new JButton("In báo cáo");
-        Style.styleButton(btnAdd);
+        btnIn = new JButton("In danh sách");
+        Style.styleButton(btnIn);
 
-        btnAdd.setBackground(new Color(14, 129, 239));
+        btnIn.setBackground(new Color(14, 129, 239));
 
-        btnAdd.addActionListener(e->{
-            if(table.getRowCount()==0){
-                JOptionPane.showMessageDialog(this, "Không có dữ liệu để in!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            try{
-                java.text.MessageFormat head = new java.text.MessageFormat("BÁO CÁO KHO HÀNG");
-                java.text.MessageFormat footer = new java.text.MessageFormat("Trang {0}");
-                java.awt.print.Printable printable=table.getPrintable(JTable.PrintMode.FIT_WIDTH,head,footer);
+        btnIn.addActionListener(e->{inDanhSach();
 
-                java.awt.print.PrinterJob job=java.awt.print.PrinterJob.getPrinterJob();
-                java.awt.print.PageFormat pageFormat=job.defaultPage();
-                pageFormat.setOrientation(PageFormat.LANDSCAPE);
-
-                Window parentWindow = SwingUtilities.getWindowAncestor(this);
-                PrintPreviewDialog previewDialog = new PrintPreviewDialog(parentWindow, printable, pageFormat, "Báo Cáo Kho Hàng");
-                previewDialog.setVisible(true);
-            }catch (Exception ex){
-                JOptionPane.showMessageDialog(this, "Có lỗi khi chuẩn bị trang in: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace();
-            }
         });
 
 
-        btnAdd.setForeground(Color.WHITE);
-        btnAdd.setFont(new Font("Arial", Font.BOLD, 12));
-        btnAdd.setFocusPainted(false);
-        btnAdd.setPreferredSize(new Dimension(140, 35));
+        btnIn.setForeground(Color.WHITE);
+        btnIn.setFont(new Font("Arial", Font.BOLD, 12));
+        btnIn.setFocusPainted(false);
+        btnIn.setPreferredSize(new Dimension(140, 35));
 
         pnlSouth.add(lblTong, BorderLayout.WEST);
-        pnlSouth.add(btnAdd, BorderLayout.EAST);
+        pnlSouth.add(btnIn, BorderLayout.EAST);
 
         add(pnlSouth, BorderLayout.SOUTH);
 
         // Tải dữ liệu ngay khi vừa bật Form
         loadBaoCao();
+    }
+    private void inDanhSach() {
+        if (model.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Không có dữ liệu để in!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        PrinterJob job = PrinterJob.getPrinterJob();
+        String loaiBaoCao = cboloai.getSelectedItem().toString();
+        job.setJobName("Bao_Cao_" + loaiBaoCao);
+
+        PageFormat pf = job.defaultPage();
+        pf.setOrientation(PageFormat.PORTRAIT); // Khổ dọc A4
+        final PageFormat finalPf = pf;
+
+        // Cột và độ rộng (Loại bỏ nút Xem)
+        String[] cols = {"Mã SP", "Tên sản phẩm", "ĐVT", "SL (Nhập)", "SL (Xuất)", "Đơn giá"};
+        float[] colW = {50, 170, 45, 65, 65, 115};
+
+        Printable printable = new Printable() {
+            @Override
+            public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+                float ox = (float) pageFormat.getImageableX();
+                float oy = (float) pageFormat.getImageableY();
+                float pageHeight = (float) pageFormat.getImageableHeight();
+                g2.translate(ox, oy);
+
+                // --- THUẬT TOÁN TÍNH TOÁN PHÂN TRANG ---
+                float rowH = 22f; // Chiều cao 1 dòng
+                float headerHeight = 30f + 35f + rowH; // Khúc tiêu đề phía trên tốn bao nhiêu chỗ?
+                float footerHeight = 40f; // Khúc chừa lại ở dưới cùng cho chữ "Tổng tiền"
+
+                // Tính xem 1 trang nhét được tối đa bao nhiêu dòng dữ liệu
+                float maxRowsHeight = pageHeight - headerHeight - footerHeight;
+                int rowsPerPage = (int) (maxRowsHeight / rowH);
+                if (rowsPerPage <= 0) rowsPerPage = 1;
+
+                int totalRows = model.getRowCount();
+                int totalPages = (int) Math.ceil((double) totalRows / rowsPerPage);
+
+                // Nếu số trang yêu cầu vượt quá tổng số trang -> Dừng in
+                if (pageIndex >= totalPages) {
+                    return Printable.NO_SUCH_PAGE;
+                }
+                // ----------------------------------------
+
+                float curY = 0f;
+
+                // --- 1. IN TIÊU ĐỀ BÁO CÁO (Lặp lại ở mỗi trang) ---
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 18));
+                g2.setColor(new java.awt.Color(37, 100, 180));
+                g2.drawString("BÁO CÁO " + loaiBaoCao.toUpperCase() + " (Trang " + (pageIndex + 1) + "/" + totalPages + ")", 0, curY + 18);
+                curY += 30;
+
+                g2.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                g2.setColor(Color.BLACK);
+                g2.drawString("Mã báo cáo: " + txtMaBC.getText(), 0, curY);
+
+                String tuNgay = txtTuNgay.getText().isEmpty() ? "Tất cả" : txtTuNgay.getText();
+                String denNgay = txtDenNgay.getText().isEmpty() ? "Tất cả" : txtDenNgay.getText();
+                g2.drawString("Thời gian: " + tuNgay + " đến " + denNgay, 0, curY + 16);
+                curY += 35;
+
+                // --- 2. IN HEADER BẢNG ---
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                float cx = 0;
+                for (int i = 0; i < cols.length; i++) {
+                    g2.setColor(new java.awt.Color(200, 218, 240));
+                    g2.fillRect((int) cx, (int) curY, (int) colW[i], (int) rowH);
+                    g2.setColor(java.awt.Color.BLACK);
+                    g2.drawRect((int) cx, (int) curY, (int) colW[i], (int) rowH);
+                    g2.drawString(cols[i], cx + 4, curY + rowH - 6);
+                    cx += colW[i];
+                }
+                curY += rowH;
+
+                // --- 3. IN NỘI DUNG BẢNG (Chỉ in đúng số dòng của trang hiện tại) ---
+                int startRow = pageIndex * rowsPerPage;
+                int endRow = Math.min(startRow + rowsPerPage, totalRows);
+
+                g2.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+                for (int r = startRow; r < endRow; r++) {
+                    cx = 0;
+                    for (int c = 0; c < 6; c++) {
+                        g2.setColor(r % 2 == 0 ? java.awt.Color.WHITE : new java.awt.Color(242, 247, 255));
+                        g2.fillRect((int) cx, (int) curY, (int) colW[c], (int) rowH);
+                        g2.setColor(new java.awt.Color(200, 215, 235));
+                        g2.drawRect((int) cx, (int) curY, (int) colW[c], (int) rowH);
+                        g2.setColor(java.awt.Color.BLACK);
+
+                        Object val = model.getValueAt(r, c);
+                        String text = val != null ? val.toString() : "";
+
+                        // Căn phải cho số lượng và đơn giá
+                        if (c >= 3) {
+                            int textWidth = g2.getFontMetrics().stringWidth(text);
+                            g2.drawString(text, cx + colW[c] - textWidth - 5, curY + rowH - 6);
+                        } else {
+                            g2.drawString(text, cx + 4, curY + rowH - 6);
+                        }
+                        cx += colW[c];
+                    }
+                    curY += rowH;
+                }
+
+                // --- 4. IN TỔNG TIỀN (CHỈ IN KHI ĐANG Ở TRANG CUỐI CÙNG) ---
+                if (pageIndex == totalPages - 1) {
+                    curY += 20;
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                    g2.setColor(new java.awt.Color(26, 147, 43));
+                    String tongTienIn = lblTong.getText().replaceAll("<[^>]*>", "");
+                    g2.drawString(tongTienIn, 0, curY);
+                }
+
+                return Printable.PAGE_EXISTS;
+            }
+        };
+
+        Window owner = SwingUtilities.getWindowAncestor(this);
+        new PrintPreviewDialog(owner, printable, finalPf, "Báo Cáo " + loaiBaoCao).setVisible(true);
     }
 
     // Hàm thiết lập event cho thanh tìm kiếm (Đã được gọi ở trên)
@@ -516,6 +622,6 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
     @Override
     public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
                             boolean coQuyen_Sua, boolean coQuyen_Xoa) {
-        btnAdd.setVisible(coQuyen_Them);
+        btnIn.setVisible(coQuyen_Them);
     }
 }
