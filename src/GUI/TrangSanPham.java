@@ -2,6 +2,7 @@ package GUI;
 
 import BUS.SanPham_BUS;
 import BUS.KeKho_BUS;
+import BUS.ChiTietKe_BUS;
 import Model.SanPham;
 import Model.KeKho;
 
@@ -33,12 +34,12 @@ public class TrangSanPham extends JPanel {
     private JTextField txtTenSP;
     private JTextField txtSoLuong;
     private JTextField txtGia;
-    private JComboBox<String> cboKeKho;
+//    private JComboBox<String> cboKeKho;
     private JComboBox<String> cboDVT;
 
     private SanPham_BUS spBus = new SanPham_BUS();
-    private KeKho_BUS kkBus = new KeKho_BUS();
-
+//    private KeKho_BUS kkBus = new KeKho_BUS();
+    private ChiTietKe_BUS chiTietKeBus = new ChiTietKe_BUS();
     // Search
     private JTextField txtSearch;
     private Timer searchTimer;
@@ -216,20 +217,20 @@ public class TrangSanPham extends JPanel {
         cboDVT.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // ComboBox kệ kho — load từ KeKho_BUS
-        cboKeKho = new JComboBox<>();
-        for (KeKho kk : kkBus.getListKK()) cboKeKho.addItem(kk.getMaKe());
-        cboKeKho.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        cboKeKho.setBackground(Color.WHITE);
-        cboKeKho.setBorder(new LineBorder(new Color(198, 218, 245), 1, true));
-        cboKeKho.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        cboKeKho.setAlignmentX(Component.LEFT_ALIGNMENT);
+//        cboKeKho = new JComboBox<>();
+//        for (KeKho kk : kkBus.getListKK()) cboKeKho.addItem(kk.getMaKe());
+//        cboKeKho.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+//        cboKeKho.setBackground(Color.WHITE);
+//        cboKeKho.setBorder(new LineBorder(new Color(198, 218, 245), 1, true));
+//        cboKeKho.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+//        cboKeKho.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         pnl.add(nhomField("Mã sản phẩm", txtMaSP, false));  pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Tên sản phẩm", txtTenSP, false)); pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomCombo("Đơn vị tính", cboDVT));           pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Số lượng", txtSoLuong, true));    pnl.add(Box.createVerticalStrut(10));
         pnl.add(nhomField("Giá nhập (VNĐ)", txtGia, false)); pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomCombo("Kệ kho", cboKeKho));              pnl.add(Box.createVerticalStrut(24));
+//        pnl.add(nhomCombo("Kệ kho", cboKeKho));              pnl.add(Box.createVerticalStrut(24));
 
         JButton btnSave = new JButton("💾  Lưu");
         btnSave.setBackground(new Color(37, 120, 220)); btnSave.setForeground(Color.WHITE);
@@ -391,8 +392,8 @@ public class TrangSanPham extends JPanel {
         java.text.DecimalFormat df = new java.text.DecimalFormat("#,###đ");
         for (SanPham sp : spBus.getAll()) {
             String trangThai = (sp.getSoLuong() > 0) ? "Còn hàng" : "Hết hàng";
-            String maKe = (sp.getKeKho() != null) ? sp.getKeKho().getMaKe() : "Chưa có";
-            Object[] row = { stt++, sp.getMaSP(), sp.getTenSP(), sp.getDonViTinh(), sp.getSoLuong(), df.format(sp.getGiaTien()), maKe, trangThai };
+            String viTri = chiTietKeBus.getViTriSanPham(sp.getMaSP());
+            Object[] row = { stt++, sp.getMaSP(), sp.getTenSP(), sp.getDonViTinh(), sp.getSoLuong(), df.format(sp.getGiaTien()), viTri, trangThai };
             allRows.add(row);
             model.addRow(row);
         }
@@ -446,9 +447,9 @@ public class TrangSanPham extends JPanel {
     }
     private void handleAdd() {
         // Reload danh sách kệ mới nhất từ DB
-        kkBus.refreshData();
-        cboKeKho.removeAllItems();
-        for (KeKho kk : kkBus.getListKK()) cboKeKho.addItem(kk.getMaKe());
+//        kkBus.refreshData();
+//        cboKeKho.removeAllItems();
+//        for (KeKho kk : kkBus.getListKK()) cboKeKho.addItem(kk.getMaKe());
 
         clearForm();
         showFormPanel();
@@ -463,8 +464,8 @@ public class TrangSanPham extends JPanel {
         txtSoLuong.setText(model.getValueAt(row, 4).toString());
         String gia = model.getValueAt(row, 5).toString().replace("đ","").replace(",","");
         txtGia.setText(gia);
-        cboKeKho.setSelectedItem(model.getValueAt(row, 6).toString());
-        cboKeKho.setEnabled(false); // không cho đổi kệ khi sửa
+//        cboKeKho.setSelectedItem(model.getValueAt(row, 6).toString());
+//        cboKeKho.setEnabled(false); // không cho đổi kệ khi sửa
         txtMaSP.setEditable(false);
         txtSoLuong.setEditable(false);
         showFormPanel();
@@ -505,7 +506,13 @@ public class TrangSanPham extends JPanel {
         String ma  = txtMaSP.getText().trim();
         String ten = txtTenSP.getText().trim();
         String dvt = cboDVT.getSelectedItem() != null ? cboDVT.getSelectedItem().toString() : "Chai";
-        String maKe = cboKeKho.getSelectedItem() != null ? cboKeKho.getSelectedItem().toString() : "A1";
+
+        SanPham sp = new SanPham();
+        sp.setMaSP(ma);
+        sp.setTenSP(ten);
+        sp.setDonViTinh(dvt);
+//        sp.setSoLuong(sl);
+//        sp.setGiaTien(gia);
 
         if (ma.isEmpty() || ten.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Mã SP và tên sản phẩm không được để trống!"); return;
@@ -522,9 +529,10 @@ public class TrangSanPham extends JPanel {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Giá nhập không hợp lệ"); return;
         }
-        SanPham sp = new SanPham();
         sp.setMaSP(ma); sp.setTenSP(ten); sp.setDonViTinh(dvt); sp.setSoLuong(sl); sp.setGiaTien(gia);
-        KeKho kk = new KeKho(); kk.setMaKe(maKe); sp.setKeKho(kk);
+//        KeKho kk = new KeKho();
+//        kk.setMaKe(maKe);
+//        sp.setKeKho(kk);
 
         String msg = lblFormTitle.getText().equals("THÊM SẢN PHẨM") ? spBus.addSanPham(sp) : spBus.updateSanPham(sp);
         JOptionPane.showMessageDialog(this, msg);
@@ -537,7 +545,7 @@ public class TrangSanPham extends JPanel {
         txtMaSP.setText(""); txtTenSP.setText("");
         txtSoLuong.setText("0"); txtGia.setText("");
         if (cboDVT != null) cboDVT.setSelectedIndex(0);
-        if (cboKeKho != null && cboKeKho.getItemCount() > 0) { cboKeKho.setSelectedIndex(0); cboKeKho.setEnabled(true); }
+//        if (cboKeKho != null && cboKeKho.getItemCount() > 0) { cboKeKho.setSelectedIndex(0); cboKeKho.setEnabled(true); }
         txtMaSP.setEditable(true); txtSoLuong.setEditable(false);
         lblFormTitle.setText("THÊM SẢN PHẨM");
     }
@@ -587,7 +595,7 @@ public class TrangSanPham extends JPanel {
             dataStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
 
             // Dòng tiêu đề — khớp với cột bảng (bỏ cột Trạng thái nếu muốn, ở đây giữ đủ)
-            String[] cols = {"STT", "Mã SP", "Tên SP", "Đơn vị tính", "Số lượng", "Giá nhập", "Mã kệ", "Trạng thái"};
+            String[] cols = {"STT", "Mã SP", "Tên SP", "Đơn vị tính", "Số lượng", "Giá nhập", "Vị trí kệ", "Trạng thái"};
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
             for (int i = 0; i < cols.length; i++) {
                 org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
