@@ -126,7 +126,7 @@ public class ChiTietPhieuNhap_GUI extends JDialog {
         pnl.setBackground(new Color(245, 248, 252));
         pnl.setBorder(new MatteBorder(1, 0, 0, 0, new Color(210, 220, 235)));
 
-        JButton btnIn = makeBtn("🖨  In phiếu", new Color(37, 120, 220), Color.WHITE);
+        JButton btnIn = makeBtn("  In phiếu", new Color(37, 120, 220), Color.WHITE);
         btnIn.addActionListener(e -> inPhieu());
 
         JButton btnDong = makeBtn("Đóng", new Color(220, 225, 235), new Color(60, 60, 60));
