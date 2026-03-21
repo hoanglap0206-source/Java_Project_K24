@@ -324,6 +324,7 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
             isEditMode = false;
             txtMaSP.setEditable(false);
             txtDG.setEditable(false);
+            txtSL.setEditable(false);
             txtMaKe.setEditable(false);
             cbDVT.setEnabled(false);
             showFormPanel();
@@ -367,6 +368,7 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
             isEditMode = true;
             txtMaSP.setEditable(false);
             cbTenSP.setEnabled(false);
+            txtSL.setEditable(false);
             cbDVT.setEnabled(false);
             txtDG.setEditable(false);
             showFormPanel();

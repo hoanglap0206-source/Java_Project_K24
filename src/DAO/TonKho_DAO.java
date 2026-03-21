@@ -2,6 +2,7 @@ package DAO;
 
 import DataBase.DBConnection;
 import Model.BaoCaoTonKho;
+import Model.ChiTietKe;
 import Model.SanPham;
 
 import java.sql.Connection;
@@ -16,11 +17,15 @@ public class TonKho_DAO {
     public ArrayList<BaoCaoTonKho> getDanhSachTonKho() {
         ArrayList<BaoCaoTonKho> list = new ArrayList<>();
 
-        String sql = "SELECT tk.ma_bc, tk.ton, tk.canh_bao_hh, " +
-                "sp.ma_sku, sp.ten_sp, sp.dvt, sp.gia, sp.ma_ke " +
+        String sql = "SELECT tk.ma_bc, tk.canh_bao_hh, " +
+                "sp.ma_sku, sp.ten_sp, sp.dvt, sp.gia, " +
+                "GROUP_CONCAT(DISTINCT ctk.ma_ke SEPARATOR ',') AS danh_sach_ke, "+
+                "SUM(ctk.so_luong) AS tong_ton "+
                 "FROM bao_cao_ton_kho tk " +
                 "JOIN SAN_PHAM sp ON tk.ma_sku = sp.ma_sku " +
-                "WHERE sp.trang_thai = 1";
+                "LEFT JOIN chitiet_ke ctk ON sp.ma_sku=ctk.ma_sku "+
+                "WHERE sp.trang_thai = 1 "+
+                "GROUP BY sp.ma_sku, tk.ma_bc, tk.canh_bao_hh, sp.ten_sp, sp.dvt, sp.gia";
 
         try (
                 Connection conn = DBConnection.getConnection();
@@ -33,14 +38,17 @@ public class TonKho_DAO {
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
                 sp.setGiaTien(rs.getFloat("gia"));
-                sp.setMaKe(rs.getString("ma_ke"));
+
+                String dsmaKe=rs.getString("danh_sach_ke");
+                sp.setMaKe(dsmaKe!=null? dsmaKe:"Chưa xếp kệ");
 
 
                 BaoCaoTonKho tk = new BaoCaoTonKho();
 
                 tk.setMaBC(rs.getString("ma_bc"));
-                tk.setsLTon(rs.getInt("ton"));
+
                 tk.setCanhBaoHH(rs.getInt("canh_bao_hh"));
+                tk.setsLTon(rs.getInt("tong_ton"));
 
                 tk.setSanPham(sp);
                 list.add(tk);
@@ -55,9 +63,13 @@ public class TonKho_DAO {
     // 2. HÀM THÊM MỚI (INSERT)
     public boolean insert(BaoCaoTonKho bc) {
         boolean ketQua = false;
+// 1. Ghi vào bảng báo cáo (Chỉ lấy cảnh báo)
+        String sqlBC = "INSERT INTO bao_cao_ton_kho (ma_bc, canh_bao_hh, ma_sku) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE canh_bao_hh = ?";
+        // 2. Ghi Số lượng và Mã kệ vào bảng trung gian (Dùng UPSERT để lỡ Kệ đó có hàng rồi thì cộng dồn hoặc ghi đè)
+        String sqlCTK = "INSERT INTO chitiet_ke (ma_ke, ma_sku, so_luong) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE so_luong = ?";
 
-        String sqlBC = "INSERT INTO bao_cao_ton_kho (ma_bc, ton, canh_bao_hh, ma_sku) VALUES (?, ?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE ton = ?, canh_bao_hh = ?";
 
         String sqlSP = "UPDATE san_pham SET trang_thai = 1 WHERE ma_sku = ?";
 
@@ -67,17 +79,23 @@ public class TonKho_DAO {
 
             conn.setAutoCommit(false);
             try (PreparedStatement psBC = conn.prepareStatement(sqlBC)) {
-                // Tham số cho phần INSERT
-                psBC.setString(1, bc.getMaTonKho());
-                psBC.setInt(2, bc.getsLTon());
-                psBC.setInt(3, bc.getCanhBaoHH());
-                psBC.setString(4, bc.getSanPham().getMaSP());
 
-                // Tham số cho phần ON DUPLICATE KEY UPDATE
-                psBC.setInt(5, bc.getsLTon());
-                psBC.setInt(6, bc.getCanhBaoHH());
+                psBC.setString(1, bc.getMaTonKho());
+                psBC.setInt(2, bc.getCanhBaoHH());
+                psBC.setString(3,bc.getSanPham().getMaSP());
+                psBC.setInt(4, bc.getCanhBaoHH());
+
+
+
 
                 psBC.executeUpdate();
+            }
+            try (PreparedStatement psCTK = conn.prepareStatement(sqlCTK)) {
+                psCTK.setString(1, bc.getSanPham().getMaKe());
+                psCTK.setString(2, bc.getSanPham().getMaSP());
+                psCTK.setInt(3, bc.getsLTon());
+                psCTK.setInt(4, bc.getsLTon()); // Cho phần ON DUPLICATE
+                psCTK.executeUpdate();
             }
 
 
@@ -112,8 +130,8 @@ public class TonKho_DAO {
     public boolean update(BaoCaoTonKho bc) {
         boolean ketQua = false;
 
-        String sqlSP = "UPDATE SAN_PHAM SET ten_sp = ?, dvt = ?, sl = ?, gia = ?, ma_ke = ? WHERE ma_sku = ?";
-        String sqlBC = "UPDATE bao_cao_ton_kho SET ton = ?, canh_bao_hh = ? WHERE ma_bc = ?";
+        String sqlBC="UPDATE bao_cao_ton_kho SET canh_bao_hh=? WHERE ma_bc=?";
+        String sqlCTK="UPDATE chitiet_ke SET so_luong=?  WHERE ma_sku=? AND ma_ke=?";
 
         Connection conn = null;
         try {
@@ -121,26 +139,17 @@ public class TonKho_DAO {
             conn.setAutoCommit(false);
 
 
-            try (PreparedStatement psSP = conn.prepareStatement(sqlSP)) {
-                psSP.setString(1, bc.getSanPham().getTenSP());
-                psSP.setString(2, bc.getSanPham().getDonViTinh());
-                psSP.setInt(3, bc.getsLTon());
-                psSP.setFloat(4, bc.getSanPham().getGiaTien());
-               psSP.setString(5, bc.getSanPham().getMaKe());
-                psSP.setString(6, bc.getMaTonKho()); // Khóa WHERE
-                psSP.executeUpdate();
-            }
-
-
-            try (PreparedStatement psBC = conn.prepareStatement(sqlBC)) {
-                psBC.setInt(1, bc.getsLTon());
-                psBC.setInt(2, bc.getCanhBaoHH());
-                psBC.setString(3, bc.getMaTonKho()); // Khóa WHERE
-                psBC.executeUpdate();
-            }
-
-            conn.commit();
-            ketQua = true;
+           try(PreparedStatement psBC= conn.prepareStatement(sqlBC)){
+               psBC.setInt(1,bc.getCanhBaoHH());
+               psBC.setString(2,bc.getMaTonKho());
+               psBC.executeUpdate();
+           }
+           try(PreparedStatement psCTK=conn.prepareStatement(sqlCTK)){
+               psCTK.setInt(1, bc.getsLTon());
+               psCTK.setString(2,bc.getSanPham().getMaSP());
+               psCTK.setString(3,bc.getSanPham().getMaKe());
+               psCTK.executeUpdate();
+           }
 
         } catch (SQLException e) {
             try {
