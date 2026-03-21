@@ -1,7 +1,9 @@
 package GUI;
 
 import Model.NhanVien;
+import Model.NhomQuyen;
 import BUS.NV_BUS;
+import BUS.NhomQuyen_BUS;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -20,6 +22,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
     private JTable table;
     private DefaultTableModel model;
     private NV_BUS nvBUS = new NV_BUS();
+    private NhomQuyen_BUS nhomBUS = new NhomQuyen_BUS();
 
     private Set<Integer> visiblePasswordRows = new HashSet<>();
     private ArrayList<Object[]> allRows = new ArrayList<>();
@@ -254,15 +257,22 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         txtHoTen   = new JTextField();
         txtSDT     = new JTextField();
         txtMatKhau = new JPasswordField();
-        cboChucVu    = new JComboBox<>(new String[]{"Admin", "QuanLy", "ThuKho", "BanHang"});
+
+        // Load danh sách nhóm quyền từ DB
+        cboChucVu = new JComboBox<>();
+        for (NhomQuyen nhom : nhomBUS.getAll())
+            cboChucVu.addItem(nhom.getMaNhom() + " - " + nhom.getTenNhom());
+        cboChucVu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cboChucVu.setBackground(Color.WHITE);
+
         cboTrangThai = new JComboBox<>(new String[]{"HoatDong", "BiKhoa"});
 
-        pnl.add(nhomField("Mã nhân viên", txtMaNV));    pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomField("Họ và tên", txtHoTen));      pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomField("Số điện thoại", txtSDT));    pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomPasswordField());                    pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomCombo("Vai trò", cboChucVu));       pnl.add(Box.createVerticalStrut(10));
-        pnl.add(nhomCombo("Trạng thái", cboTrangThai)); pnl.add(Box.createVerticalStrut(24));
+        pnl.add(nhomField("Mã nhân viên", txtMaNV));      pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomField("Họ và tên", txtHoTen));        pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomField("Số điện thoại", txtSDT));      pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomPasswordField());                      pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomCombo("Nhóm quyền", cboChucVu));      pnl.add(Box.createVerticalStrut(10));
+        pnl.add(nhomCombo("Trạng thái", cboTrangThai));   pnl.add(Box.createVerticalStrut(24));
 
         JButton btnSave = new JButton("💾  Lưu");
         btnSave.setBackground(new Color(37, 120, 220)); btnSave.setForeground(Color.WHITE);
@@ -363,7 +373,7 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         int stt = 1;
         for (NhanVien nv : list) {
             String status = "HoatDong".equalsIgnoreCase(nv.getTrangThai()) ? "Active" : "Banned";
-            Object[] row = { stt++, nv.getHoTen(), nv.getSDT(), nv.getMaNV(), nv.getChucVu(), status, nv.getMatKhau(), "" };
+            Object[] row = { stt++, nv.getHoTen(), nv.getSDT(), nv.getMaNV(), nv.getTenNhom(), status, nv.getMatKhau(), "" };
             allRows.add(row); model.addRow(row);
         }
     }
@@ -418,7 +428,19 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         txtHoTen.setText(model.getValueAt(row, 1).toString());
         txtSDT.setText(model.getValueAt(row, 2).toString());
         txtMatKhau.setText(model.getValueAt(row, 6).toString());
-        cboChucVu.setSelectedItem(model.getValueAt(row, 4).toString());
+        // Tìm đúng item trong combobox theo maNhom (format "NQ01 - TenNhom")
+        String maNhomNV = model.getValueAt(row, 4) != null ? model.getValueAt(row, 4).toString() : "";
+        for (int i = 0; i < cboChucVu.getItemCount(); i++) {
+            String item = cboChucVu.getItemAt(i);
+            // Cột 4 lưu tenNhom, so khớp phần sau " - "
+            if (item.contains(" - ") && item.split(" - ", 2)[1].equalsIgnoreCase(maNhomNV)) {
+                cboChucVu.setSelectedIndex(i); break;
+            }
+            // Hoặc khớp maNhom ở đầu
+            if (item.startsWith(maNhomNV + " - ") || item.equalsIgnoreCase(maNhomNV)) {
+                cboChucVu.setSelectedIndex(i); break;
+            }
+        }
         cboTrangThai.setSelectedItem("Active".equals(model.getValueAt(row, 5).toString()) ? "HoatDong" : "BiKhoa");
         showFormPanel();
     }
@@ -448,7 +470,11 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         }
         NhanVien nv = new NhanVien();
         nv.setMaNV(maNV); nv.setHoTen(hoTen); nv.setSDT(sdt); nv.setMatKhau(matKhau);
-        nv.setChucVu(cboChucVu.getSelectedItem().toString()); nv.setTrangThai(cboTrangThai.getSelectedItem().toString());
+        // Lấy maNhom từ item "NQ01 - TenNhom"
+        String selectedNhom = cboChucVu.getSelectedItem() != null ? cboChucVu.getSelectedItem().toString() : "";
+        String maNhom = selectedNhom.contains(" - ") ? selectedNhom.split(" - ", 2)[0].trim() : selectedNhom;
+        nv.setMaNhom(maNhom);
+        nv.setTrangThai(cboTrangThai.getSelectedItem().toString());
         String msg = lblFormTitle.getText().equals("THÊM TÀI KHOẢN") ? nvBUS.addNV(nv) : nvBUS.updateNV(nv);
         JOptionPane.showMessageDialog(this, msg);
         if (msg.toLowerCase().contains("thành công")) {
