@@ -384,10 +384,34 @@ public class TrangSanPham extends JPanel {
         allRows.clear();
         int stt = 1;
         java.text.DecimalFormat df = new java.text.DecimalFormat("#,###đ");
+
+        // Gộp các kệ của cùng 1 sản phẩm thành 1 dòng
+        // Dùng LinkedHashMap để giữ thứ tự
+        java.util.LinkedHashMap<String, Object[]> mapSP = new java.util.LinkedHashMap<>();
+        java.util.LinkedHashMap<String, java.util.List<String>> mapKe = new java.util.LinkedHashMap<>();
+
         for (SanPham sp : spBus.getAll()) {
-            String trangThai = (sp.getSoLuong() > 0) ? "Còn hàng" : "Hết hàng";
-            String maKe = (sp.getKeKho() != null) ? sp.getKeKho().getMaKe() : "Chưa có";
-            Object[] row = { stt++, sp.getMaSP(), sp.getTenSP(), sp.getDonViTinh(), sp.getSoLuong(), df.format(sp.getGiaTien()), maKe, trangThai };
+            String maSP = sp.getMaSP();
+            String maKe = (sp.getKeKho() != null && sp.getKeKho().getMaKe() != null)
+                    ? sp.getKeKho().getMaKe() : "Chưa có";
+
+            if (!mapSP.containsKey(maSP)) {
+                String trangThai = (sp.getSoLuong() > 0) ? "Còn hàng" : "Hết hàng";
+                // Lưu tạm STT = 0, sẽ đánh lại sau
+                mapSP.put(maSP, new Object[]{ 0, maSP, sp.getTenSP(), sp.getDonViTinh(),
+                        sp.getSoLuong(), df.format(sp.getGiaTien()), "", trangThai });
+                mapKe.put(maSP, new java.util.ArrayList<>());
+            }
+            // Thêm kệ vào danh sách kệ của SP này (tránh trùng)
+            if (!mapKe.get(maSP).contains(maKe))
+                mapKe.get(maSP).add(maKe);
+        }
+
+        // Gán danh sách kệ vào cột 6 và đánh STT
+        for (String maSP : mapSP.keySet()) {
+            Object[] row = mapSP.get(maSP);
+            row[0] = stt++;
+            row[6] = String.join(", ", mapKe.get(maSP)); // "A1, B2, C3"
             allRows.add(row);
             model.addRow(row);
         }
