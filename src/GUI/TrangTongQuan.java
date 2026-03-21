@@ -77,7 +77,14 @@ public class TrangTongQuan extends JPanel {
         // Thu thập dữ liệu thực tế
         ArrayList<SanPham> dsSP = spBUS.getListSP();
         int tongLoaiSP = dsSP.size();
-        int tongTonKho = dsSP.stream().mapToInt(SanPham::getSoLuong).sum();
+
+//        int tongTonKho = dsSP.stream().mapToInt(SanPham::getSoLuong).sum();
+        // SỬA: Tính tổng tồn kho từ ChiTietKe
+        int tongTonKho = 0;
+        for (SanPham sp : dsSP) {
+            tongTonKho += spBUS.getSoLuongTon(sp.getMaSP());
+        }
+
         int tongNCC = nccBUS.getListNCC().size();
         int tongNV = nvBUS.getAll().size();
 
@@ -178,18 +185,25 @@ public class TrangTongQuan extends JPanel {
 
         ArrayList<SanPham> dsSP = spBUS.getListSP();
 
+        // Tạo danh sách với số lượng thực tế từ ChiTietKe
+        ArrayList<Object[]> spList = new ArrayList<>();
+        for (SanPham sp : dsSP) {
+            int soLuong = spBUS.getSoLuongTon(sp.getMaSP());
+            spList.add(new Object[]{sp.getMaSP(), sp.getTenSP(), sp.getDonViTinh(), soLuong, sp.getMaKe()});
+        }
+
         // Sắp xếp theo tồn kho giảm dần để hiển thị top
-        dsSP.sort((a, b) -> b.getSoLuong() - a.getSoLuong());
+        spList.sort((a, b) -> ((Integer)b[3]).compareTo((Integer)a[3]));
 
         String[] cols  = {"Mã SP", "Tên sản phẩm", "ĐVT", "Tồn kho", "Kệ"};
         Object[][] data = new Object[dsSP.size()][5];
         for (int i = 0; i < dsSP.size(); i++) {
-            SanPham sp = dsSP.get(i);
-            data[i][0] = sp.getMaSP();
-            data[i][1] = sp.getTenSP();
-            data[i][2] = sp.getDonViTinh();
-            data[i][3] = String.format("%,d", sp.getSoLuong());
-            data[i][4] = sp.getMaKe();
+            Object[] row = spList.get(i);
+            data[i][0] = row[0];
+            data[i][1] = row[1];
+            data[i][2] = row[2];
+            data[i][3] = String.format("%,d", (int)row[3]);
+            data[i][4] = row[4];
         }
 
         JTable table = taoTable(data, cols);

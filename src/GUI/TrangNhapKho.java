@@ -3,10 +3,12 @@ package GUI;
 import BUS.NCC_BUS;
 import BUS.PhieuNhap_BUS;
 import BUS.SanPham_BUS;
+import BUS.KeKho_BUS;
 import Model.NhaCungCap;
 import Model.NhanVien;
 import Model.PhieuNhap;
 import Model.SanPham;
+import Model.KeKho;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -44,6 +46,8 @@ public class TrangNhapKho extends JPanel {
     private String maNV = ManHinhChinh.currentMaNV;
     private JComboBox<String> comboBoxLoc;
     private String ma_PN,maNCC;
+    private KeKho_BUS kkBus = new KeKho_BUS();
+
     public TrangNhapKho() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -166,7 +170,7 @@ public class TrangNhapKho extends JPanel {
     }
 
     private JScrollPane createTableLeft() {
-        String[] columns = {"Mã SP", "Tên sản phẩm", "SL", "Đơn giá"};
+        String[] columns = {"Mã SP", "Tên sản phẩm", "SL hiện tại", "Đơn giá", "Kệ hiện tại"};
 
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -273,7 +277,7 @@ public class TrangNhapKho extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
-        String[] columns = {"STT","Mã SP","Tên sản phẩm","SL","Ngày nhập","Đơn giá"};
+        String[] columns = {"STT","Mã SP","Tên sản phẩm","SL","Ngày nhập","Đơn giá","Mã kệ"};
 
         tableModelRight = new DefaultTableModel(columns, 0) {
             @Override
@@ -467,6 +471,57 @@ public class TrangNhapKho extends JPanel {
 //        btnXuat.addActionListener(e->xuatExcel());
     }
 
+    // handleAddProduct cũ
+//    private void handleAddProduct() {
+//        int row = table.getSelectedRow();
+//        if (row == -1) {
+//            JOptionPane.showMessageDialog(this, "Chưa chọn sản phẩm");
+//            return;
+//        }
+//
+//        int soLuong;
+//        long tongTien = Long.parseLong(txtTongTien.getText());
+//        try {
+//            soLuong = Integer.parseInt(txtSoLuong.getText());
+//            if (soLuong <= 0) throw new Exception();
+//        } catch (Exception e) {
+//            JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+//            txtSoLuong.requestFocus();
+//            txtSoLuong.selectAll();
+//            return;
+//        }
+//
+//        String maSP = tableModel.getValueAt(row, 0).toString();
+//        String tenSP = tableModel.getValueAt(row, 1).toString();
+//        double donGia = Double.parseDouble(
+//                tableModel.getValueAt(row, 3).toString()
+//        );
+//
+//        for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+//            Object val = tableModelRight.getValueAt(i, 1);
+//            if (val != null && val.toString().equals(maSP)) {
+//                int slCu = (int) tableModelRight.getValueAt(i, 3);
+//                tableModelRight.setValueAt(slCu + soLuong, i, 3);
+//                tongTien += soLuong * donGia;
+//                txtTongTien.setText(String.valueOf(tongTien));
+//                txtSoLuong.setText("");
+//                return;
+//            }
+//        }
+//
+//        String ngayNhap = LocalDate.now().format(DATE_FORMAT);
+//        int stt = tableModelRight.getRowCount() + 1;
+//
+//        tableModelRight.addRow(new Object[]{
+//                stt, maSP, tenSP, soLuong, ngayNhap, donGia
+//        });
+//        tongTien += soLuong * donGia;
+//        String txtTien = String.valueOf(tongTien);
+//        txtTongTien.setText(txtTien);
+//        txtSoLuong.setText("");
+//    }
+    // Mới
+
     private void handleAddProduct() {
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -488,10 +543,49 @@ public class TrangNhapKho extends JPanel {
 
         String maSP = tableModel.getValueAt(row, 0).toString();
         String tenSP = tableModel.getValueAt(row, 1).toString();
-        double donGia = Double.parseDouble(
-                tableModel.getValueAt(row, 3).toString()
-        );
+        double donGia = Double.parseDouble(tableModel.getValueAt(row, 3).toString());
+        String maKe = tableModel.getValueAt(row, 4).toString(); // Cột "Kệ hiện tại"
 
+        // Kiểm tra nếu sản phẩm chưa có kệ
+        if (maKe.equals("Chưa có kệ")) {
+            JOptionPane.showMessageDialog(this,
+                    "Sản phẩm " + maSP + " chưa được xếp kệ!\n" +
+                            "Vui lòng cập nhật kệ cho sản phẩm trước khi nhập.",
+                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            txtSoLuong.requestFocus();
+            txtSoLuong.selectAll();
+            return;
+        }
+
+        // Kiểm tra sức chứa kệ
+        KeKho ke = kkBus.getKeTheoMa(maKe);
+        if (ke != null) {
+            int tongHienTai = kkBus.tinhTongSoLuongTheoKe(maKe);
+            int soLuongHienTaiTrongPhieu = 0;
+
+            // Tính số lượng đã thêm trong phiếu của sản phẩm này
+            for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+                if (tableModelRight.getValueAt(i, 1).toString().equals(maSP)) {
+                    soLuongHienTaiTrongPhieu = (int) tableModelRight.getValueAt(i, 3);
+                    break;
+                }
+            }
+
+            int tongSauKhiNhap = tongHienTai + soLuongHienTaiTrongPhieu + soLuong;
+            if (tongSauKhiNhap > ke.getSucChua()) {
+                JOptionPane.showMessageDialog(this,
+                        "Kệ " + maKe + " không đủ sức chứa!\n" +
+                                "Đã có: " + tongHienTai + "/" + ke.getSucChua() + "\n" +
+                                "Đã thêm trong phiếu: " + soLuongHienTaiTrongPhieu + "\n" +
+                                "Cần thêm: " + soLuong,
+                        "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                txtSoLuong.requestFocus();
+                txtSoLuong.selectAll();
+                return;
+            }
+        }
+
+        // Kiểm tra nếu sản phẩm đã có trong phiếu nhập
         for (int i = 0; i < tableModelRight.getRowCount(); i++) {
             Object val = tableModelRight.getValueAt(i, 1);
             if (val != null && val.toString().equals(maSP)) {
@@ -504,26 +598,26 @@ public class TrangNhapKho extends JPanel {
             }
         }
 
+        // Thêm mới sản phẩm vào phiếu nhập
         String ngayNhap = LocalDate.now().format(DATE_FORMAT);
         int stt = tableModelRight.getRowCount() + 1;
-
-        tableModelRight.addRow(new Object[]{
-                stt, maSP, tenSP, soLuong, ngayNhap, donGia
-        });
+        tableModelRight.addRow(new Object[]{stt, maSP, tenSP, soLuong, ngayNhap, donGia, maKe});
         tongTien += soLuong * donGia;
-        String txtTien = String.valueOf(tongTien);
-        txtTongTien.setText(txtTien);
+        txtTongTien.setText(String.valueOf(tongTien));
         txtSoLuong.setText("");
     }
 
     public void loadTableData() {
-        tableModel.setRowCount(0); // xóa dữ liệu cũ
-        for( SanPham sp : spBus.getListSP()){
+        tableModel.setRowCount(0);
+        for (SanPham sp : spBus.getListSP()) {
+            int soLuong = spBus.getSoLuongTon(sp.getMaSP());
+            String maKe = sp.getMaKe(); // Lấy kệ hiện tại
             tableModel.addRow(new Object[]{
                     sp.getMaSP(),
                     sp.getTenSP(),
-                    sp.getSoLuong(),
-                    sp.getGiaTien()
+                    soLuong,
+                    sp.getGiaTien(),
+                    maKe != null && !maKe.isEmpty() ? maKe : "Chưa có kệ"
             });
         }
     }
@@ -531,11 +625,14 @@ public class TrangNhapKho extends JPanel {
     public void loadDataFromKey(){
         tableModel.setRowCount(0); // xóa dữ liệu cũ
         for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText())){
+            int soLuong = spBus.getSoLuongTon(sp.getMaSP());
+            String maKe = sp.getMaKe();
             tableModel.addRow(new Object[]{
                     sp.getMaSP(),
                     sp.getTenSP(),
-                    sp.getSoLuong(),
-                    sp.getGiaTien()
+                    soLuong,
+                    sp.getGiaTien(),
+                    maKe != null && !maKe.isEmpty() ? maKe : "Chưa có kệ"
             });
         }
     }
@@ -598,35 +695,87 @@ public class TrangNhapKho extends JPanel {
         comboBoxLoc.setSelectedIndex(0);
     }
 
-    public void taoPN(String maPN,LocalDateTime dateTime){
+    /// taoPN cũ
+//    public void taoPN(String maPN,LocalDateTime dateTime){
+//        String ManCC = txtNCC.getText().trim();
+//        if(ManCC.isEmpty() || ManCC.equalsIgnoreCase("Mã nhà cung cấp")){
+//            JOptionPane.showMessageDialog(this, "Vui lòng nhập mã Nhà Cung Cấp","Cảnh báo",
+//                    JOptionPane.WARNING_MESSAGE);
+//            comboBoxLoc.requestFocus();
+//            return;
+//        }
+//        NhaCungCap ncc = new NhaCungCap();
+//        ncc.setMaNCC(ManCC);
+//        NhanVien nv = new NhanVien();
+//        nv.setMaNV(maNV);
+//
+//        PhieuNhap pn = new PhieuNhap(maPN,dateTime,ncc,nv);
+//        if (pnBus.taoPhieuNhap(pn,tableModelRight)){
+//            JOptionPane.showMessageDialog(
+//                    this,
+//                    "Thêm phiếu thành công",
+//                    "Thông báo",
+//                    JOptionPane.INFORMATION_MESSAGE
+//            );
+//            resetForm();
+//        }else{
+//            JOptionPane.showMessageDialog(
+//                    this,
+//                    "Thêm phiếu thất bại",
+//                    "Thông báo",
+//                    JOptionPane.INFORMATION_MESSAGE
+//            );
+//        }
+//    }
+    /// taoPN mới
+    public void taoPN(String maPN, LocalDateTime dateTime) {
         String ManCC = txtNCC.getText().trim();
-        if(ManCC.isEmpty() || ManCC.equalsIgnoreCase("Mã nhà cung cấp")){
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập mã Nhà Cung Cấp","Cảnh báo",
+        if (ManCC.isEmpty() || ManCC.equalsIgnoreCase("Mã nhà cung cấp")) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn mã Nhà Cung Cấp", "Cảnh báo",
                     JOptionPane.WARNING_MESSAGE);
             comboBoxLoc.requestFocus();
             return;
         }
+
+        // Kiểm tra sức chứa trước khi tạo phiếu
+        for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+            String maSP = tableModelRight.getValueAt(i, 1).toString();
+            int soLuongNhap = (int) tableModelRight.getValueAt(i, 3);
+            String maKe = tableModelRight.getValueAt(i, 6).toString(); // Cột index 6 là "Mã kệ"
+
+            KeKho ke = kkBus.getKeTheoMa(maKe);
+            if (ke != null) {
+                int tongHienTai = kkBus.tinhTongSoLuongTheoKe(maKe);
+                if (tongHienTai + soLuongNhap > ke.getSucChua()) {
+                    JOptionPane.showMessageDialog(this,
+                            "Kệ " + maKe + " không đủ sức chứa cho sản phẩm " + maSP + "!\n" +
+                                    "Đã có: " + tongHienTai + "/" + ke.getSucChua() + "\n" +
+                                    "Cần nhập: " + soLuongNhap,
+                            "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            }
+        }
+
         NhaCungCap ncc = new NhaCungCap();
         ncc.setMaNCC(ManCC);
         NhanVien nv = new NhanVien();
         nv.setMaNV(maNV);
 
-        PhieuNhap pn = new PhieuNhap(maPN,dateTime,ncc,nv);
-        if (pnBus.taoPhieuNhap(pn,tableModelRight)){
-            JOptionPane.showMessageDialog(
-                    this,
+        PhieuNhap pn = new PhieuNhap(maPN, dateTime, ncc, nv);
+        if (pnBus.taoPhieuNhap(pn, tableModelRight)) {
+            JOptionPane.showMessageDialog(this,
                     "Thêm phiếu thành công",
                     "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+                    JOptionPane.INFORMATION_MESSAGE);
             resetForm();
-        }else{
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Thêm phiếu thất bại",
+            spBus.refeshdata();
+            loadTableData(); // Làm mới bảng trái
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "Thêm phiếu thất bại! Kiểm tra lại sức chứa kệ.",
                     "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 

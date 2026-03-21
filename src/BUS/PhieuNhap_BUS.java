@@ -5,6 +5,7 @@ import DataBase.DBConnection;
 import Model.ChiTiet_PhieuNhap;
 import Model.PhieuNhap;
 import Model.SanPham;
+import Model.KeKho;
 
 import javax.swing.table.DefaultTableModel;
 import java.sql.Connection;
@@ -15,6 +16,8 @@ public class PhieuNhap_BUS {
     private PhieuNhap_DAO pnDAO;
     private ChiTietPN_BUS ctPN_Bus;
     private SanPham_BUS spBus;
+    private KeKho_BUS kkBUS;
+
     public PhieuNhap_BUS(){
         pnDAO= new PhieuNhap_DAO();
         ctPN_Bus = new ChiTietPN_BUS();
@@ -75,6 +78,21 @@ public class PhieuNhap_BUS {
         try {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
+
+            // KIỂM TRA SỨC CHỨA KỆ TRƯỚC KHI NHẬP
+            for (int i = 0; i < model.getRowCount(); i++) {
+                String maSP = model.getValueAt(i, 1).toString();
+                int soLuongNhap = Integer.parseInt(model.getValueAt(i, 3).toString());
+                String maKe = model.getValueAt(i, 6).toString(); // Giả sử cột 6 là mã kệ
+
+                KeKho ke = kkBUS.getKeTheoMa(maKe);
+                if (ke != null) {
+                    int tongHienTai = kkBUS.tinhTongSoLuongTheoKe(maKe);
+                    if (tongHienTai + soLuongNhap > ke.getSucChua()) {
+                        return false; // Trả về false, GUI sẽ hiển thị lỗi
+                    }
+                }
+            }
 
             if (!insertPN(conn, pn, model)) {
                 throw new SQLException("Thêm PN thất bại");

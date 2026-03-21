@@ -2,8 +2,10 @@ package GUI;
 
 import Model.KeKho;
 import Model.SanPham;
+import Model.ChiTietKe;
 import BUS.KeKho_BUS;
 import BUS.ChiTietKe_BUS;
+import BUS.SanPham_BUS;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -422,7 +424,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        // Tiêu đề
         JLabel title = new JLabel("DANH SÁCH SẢN PHẨM TRONG KỆ");
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -438,25 +439,29 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
         panel.add(Box.createVerticalStrut(20));
 
-        // Lấy thông tin kệ hiện tại
         KeKho ke = bus.getKeTheoMa(maKe);
-        ArrayList<SanPham> listSP = bus.laySanPhamTheoKe(maKe);
         int tongSoLuong = bus.tinhTongSoLuongTheoKe(maKe);
         int khoangTrong = ke.getSucChua() - tongSoLuong;
 
-        // Tạo bảng dữ liệu
+        // Lấy danh sách ChiTietKe
+        ArrayList<ChiTietKe> listCT = chiTietKeBUS.getByMaKe(maKe);
+        SanPham_BUS spBus = new SanPham_BUS();
+
         String[] cols = {"STT", "Mã sản phẩm", "Tên sản phẩm", "Đơn vị tính", "Số lượng"};
         DefaultTableModel printModel = new DefaultTableModel(cols, 0);
 
         int stt = 1;
-        for (SanPham sp : listSP) {
-            printModel.addRow(new Object[]{
-                    stt++,
-                    sp.getMaSP(),
-                    sp.getTenSP(),
-                    sp.getDonViTinh(),
-                    sp.getSoLuong()
-            });
+        for (ChiTietKe ct : listCT) {
+            SanPham sp = spBus.getSanPhamByMa(ct.getMaSP());
+            if (sp != null) {
+                printModel.addRow(new Object[]{
+                        stt++,
+                        ct.getMaSP(),
+                        sp.getTenSP(),
+                        sp.getDonViTinh(),
+                        ct.getSoLuong()
+                });
+            }
         }
 
         JTable tablePrint = new JTable(printModel);
@@ -467,14 +472,12 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         tablePrint.setShowGrid(true);
         tablePrint.setGridColor(new Color(220, 220, 220));
 
-        // Căn giữa các cột
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i < tablePrint.getColumnCount(); i++) {
             tablePrint.getColumnModel().getColumn(i).setCellRenderer(center);
         }
 
-        // Đặt độ rộng cột
         tablePrint.getColumnModel().getColumn(0).setMaxWidth(60);
         tablePrint.getColumnModel().getColumn(0).setPreferredWidth(60);
         tablePrint.getColumnModel().getColumn(1).setPreferredWidth(120);
@@ -488,7 +491,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
         panel.add(Box.createVerticalStrut(20));
 
-        // Thông tin kệ
         JPanel infoPanel = new JPanel(new GridLayout(5, 1, 5, 8));
         infoPanel.setBackground(Color.WHITE);
         infoPanel.setBorder(new CompoundBorder(
@@ -526,7 +528,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
         panel.add(infoPanel);
 
-        // Footer
         panel.add(Box.createVerticalStrut(20));
         JLabel footer = new JLabel("--- Hệ thống quản lý kho ---");
         footer.setFont(new Font("Segoe UI", Font.ITALIC, 10));
@@ -989,19 +990,24 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
     private void capNhatBang(String maKe) {
         lblTenKe.setText("Kệ " + selectedTenHienThi);
-        model.setRowCount(0); // Xóa dữ liệu cũ
+        model.setRowCount(0);
 
-        ArrayList<SanPham> listSP = bus.laySanPhamTheoKe(maKe);
+        // Lấy danh sách ChiTietKe từ BUS
+        ArrayList<ChiTietKe> listCT = chiTietKeBUS.getByMaKe(maKe);
 
         int stt = 1;
-        for (SanPham sp : listSP) {
-            model.addRow(new Object[]{
-                    stt++,
-                    sp.getMaSP(),
-                    sp.getTenSP(),
-                    sp.getDonViTinh(),
-                    sp.getSoLuong()
-            });
+        for (ChiTietKe ct : listCT) {
+            // Lấy thông tin sản phẩm từ SanPham_BUS
+            SanPham sp = new SanPham_BUS().getSanPhamByMa(ct.getMaSP());
+            if (sp != null) {
+                model.addRow(new Object[]{
+                        stt++,
+                        ct.getMaSP(),
+                        sp.getTenSP(),
+                        sp.getDonViTinh(),
+                        ct.getSoLuong()  // Lấy số lượng từ ChiTietKe
+                });
+            }
         }
 
         KeKho ke = bus.getKeTheoMa(maKe);

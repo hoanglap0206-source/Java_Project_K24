@@ -93,15 +93,16 @@ public class ChiTietKe_BUS {
                 sheet.setColumnWidth(i, 4000);
             }
 
-            // Lấy dữ liệu
+            // Lấy dữ liệu từ ChiTietKe thay vì từ SanPham
             ArrayList<KeKho> listKe = keBus.getListKK();
             int rowNum = 1;
             int stt = 1;
 
             for (KeKho ke : listKe) {
-                ArrayList<SanPham> listSPTrongKe = keBus.laySanPhamTheoKe(ke.getMaKe());
+                // Lấy danh sách ChiTietKe theo kệ
+                ArrayList<ChiTietKe> listCT = ctDAO.getByMaKe(ke.getMaKe());
 
-                if (listSPTrongKe.isEmpty()) {
+                if (listCT.isEmpty()) {
                     Row row = sheet.createRow(rowNum++);
                     row.createCell(0).setCellValue(stt++);
                     row.createCell(1).setCellValue(ke.getMaKe());
@@ -112,16 +113,25 @@ public class ChiTietKe_BUS {
                     row.createCell(6).setCellValue("");
                     row.createCell(7).setCellValue("");
                 } else {
-                    for (SanPham sp : listSPTrongKe) {
+                    for (ChiTietKe ct : listCT) {
+                        // Lấy thông tin sản phẩm từ listSP cache
+                        SanPham sp = null;
+                        for (SanPham s : listSP) {
+                            if (s.getMaSP().equals(ct.getMaSP())) {
+                                sp = s;
+                                break;
+                            }
+                        }
+
                         Row row = sheet.createRow(rowNum++);
                         row.createCell(0).setCellValue(stt++);
                         row.createCell(1).setCellValue(ke.getMaKe());
                         row.createCell(2).setCellValue(ke.getViTri());
                         row.createCell(3).setCellValue(ke.getSucChua());
-                        row.createCell(4).setCellValue(sp.getMaSP());
-                        row.createCell(5).setCellValue(sp.getTenSP());
-                        row.createCell(6).setCellValue(sp.getDonViTinh());
-                        row.createCell(7).setCellValue(sp.getSoLuong());
+                        row.createCell(4).setCellValue(ct.getMaSP());
+                        row.createCell(5).setCellValue(sp != null ? sp.getTenSP() : "");
+                        row.createCell(6).setCellValue(sp != null ? sp.getDonViTinh() : "");
+                        row.createCell(7).setCellValue(ct.getSoLuong()); // Lấy số lượng từ ChiTietKe
                     }
                 }
             }

@@ -46,7 +46,6 @@ public class TrangSanPham extends JPanel {
     private JComboBox<String> comboBoxLoc;
 
 
-
     public TrangSanPham() {
         setLayout(new BorderLayout());
         setBackground(new Color(255, 255, 255));
@@ -377,6 +376,8 @@ public class TrangSanPham extends JPanel {
         return scrollPane;
     }
 
+
+    // Có sửa
     private void loadTableData() {
         if (model == null) return;
         model.setRowCount(0);
@@ -384,42 +385,13 @@ public class TrangSanPham extends JPanel {
         int stt = 1;
         java.text.DecimalFormat df = new java.text.DecimalFormat("#,###đ");
 
-        // Dùng LinkedHashMap để nhóm sản phẩm và kệ
-        java.util.LinkedHashMap<String, SanPham> mapSP = new java.util.LinkedHashMap<>();
-        java.util.LinkedHashMap<String, java.util.List<String>> mapKe = new java.util.LinkedHashMap<>();
-
         for (SanPham sp : spBus.getAll()) {
-            String maSP = sp.getMaSP();
+            int soLuong = spBus.getSoLuongTon(sp.getMaSP()); // Lấy từ ChiTietKe
+            String trangThai = (soLuong > 0) ? "Còn hàng" : "Hết hàng";
             String maKe = (sp.getKeKho() != null && sp.getKeKho().getMaKe() != null)
                     ? sp.getKeKho().getMaKe() : "Chưa có";
-
-            if (!mapSP.containsKey(maSP)) {
-                mapSP.put(maSP, sp);
-                mapKe.put(maSP, new java.util.ArrayList<>());
-            }
-
-            if (!mapKe.get(maSP).contains(maKe)) {
-                mapKe.get(maSP).add(maKe);
-            }
-        }
-
-        // Đổ dữ liệu vào bảng
-        for (String maSP : mapSP.keySet()) {
-            SanPham sp = mapSP.get(maSP);
-            int soLuong = spBus.getSoLuongTon(maSP); // Lấy số lượng từ ChiTietKe
-            String trangThai = (soLuong > 0) ? "Còn hàng" : "Hết hàng";
-
-            Object[] row = new Object[]{
-                    stt++,                          // STT
-                    sp.getMaSP(),                   // Mã SP
-                    sp.getTenSP(),                  // Tên SP
-                    sp.getDonViTinh(),              // Đơn vị tính
-                    soLuong,                        // Số lượng (lấy từ ChiTietKe)
-                    df.format(sp.getGiaTien()),     // Giá nhập
-                    String.join(", ", mapKe.get(maSP)), // Mã kệ
-                    trangThai                       // Trạng thái
-            };
-
+            Object[] row = { stt++, sp.getMaSP(), sp.getTenSP(), sp.getDonViTinh(),
+                    soLuong, df.format(sp.getGiaTien()), maKe, trangThai };
             allRows.add(row);
             model.addRow(row);
         }
@@ -471,6 +443,8 @@ public class TrangSanPham extends JPanel {
         btnDelete.addActionListener(e -> handleDelete());
         btnRefresh.addActionListener(e -> handleRefresh());
     }
+
+    // Có sửa
     private void handleAdd() {
         kkBus.refreshData();
         cboKeKho.removeAllItems();
@@ -510,12 +484,11 @@ public class TrangSanPham extends JPanel {
         }
         return String.format("SP%02d", maxSo + 1);
     }
+
+    // Có sửa
     private void handleEdit() {
         int row = table.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần sửa");
-            return;
-        }
+        if (row == -1) { JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần sửa"); return; }
 
         lblFormTitle.setText("SỬA SẢN PHẨM");
         txtMaSP.setText(model.getValueAt(row, 1).toString());
@@ -525,16 +498,14 @@ public class TrangSanPham extends JPanel {
         String gia = model.getValueAt(row, 5).toString().replace("đ","").replace(",","");
         txtGia.setText(gia);
 
-        // Khi sửa, chỉ hiển thị kệ còn chỗ trống + kệ hiện tại của sản phẩm
+        // Khi sửa, chỉ hiển thị kệ còn chỗ + kệ hiện tại
         String maKeHienTai = model.getValueAt(row, 6).toString();
         cboKeKho.removeAllItems();
 
-        // Thêm kệ hiện tại trước (nếu nó đã đầy vẫn cho chọn)
         if (maKeHienTai != null && !maKeHienTai.equals("Chưa có")) {
             cboKeKho.addItem(maKeHienTai);
         }
 
-        // Thêm các kệ còn trống
         for (KeKho kk : kkBus.getListKeConTrong()) {
             if (!kk.getMaKe().equals(maKeHienTai)) {
                 cboKeKho.addItem(kk.getMaKe());
@@ -582,8 +553,10 @@ public class TrangSanPham extends JPanel {
 
         table.clearSelection(); // bỏ chọn dòng
     }
+
+    // Có sửa
     private void saveSanPham() {
-        String ma  = txtMaSP.getText().trim();
+        String ma = txtMaSP.getText().trim();
         String ten = txtTenSP.getText().trim();
         String dvt = cboDVT.getSelectedItem() != null ? cboDVT.getSelectedItem().toString() : "Chai";
         String maKe = cboKeKho.getSelectedItem() != null ? cboKeKho.getSelectedItem().toString() : "";

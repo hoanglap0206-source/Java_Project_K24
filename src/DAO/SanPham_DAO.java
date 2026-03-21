@@ -120,33 +120,27 @@ public class SanPham_DAO {
     public ArrayList<SanPham> getSpByKey(String input){
         ArrayList<SanPham> list = new ArrayList<>();
         String sql = """
-        SELECT *
+        SELECT ma_sku, ten_sp, dvt, gia
         FROM san_pham
         WHERE LOWER(ma_sku) = LOWER(?)
            OR LOWER(ma_sku) LIKE LOWER(CONCAT('%', ?, '%'))
            OR LOWER(ten_sp) LIKE LOWER(CONCAT('%', ?, '%'))
         ORDER BY (LOWER(ma_sku) = LOWER(?)) DESC
     """;
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             String keyword = "%" + input + "%";
             ps.setString(1, input);
             ps.setString(2, keyword);
             ps.setString(3, keyword);
-            ps.setString(4,input);
+            ps.setString(4, input);
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 SanPham sp = new SanPham();
-                KeKho kk = new KeKho();
                 sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
                 sp.setGiaTien(rs.getFloat("gia"));
-                kk.setMaKe(rs.getString("ma_ke"));
-                sp.setKeKho(kk);
                 list.add(sp);
             }
         } catch (Exception e) {
@@ -522,41 +516,35 @@ public class SanPham_DAO {
     public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
         ArrayList<SanPham> list = new ArrayList<>();
 
-        String sql =
-                "SELECT sp.* " +
-                        "FROM san_pham sp " +
-                        "JOIN chitiet_ke ck ON sp.ma_sku = ck.ma_sku " +
-                        "WHERE ck.ma_ke = ?";
+        String sql = """
+        SELECT sp.ma_sku, sp.ten_sp, sp.dvt, sp.gia
+        FROM san_pham sp
+        JOIN chitiet_ke ck ON sp.ma_sku = ck.ma_sku
+        WHERE ck.ma_ke = ?
+    """;
 
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maKe);
             ResultSet rs = ps.executeQuery();
 
             while(rs.next()){
                 SanPham sp = new SanPham();
-
                 sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
                 sp.setGiaTien(rs.getFloat("gia"));
-
                 list.add(sp);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return list;
     }
 
     // Lấy sản phẩm theo mã (mới)
     public SanPham getSanPhamByMa(String maSP) {
-        String sql = "SELECT ma_sku, ten_sp, dvt, sl, gia FROM SAN_PHAM WHERE ma_sku = ?";
+        String sql = "SELECT ma_sku, ten_sp, dvt, gia FROM SAN_PHAM WHERE ma_sku = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -569,7 +557,6 @@ public class SanPham_DAO {
                 sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
                 sp.setGiaTien(rs.getFloat("gia"));
                 return sp;
             }
@@ -583,7 +570,7 @@ public class SanPham_DAO {
 
     // Lấy sản phẩm theo mã (mới, có truyền Connection)
     public SanPham getSanPhamByMa(String maSP, Connection conn) {
-        String sql = "SELECT ma_sku, ten_sp, dvt, sl, gia FROM SAN_PHAM WHERE ma_sku = ?";
+        String sql = "SELECT ma_sku, ten_sp, dvt, gia FROM SAN_PHAM WHERE ma_sku = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -595,7 +582,6 @@ public class SanPham_DAO {
                 sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
                 sp.setGiaTien(rs.getFloat("gia"));
                 return sp;
             }
