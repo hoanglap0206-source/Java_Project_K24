@@ -446,7 +446,30 @@ public class TrangSanPham extends JPanel {
         for (KeKho kk : kkBus.getListKK()) cboKeKho.addItem(kk.getMaKe());
 
         clearForm();
+
+        // Tự động sinh mã SP mới = mã cao nhất + 1
+        txtMaSP.setText(taoMaSPMoi());
+        txtMaSP.setEditable(false);
+        txtMaSP.setBackground(new Color(245, 247, 250));
+        txtMaSP.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+        txtMaSP.setForeground(new Color(100, 110, 130));
+
         showFormPanel();
+    }
+
+    /** Lấy số lớn nhất trong danh sách mã SP rồi cộng 1, định dạng SPxx */
+    private String taoMaSPMoi() {
+        int maxSo = 0;
+        for (SanPham sp : spBus.getAll()) {
+            String ma = sp.getMaSP().toUpperCase();
+            if (ma.startsWith("SP")) {
+                try {
+                    int so = Integer.parseInt(ma.substring(2));
+                    if (so > maxSo) maxSo = so;
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return String.format("SP%02d", maxSo + 1);
     }
     private void handleEdit() {
         int row = table.getSelectedRow();
@@ -505,8 +528,8 @@ public class TrangSanPham extends JPanel {
         String dvt = cboDVT.getSelectedItem() != null ? cboDVT.getSelectedItem().toString() : "Chai";
         String maKe = cboKeKho.getSelectedItem() != null ? cboKeKho.getSelectedItem().toString() : "A1";
 
-        if (ma.isEmpty() || ten.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Mã SP và tên sản phẩm không được để trống!"); return;
+        if (ten.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Tên sản phẩm không được để trống!"); return;
         }
 
         int sl; float gia;
@@ -536,12 +559,11 @@ public class TrangSanPham extends JPanel {
         txtSoLuong.setText("0"); txtGia.setText("");
         if (cboDVT != null) cboDVT.setSelectedIndex(0);
         if (cboKeKho != null && cboKeKho.getItemCount() > 0) { cboKeKho.setSelectedIndex(0); cboKeKho.setEnabled(true); }
-        txtMaSP.setEditable(true);
-        txtMaSP.setBackground(Color.WHITE);
-        txtMaSP.setForeground(Color.BLACK);
-        txtMaSP.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198, 218, 245), 1, true),
-                new EmptyBorder(4, 10, 4, 10)));
+        // Reset style txtMaSP về mặc định
+        txtMaSP.setEditable(false);
+        txtMaSP.setBackground(new Color(245, 247, 250));
+        txtMaSP.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+        txtMaSP.setForeground(new Color(100, 110, 130));
         txtSoLuong.setEditable(false);
         lblFormTitle.setText("THÊM SẢN PHẨM");
     }
