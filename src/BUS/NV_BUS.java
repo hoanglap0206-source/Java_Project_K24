@@ -57,6 +57,13 @@ public class NV_BUS {
         if (nv.getHoTen().isEmpty() || nv.getMatKhau().isEmpty())
             return "Họ tên và mật khẩu không được để trống";
 
+        // Kiểm tra trùng SĐT
+        if (nv.getSDT() != null && !nv.getSDT().isEmpty()) {
+            for (NhanVien existing : listNV)
+                if (nv.getSDT().equals(existing.getSDT()))
+                    return "Số điện thoại đã được dùng bởi nhân viên " + existing.getMaNV() + "!";
+        }
+
         if (nvDAO.insert(nv)) {
             listNV.add(nv);
 
@@ -90,6 +97,14 @@ public class NV_BUS {
                 .filter(n -> n.getMaNV().equals(nv.getMaNV()))
                 .map(NhanVien::getMaNhom)
                 .findFirst().orElse(null);
+
+        // Kiểm tra trùng SĐT — bỏ qua chính mình
+        if (nv.getSDT() != null && !nv.getSDT().isEmpty()) {
+            for (NhanVien existing : listNV)
+                if (nv.getSDT().equals(existing.getSDT())
+                        && !existing.getMaNV().equalsIgnoreCase(nv.getMaNV()))
+                    return "Số điện thoại đã được dùng bởi nhân viên " + existing.getMaNV() + "!";
+        }
 
         if (nvDAO.update(nv)) {
             for (int i = 0; i < listNV.size(); i++) {
@@ -139,6 +154,25 @@ public class NV_BUS {
     }
 
     public void refesh() { listNV = nvDAO.getAllNV(); }
+
+    /**
+     * Tìm số nhỏ nhất chưa dùng trong dãy liên tục từ 1.
+     * VD: có NV01→NV07, NV99 → trả về NV08
+     *     có NV01→NV99 đầy đủ → trả về NV100
+     */
+    public String getNextMaNV() {
+        Set<Integer> daSoDung = new HashSet<>();
+        for (NhanVien nv : listNV) {
+            String ma = nv.getMaNV().toUpperCase();
+            if (ma.startsWith("NV")) {
+                try { daSoDung.add(Integer.parseInt(ma.substring(2))); }
+                catch (NumberFormatException ignored) {}
+            }
+        }
+        int so = 1;
+        while (daSoDung.contains(so)) so++;
+        return String.format("NV%02d", so);
+    }
 
     public String getTenNV_BUS(String maNV) {
         return nvDAO.getTenNV_DAO(maNV);

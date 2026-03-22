@@ -414,7 +414,16 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         btnRefresh.addActionListener(e -> handleRefresh());
     }
 
-    private void handleAdd() { clearForm(); lblFormTitle.setText("THÊM TÀI KHOẢN"); txtMaNV.setEditable(true); showFormPanel(); }
+    private void handleAdd() {
+        clearForm();
+        lblFormTitle.setText("THÊM TÀI KHOẢN");
+        txtMaNV.setText(nvBUS.getNextMaNV());
+        txtMaNV.setEditable(false);
+        txtMaNV.setBackground(new Color(245, 247, 250));
+        txtMaNV.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+        txtMaNV.setForeground(new Color(100, 110, 130));
+        showFormPanel();
+    }
 
     private void handleEdit() {
         int row = table.getSelectedRow();
@@ -468,10 +477,18 @@ public class TrangQuanLyTaiKhoan extends JPanel {
         String sdt     = txtSDT.getText().trim();
         String matKhau = new String(txtMatKhau.getPassword()).trim();
 
-        // Kiểm tra bắt buộc
-        if (maNV.isEmpty() || hoTen.isEmpty() || matKhau.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Mã NV, họ tên và mật khẩu không được để trống!",
-                    "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE); return;
+        // Kiểm tra Mã NV
+        if (maNV.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Mã nhân viên không được để trống!",
+                    "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            txtMaNV.requestFocusInWindow(); return;
+        }
+
+        // Kiểm tra Họ tên
+        if (hoTen.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Họ tên không được để trống!",
+                    "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            txtHoTen.requestFocusInWindow(); return;
         }
 
         // Kiểm tra SĐT nếu có nhập
@@ -479,6 +496,13 @@ public class TrangQuanLyTaiKhoan extends JPanel {
             JOptionPane.showMessageDialog(this, "Số điện thoại phải có đúng 10 chữ số!",
                     "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
             txtSDT.requestFocusInWindow(); return;
+        }
+
+        // Kiểm tra Mật khẩu
+        if (matKhau.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Mật khẩu không được để trống!",
+                    "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            txtMatKhau.requestFocusInWindow(); return;
         }
 
         NhanVien nv = new NhanVien();
