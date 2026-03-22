@@ -27,8 +27,8 @@ public class TrangTongQuan extends JPanel {
     private static final Color TEXT_SUB = new Color(100, 115, 145);
 
     private final SanPham_BUS spBUS  = new SanPham_BUS();
-    private final NCC_BUS     nccBUS = new NCC_BUS();
-    private final NV_BUS      nvBUS  = new NV_BUS();
+    private final NCC_BUS nccBUS = new NCC_BUS();
+    private final NV_BUS nvBUS  = new NV_BUS();
 
     public TrangTongQuan() {
         setLayout(new BorderLayout(0, 20));
@@ -77,7 +77,7 @@ public class TrangTongQuan extends JPanel {
         // Thu thập dữ liệu thực tế
         ArrayList<SanPham> dsSP = spBUS.getListSP();
         int tongLoaiSP = dsSP.size();
-        int tongTonKho = dsSP.stream().mapToInt(SanPham::getSoLuong).sum();
+        int tongTonKho = dsSP.stream().mapToInt(sp -> spBUS.getSoLuongTon(sp.getMaSP())).sum();
         int tongNCC = nccBUS.getListNCC().size();
         int tongNV = nvBUS.getAll().size();
 
@@ -179,7 +179,7 @@ public class TrangTongQuan extends JPanel {
         ArrayList<SanPham> dsSP = spBUS.getListSP();
 
         // Sắp xếp theo tồn kho giảm dần để hiển thị top
-        dsSP.sort((a, b) -> b.getSoLuong() - a.getSoLuong());
+        dsSP.sort((a, b) -> spBUS.getSoLuongTon(b.getMaSP()) - spBUS.getSoLuongTon(a.getMaSP()));
 
         String[] cols  = {"Mã SP", "Tên sản phẩm", "ĐVT", "Tồn kho", "Kệ"};
         Object[][] data = new Object[dsSP.size()][5];
@@ -188,7 +188,8 @@ public class TrangTongQuan extends JPanel {
             data[i][0] = sp.getMaSP();
             data[i][1] = sp.getTenSP();
             data[i][2] = sp.getDonViTinh();
-            data[i][3] = String.format("%,d", sp.getSoLuong());
+            int soLuongTon = spBUS.getSoLuongTon(sp.getMaSP());
+            data[i][3] = String.format("%,d", soLuongTon);
             data[i][4] = sp.getMaKe();
         }
 
