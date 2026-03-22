@@ -77,6 +77,8 @@ public class TrangTongQuan extends JPanel {
     }
 
     private JPanel taoKhuTheCard() {
+        spBUS.refreshData();
+
         // Thu thập dữ liệu thực tế
         ArrayList<SanPham> dsSP = spBUS.getListSP();
         int tongLoaiSP = dsSP.size();
