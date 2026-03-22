@@ -98,4 +98,19 @@ public class KeKho_DAO {
             return false;
         }
     }
+    public int getSucChua(Connection conn,String maKe){
+        String sql = "SELECT suc_chua FROM ke_kho WHERE ma_ke = ?";
+        int sucChua = 0;
+        try(
+                PreparedStatement ps = conn.prepareStatement(sql);)
+        {
+            ps.setString(1,maKe);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                sucChua = rs.getInt("suc_chua");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sucChua;
+    }
 }
