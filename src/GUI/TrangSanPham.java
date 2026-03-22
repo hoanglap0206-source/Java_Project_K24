@@ -622,13 +622,15 @@ public class TrangSanPham extends JPanel {
         String maKe = cboKeKho.getSelectedItem() != null ? cboKeKho.getSelectedItem().toString() : "";
 
         if (ten.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Tên sản phẩm không được để trống!");
-            return;
+            JOptionPane.showMessageDialog(this, "Tên sản phẩm không được để trống!",
+                    "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            txtTenSP.requestFocusInWindow(); return;
         }
 
         if (maKe.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn kệ kho!");
-            return;
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn kệ kho!",
+                    "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            cboKeKho.requestFocusInWindow(); return;
         }
 
         int sl;
@@ -636,22 +638,26 @@ public class TrangSanPham extends JPanel {
         try {
             sl = Integer.parseInt(txtSoLuong.getText().trim());
             if (sl < 0) {
-                JOptionPane.showMessageDialog(this, "Số lượng không thể âm!");
-                return;
+                JOptionPane.showMessageDialog(this, "Số lượng không thể âm!",
+                        "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+                txtSoLuong.requestFocusInWindow(); return;
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
-            return;
+            JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ",
+                    "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            txtSoLuong.requestFocusInWindow(); return;
         }
         try {
             gia = Float.parseFloat(txtGia.getText().trim());
             if (gia < 0) {
-                JOptionPane.showMessageDialog(this, "Giá nhập không thể âm!");
-                return;
+                JOptionPane.showMessageDialog(this, "Giá nhập không thể âm!",
+                        "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+                txtGia.requestFocusInWindow(); return;
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Giá nhập không hợp lệ");
-            return;
+            JOptionPane.showMessageDialog(this, "Giá nhập không hợp lệ",
+                    "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+            txtGia.requestFocusInWindow(); return;
         }
 
         SanPham sp = new SanPham();
