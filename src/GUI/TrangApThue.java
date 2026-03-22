@@ -92,18 +92,18 @@ public class TrangApThue extends JPanel {
     public JScrollPane taoBang() {
         String[] columns = {
                 "STT", "Loại thuế", "Áp dụng cho",
-                "%", "Ngày hiệu lực", "Trạng thái", "Thao tác"
+                "%", "Ngày hiệu lực", "Trạng thái"
         };
 
         Object[][] data = {
-                {1, "VAT", "Xuất kho", "10%", "10/07/2025", "Đang áp dụng", "Xem"},
-                {2, "VAT", "Nhập kho", "8%", "10/07/2025", "Đang áp dụng", "Xem"},
-                {3, "VAT", "Nhập kho", "7%", "10/07/2025", "Hết hiệu lực", "Xem"}
+                {1, "VAT", "Xuất kho", "10%", "10/07/2025", "Đang áp dụng"},
+                {2, "VAT", "Nhập kho", "8%", "10/07/2025", "Đang áp dụng"},
+                {3, "VAT", "Nhập kho", "7%", "10/07/2025", "Hết hiệu lực"}
         };
 
         JTable table = new JTable(data, columns) {
             public boolean isCellEditable(int row, int column) {
-                return column == 6;
+                return column == 5;
             }
         };
 
@@ -147,50 +147,51 @@ public class TrangApThue extends JPanel {
             }
         });
 
-        // ===== Nút Xem =====
-        table.getColumnModel().getColumn(6).setCellRenderer(new TrangApThue.ButtonRenderer());
-        table.getColumnModel().getColumn(6).setCellEditor(new TrangApThue.ButtonEditor(new JCheckBox()));
+//        // ===== Nút Xem =====
+//        table.getColumnModel().getColumn(6).setCellRenderer(new TrangApThue.ButtonRenderer());
+//        table.getColumnModel().getColumn(6).setCellEditor(new TrangApThue.ButtonEditor(new JCheckBox()));
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(new LineBorder(new Color(180,180,180)));
 
         return scrollPane;
     }
-    class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer() {
-            setText("Xem");
-            setFocusPainted(false);
-            setBackground(new Color(220,220,220));
-        }
 
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected,
-                boolean hasFocus, int row, int column) {
-            return this;
-        }
-    }
-
-    class ButtonEditor extends DefaultCellEditor {
-        protected JButton button;
-
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton("Xem");
-            button.addActionListener(e -> fireEditingStopped());
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(
-                JTable table, Object value, boolean isSelected,
-                int row, int column) {
-            return button;
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            JOptionPane.showMessageDialog(button, "Xem chi tiết thuế");
-            return "Xem";
-        }
-    }
+//    class ButtonRenderer extends JButton implements TableCellRenderer {
+//        public ButtonRenderer() {
+//            setText("Xem");
+//            setFocusPainted(false);
+//            setBackground(new Color(220,220,220));
+//        }
+//
+//        @Override
+//        public Component getTableCellRendererComponent(
+//                JTable table, Object value, boolean isSelected,
+//                boolean hasFocus, int row, int column) {
+//            return this;
+//        }
+//    }
+//
+//    class ButtonEditor extends DefaultCellEditor {
+//        protected JButton button;
+//
+//        public ButtonEditor(JCheckBox checkBox) {
+//            super(checkBox);
+//            button = new JButton("Xem");
+//            button.addActionListener(e -> fireEditingStopped());
+//        }
+//
+//        @Override
+//        public Component getTableCellEditorComponent(
+//                JTable table, Object value, boolean isSelected,
+//                int row, int column) {
+//            return button;
+//        }
+//
+//        @Override
+//        public Object getCellEditorValue() {
+//            JOptionPane.showMessageDialog(button, "Xem chi tiết thuế");
+//            return "Xem";
+//        }
+//    }
 }

@@ -59,6 +59,19 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
         add(taoThanhCongCu(), BorderLayout.NORTH);
         add(taoBody(), BorderLayout.CENTER);
+
+        // Mặc định chọn kệ đầu tiên
+        SwingUtilities.invokeLater(() -> {
+            ArrayList<KeKho> listKe = bus.getListKK();
+            if (listKe != null && !listKe.isEmpty()) {
+                KeKho keDau = listKe.get(0);
+                selectedMaKe = keDau.getMaKe();
+                int stt = getSttCuaKe(keDau);
+                selectedTenHienThi = keDau.getViTri() + stt;
+                capNhatBang(selectedMaKe);
+                lblTenKe.setText("Kệ " + selectedTenHienThi);
+            }
+        });
     }
 
     // TẠO GIAO DIỆN
@@ -197,7 +210,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
             }
         });
 
-        btnImport.addActionListener(e -> importExcel());
+//        btnImport.addActionListener(e -> importExcel());
 
 //        btnImport.addActionListener(e -> {
 //            JFileChooser chooser = new JFileChooser();
@@ -216,7 +229,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         panel.add(btnAdd);
         panel.add(btnPrint);
         panel.add(btnExport);
-        panel.add(btnImport);
+//        panel.add(btnImport);
 
         wrapper.add(panel, BorderLayout.CENTER);
         return wrapper;
@@ -396,7 +409,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         panel.setPreferredSize(new Dimension(220,150));
 
         lblMaKe = new JLabel("Mã kệ: ");
-        lblViTri = new JLabel("Vị trí: ");
+        lblViTri = new JLabel("Vị trí: Dãy  ");
         lblSucChua = new JLabel("Sức chứa tối đa: ");
         lblHienTai = new JLabel("Đang chứa: ");
         lblKhoangTrong = new JLabel("Còn trống: ");
@@ -426,7 +439,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        JLabel title = new JLabel("DANH SÁCH SẢN PHẨM TRONG KỆ" + selectedTenHienThi);
+        JLabel title = new JLabel("DANH SÁCH SẢN PHẨM TRONG KỆ " + selectedTenHienThi);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel.add(title);
@@ -504,7 +517,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         JLabel lblNgay = new JLabel("Ngày in: " + LocalDate.now());
         lblNgay.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
-        JLabel lblViTri = new JLabel("Vị trí: " + ke.getViTri());
+        JLabel lblViTri = new JLabel("Vị trí: Dãy  " + ke.getViTri());
         lblViTri.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
         JLabel lblSucChua = new JLabel("Sức chứa tối đa: " + ke.getSucChua() + " sản phẩm");
@@ -656,7 +669,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         Object[] msg = {
                 "Mã kệ:", lblMaAuto,
                 "Sức chứa:", txtSucChua,
-                "Vị trí:", dayPanel
+                "Vị trí: Dãy ", dayPanel
         };
 
         int option = JOptionPane.showConfirmDialog(
@@ -714,7 +727,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
         Object[] msg = {
                 "Mã kệ:", txtMa,
-                "Vị trí:", txtViTri,
+                "Vị trí: Dãy ", txtViTri,
                 "Sức chứa:", txtSucChua
         };
 
@@ -768,7 +781,8 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 null,
                 "Xóa kệ " + selectedMaKe + "?",
                 "Xác nhận",
-                JOptionPane.YES_NO_OPTION
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.PLAIN_MESSAGE
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
@@ -784,7 +798,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 model.setRowCount(0);
                 lblTenKe.setText("Kệ ");
                 lblMaKe.setText("Mã kệ: " );
-                lblViTri.setText("Vị trí: ");
+                lblViTri.setText("Vị trí: Dãy  ");
                 lblSucChua.setText("Sức chứa tối đa: ");
                 lblHienTai.setText("Đang chứa: ");
                 lblKhoangTrong.setText("Còn trống: ");
@@ -933,62 +947,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         });
     }
 
-//    private void veSoDoKe(ArrayList<KeKho> danhSachKe) {
-//        soDoKe.removeAll();
-//
-//        String currentDay = "";
-//        JPanel currentRow = null;
-//
-//        int count = 0;
-//        int stt = 0;
-//
-//        for (KeKho ke : danhSachKe) {
-//            String day = ke.getViTri();
-//
-//            // reset STT khi sang dãy mới
-//            if (!day.equals(currentDay)) {
-//                currentDay = day;
-//                stt = 0;
-//                count = 0;
-//
-//                JLabel lblDay = new JLabel("Dãy " + day + ":");
-//                lblDay.setFont(new Font("Segoe UI", Font.BOLD, 14));
-//                lblDay.setBorder(new EmptyBorder(10, 5, 5, 5));
-//                lblDay.setAlignmentX(Component.LEFT_ALIGNMENT);
-//
-//                soDoKe.add(lblDay);
-//
-//                currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-//                currentRow.setBackground(new Color(231,242,245));
-//                currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-//
-//                soDoKe.add(currentRow);
-//            }
-//
-//            // tạo dòng mới nếu đủ 5 kệ
-//            if (count == 5) {
-//                currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-//                currentRow.setBackground(new Color(231,242,245));
-//                currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-//
-//                soDoKe.add(currentRow);
-//                count = 0;
-//            }
-//
-//            stt++;
-//            String tenHienThi = taoTenHienThi(day, stt);
-//
-//            int percent = bus.tinhPhanTramTheoKe(ke);
-//            JPanel card = taoTheKe(tenHienThi, ke.getMaKe(), percent);
-//
-//            currentRow.add(card);
-//            count++;
-//        }
-//
-//        soDoKe.revalidate();
-//        soDoKe.repaint();
-//    }
-
     private void veSoDoKe(ArrayList<KeKho> danhSachKe) {
         soDoKe.removeAll();
         soDoKe.setLayout(new BoxLayout(soDoKe, BoxLayout.Y_AXIS));
@@ -1070,7 +1028,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
             int tong = bus.tinhTongSoLuongTheoKe(maKe);
             int khoangTrong = ke.getSucChua() - tong;
             lblMaKe.setText("Mã kệ: " + maKe);
-            lblViTri.setText("Vị trí: " + ke.getViTri());
+            lblViTri.setText("Vị trí: Dãy  " + ke.getViTri());
             lblSucChua.setText("Sức chứa tối đa: " + ke.getSucChua());
             lblHienTai.setText("Đang chứa: " + tong);
             lblKhoangTrong.setText("Còn trống: "+ khoangTrong);
@@ -1147,77 +1105,77 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         }
     }
 
-    private void importExcel() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Chọn file Excel để nhập");
-        chooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".xlsx")
-                        || f.getName().toLowerCase().endsWith(".xls");
-            }
-
-            @Override
-            public String getDescription() {
-                return "Excel Files (*.xlsx, *.xls)";
-            }
-        });
-
-        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File file = chooser.getSelectedFile();
-
-            // Hiển thị dialog tiến trình
-            JDialog progressDialog = new JDialog((Frame) null, "Đang nhập dữ liệu...", true);
-            progressDialog.setLayout(new BorderLayout());
-            progressDialog.setSize(300, 100);
-            progressDialog.setLocationRelativeTo(this);
-
-            JProgressBar progressBar = new JProgressBar();
-            progressBar.setIndeterminate(true);
-            JLabel lblStatus = new JLabel("Đang xử lý file: " + file.getName());
-            lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
-
-            progressDialog.add(lblStatus, BorderLayout.NORTH);
-            progressDialog.add(progressBar, BorderLayout.CENTER);
-
-            // Chạy import trong thread riêng
-            SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
-                @Override
-                protected String doInBackground() throws Exception {
-                    return chiTietKeBUS.importExcel(file);
-                }
-
-                @Override
-                protected void done() {
-                    progressDialog.dispose();
-                    try {
-                        String result = get();
-                        if (result.contains("thành công")) {
-                            JOptionPane.showMessageDialog(TrangKeKho.this, result,
-                                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                            loadSoDo(); // Làm mới dữ liệu
-                            if (selectedMaKe != null) {
-                                capNhatBang(selectedMaKe);
-                            }
-                            capNhatTongSanPham();
-                        } else {
-                            JOptionPane.showMessageDialog(TrangKeKho.this,
-                                    "Nhập Excel thất bại!\n" + result,
-                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        }
-                    } catch (Exception e) {
-                        JOptionPane.showMessageDialog(TrangKeKho.this,
-                                "Lỗi: " + e.getMessage(),
-                                "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        e.printStackTrace();
-                    }
-                }
-            };
-
-            worker.execute();
-            progressDialog.setVisible(true);
-        }
-    }
+//    private void importExcel() {
+//        JFileChooser chooser = new JFileChooser();
+//        chooser.setDialogTitle("Chọn file Excel để nhập");
+//        chooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+//            @Override
+//            public boolean accept(File f) {
+//                return f.isDirectory() || f.getName().toLowerCase().endsWith(".xlsx")
+//                        || f.getName().toLowerCase().endsWith(".xls");
+//            }
+//
+//            @Override
+//            public String getDescription() {
+//                return "Excel Files (*.xlsx, *.xls)";
+//            }
+//        });
+//
+//        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+//            File file = chooser.getSelectedFile();
+//
+//            // Hiển thị dialog tiến trình
+//            JDialog progressDialog = new JDialog((Frame) null, "Đang nhập dữ liệu...", true);
+//            progressDialog.setLayout(new BorderLayout());
+//            progressDialog.setSize(300, 100);
+//            progressDialog.setLocationRelativeTo(this);
+//
+//            JProgressBar progressBar = new JProgressBar();
+//            progressBar.setIndeterminate(true);
+//            JLabel lblStatus = new JLabel("Đang xử lý file: " + file.getName());
+//            lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
+//
+//            progressDialog.add(lblStatus, BorderLayout.NORTH);
+//            progressDialog.add(progressBar, BorderLayout.CENTER);
+//
+//            // Chạy import trong thread riêng
+//            SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
+//                @Override
+//                protected String doInBackground() throws Exception {
+//                    return chiTietKeBUS.importExcel(file);
+//                }
+//
+//                @Override
+//                protected void done() {
+//                    progressDialog.dispose();
+//                    try {
+//                        String result = get();
+//                        if (result.contains("thành công")) {
+//                            JOptionPane.showMessageDialog(TrangKeKho.this, result,
+//                                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+//                            loadSoDo(); // Làm mới dữ liệu
+//                            if (selectedMaKe != null) {
+//                                capNhatBang(selectedMaKe);
+//                            }
+//                            capNhatTongSanPham();
+//                        } else {
+//                            JOptionPane.showMessageDialog(TrangKeKho.this,
+//                                    "Nhập Excel thất bại!\n" + result,
+//                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+//                        }
+//                    } catch (Exception e) {
+//                        JOptionPane.showMessageDialog(TrangKeKho.this,
+//                                "Lỗi: " + e.getMessage(),
+//                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+//                        e.printStackTrace();
+//                    }
+//                }
+//            };
+//
+//            worker.execute();
+//            progressDialog.setVisible(true);
+//        }
+//    }
 
     @Override
     public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,

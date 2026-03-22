@@ -3,7 +3,9 @@ package GUI;
 import BUS.NCC_BUS;
 import BUS.NV_BUS;
 import BUS.SanPham_BUS;
+import BUS.ChiTietKe_BUS;
 import Model.SanPham;
+import Model.ChiTietKe;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -18,25 +20,26 @@ public class TrangTongQuan extends JPanel {
     private static final Color BG_HEADER = new Color(231, 242, 255);
     private static final Color BORDER_COLOR = new Color(218, 230, 248);
 
-    private static final Color ACCENT_BLUE = new Color(37,  120, 220);
-    private static final Color ACCENT_GREEN = new Color(34,  197, 120);
-    private static final Color ACCENT_ORANGE = new Color(251, 146,  60);
-    private static final Color ACCENT_PURPLE = new Color(139,  92, 246);
+    private static final Color ACCENT_BLUE = new Color(37, 120, 220);
+    private static final Color ACCENT_GREEN = new Color(34, 197, 120);
+    private static final Color ACCENT_ORANGE = new Color(251, 146, 60);
+    private static final Color ACCENT_PURPLE = new Color(139, 92, 246);
 
-    private static final Color TEXT_TITLE = new Color(30,  40,  70);
+    private static final Color TEXT_TITLE = new Color(30, 40, 70);
     private static final Color TEXT_SUB = new Color(100, 115, 145);
 
-    private final SanPham_BUS spBUS  = new SanPham_BUS();
+    private final SanPham_BUS spBUS = new SanPham_BUS();
     private final NCC_BUS nccBUS = new NCC_BUS();
-    private final NV_BUS nvBUS  = new NV_BUS();
+    private final NV_BUS nvBUS = new NV_BUS();
+    private final ChiTietKe_BUS ctBUS = new ChiTietKe_BUS();
 
     public TrangTongQuan() {
         setLayout(new BorderLayout(0, 20));
         setBackground(BG_MAIN);
         setBorder(new EmptyBorder(24, 24, 24, 24));
 
-        add(taoTieuDeTrang(),   BorderLayout.NORTH);
-        add(taoNoiDung(),       BorderLayout.CENTER);
+        add(taoTieuDeTrang(), BorderLayout.NORTH);
+        add(taoNoiDung(), BorderLayout.CENTER);
     }
 
     private JPanel taoTieuDeTrang() {
@@ -68,7 +71,7 @@ public class TrangTongQuan extends JPanel {
         panel.setOpaque(false);
 
         panel.add(taoKhuTheCard(), BorderLayout.NORTH);
-        panel.add(taoKhuBang(),    BorderLayout.CENTER);
+        panel.add(taoKhuBang(), BorderLayout.CENTER);
 
         return panel;
     }
@@ -77,20 +80,26 @@ public class TrangTongQuan extends JPanel {
         // Thu thập dữ liệu thực tế
         ArrayList<SanPham> dsSP = spBUS.getListSP();
         int tongLoaiSP = dsSP.size();
-        int tongTonKho = dsSP.stream().mapToInt(sp -> spBUS.getSoLuongTon(sp.getMaSP())).sum();
+
+        // Tính tổng tồn kho từ ChiTietKe
+        int tongTonKho = 0;
+        for (SanPham sp : dsSP) {
+            tongTonKho += spBUS.getSoLuongTon(sp.getMaSP());
+        }
+
         int tongNCC = nccBUS.getListNCC().size();
         int tongNV = nvBUS.getAll().size();
 
         JPanel grid = new JPanel(new GridLayout(1, 4, 16, 0));
         grid.setOpaque(false);
 
-        grid.add(taoCard("Loại sản phẩm",  tongLoaiSP  + " loại",
-                "📦", ACCENT_BLUE,   new Color(235, 245, 255)));
-        grid.add(taoCard("Tổng tồn kho",   String.format("%,d", tongTonKho) + " sp",
-                "🏭", ACCENT_GREEN,  new Color(236, 253, 245)));
-        grid.add(taoCard("Nhà cung cấp",   tongNCC     + " NCC",
+        grid.add(taoCard("Loại sản phẩm", tongLoaiSP + " loại",
+                "📦", ACCENT_BLUE, new Color(235, 245, 255)));
+        grid.add(taoCard("Tổng tồn kho", String.format("%,d", tongTonKho) + " sp",
+                "🏭", ACCENT_GREEN, new Color(236, 253, 245)));
+        grid.add(taoCard("Nhà cung cấp", tongNCC + " NCC",
                 "🤝", ACCENT_ORANGE, new Color(255, 247, 237)));
-        grid.add(taoCard("Nhân viên",      tongNV      + " NV",
+        grid.add(taoCard("Nhân viên", tongNV + " NV",
                 "👤", ACCENT_PURPLE, new Color(245, 243, 255)));
 
         return grid;
@@ -98,9 +107,9 @@ public class TrangTongQuan extends JPanel {
 
     private JPanel taoCard(String title, String value, String icon, Color accent, Color bgLight) {
         JPanel card = new JPanel(new BorderLayout()) {
-            @Override protected void paintComponent(Graphics g) {
+            @Override
+            protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                // Đường viền trái màu accent
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setColor(accent);
                 g2.fillRect(0, 0, 5, getHeight());
@@ -111,7 +120,6 @@ public class TrangTongQuan extends JPanel {
                 new LineBorder(BORDER_COLOR, 1, true),
                 new EmptyBorder(18, 20, 18, 20)));
 
-        // Icon circle
         JLabel lblIcon = new JLabel(icon, SwingConstants.CENTER);
         lblIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 26));
         lblIcon.setOpaque(true);
@@ -119,12 +127,10 @@ public class TrangTongQuan extends JPanel {
         lblIcon.setPreferredSize(new Dimension(56, 56));
         lblIcon.setBorder(new LineBorder(bgLight.darker(), 0));
 
-        // Wrap icon để căn giữa theo chiều dọc
         JPanel iconWrap = new JPanel(new GridBagLayout());
         iconWrap.setOpaque(false);
         iconWrap.add(lblIcon);
 
-        // Khối chữ
         JLabel lblValue = new JLabel(value);
         lblValue.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblValue.setForeground(TEXT_TITLE);
@@ -133,7 +139,6 @@ public class TrangTongQuan extends JPanel {
         lblTitle.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblTitle.setForeground(TEXT_SUB);
 
-        // Thanh tiến trình nhỏ trang trí
         JPanel bar = new JPanel();
         bar.setBackground(bgLight);
         bar.setPreferredSize(new Dimension(0, 4));
@@ -156,7 +161,7 @@ public class TrangTongQuan extends JPanel {
         textBlock.add(Box.createVerticalStrut(10));
         textBlock.add(barRow);
 
-        card.add(iconWrap,  BorderLayout.WEST);
+        card.add(iconWrap, BorderLayout.WEST);
         card.add(textBlock, BorderLayout.CENTER);
 
         return card;
@@ -176,21 +181,50 @@ public class TrangTongQuan extends JPanel {
     private JPanel taoBangTonKhoTheoSanPham() {
         JPanel panel = taoKhungBang("  Tồn kho theo sản phẩm");
 
+        spBUS.refreshData();
+
         ArrayList<SanPham> dsSP = spBUS.getListSP();
 
         // Sắp xếp theo tồn kho giảm dần để hiển thị top
-        dsSP.sort((a, b) -> spBUS.getSoLuongTon(b.getMaSP()) - spBUS.getSoLuongTon(a.getMaSP()));
+        for (int i = 0; i < dsSP.size() - 1; i++) {
+            for (int j = i + 1; j < dsSP.size(); j++) {
+                int sl1 = spBUS.getSoLuongTon(dsSP.get(i).getMaSP());
+                int sl2 = spBUS.getSoLuongTon(dsSP.get(j).getMaSP());
+                if (sl1 < sl2) {
+                    SanPham temp = dsSP.get(i);
+                    dsSP.set(i, dsSP.get(j));
+                    dsSP.set(j, temp);
+                }
+            }
+        }
 
-        String[] cols  = {"Mã SP", "Tên sản phẩm", "ĐVT", "Tồn kho", "Kệ"};
+        String[] cols = {"Mã SP", "Tên sản phẩm", "ĐVT", "Tồn kho", "Kệ"};
         Object[][] data = new Object[dsSP.size()][5];
+
         for (int i = 0; i < dsSP.size(); i++) {
             SanPham sp = dsSP.get(i);
             data[i][0] = sp.getMaSP();
             data[i][1] = sp.getTenSP();
             data[i][2] = sp.getDonViTinh();
+
+            // Lấy số lượng tồn từ ChiTietKe
             int soLuongTon = spBUS.getSoLuongTon(sp.getMaSP());
             data[i][3] = String.format("%,d", soLuongTon);
-            data[i][4] = sp.getMaKe();
+
+            // Lấy mã kệ từ ChiTietKe
+            ArrayList<ChiTietKe> listCT = ctBUS.getByMaSP(sp.getMaSP());
+            String maKe = "";
+            if (!listCT.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (int j = 0; j < listCT.size(); j++) {
+                    if (j > 0) sb.append(", ");
+                    sb.append(listCT.get(j).getMaKe());
+                }
+                maKe = sb.toString();
+            } else {
+                maKe = "Chưa có kệ";
+            }
+            data[i][4] = maKe;
         }
 
         JTable table = taoTable(data, cols);
@@ -204,10 +238,18 @@ public class TrangTongQuan extends JPanel {
                 setHorizontalAlignment(CENTER);
                 if (!sel) {
                     try {
-                        int sl = Integer.parseInt(val.toString().replace(",", "").trim());
-                        if (sl == 0)   c.setBackground(new Color(255, 235, 235));
-                        else if (sl < 50) c.setBackground(new Color(255, 247, 225));
-                        else c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(247, 251, 255));
+                        String strVal = val.toString().replace(",", "").trim();
+                        int sl = Integer.parseInt(strVal);
+                        if (sl == 0) {
+                            c.setBackground(new Color(255, 235, 235));
+                            c.setForeground(Color.BLACK);
+                        } else if (sl < 50) {
+                            c.setBackground(new Color(255, 247, 225));
+                            c.setForeground(Color.BLACK);
+                        } else {
+                            c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(247, 251, 255));
+                            c.setForeground(Color.BLACK);
+                        }
                     } catch (NumberFormatException ignored) {}
                 }
                 return c;
@@ -238,7 +280,8 @@ public class TrangTongQuan extends JPanel {
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lbl.setForeground(TEXT_SUB);
-        item.add(box); item.add(lbl);
+        item.add(box);
+        item.add(lbl);
         return item;
     }
 
@@ -249,11 +292,11 @@ public class TrangTongQuan extends JPanel {
         String[] cols = {"Thứ", "Nhập (sp)", "Xuất (sp)", "Chênh lệch"};
         Object[][] data = {
                 {"Thứ 2", 120, 95, "+25"},
-                {"Thứ 3", 80,  110, "-30"},
+                {"Thứ 3", 80, 110, "-30"},
                 {"Thứ 4", 200, 175, "+25"},
-                {"Thứ 5", 60,  45,  "+15"},
+                {"Thứ 5", 60, 45, "+15"},
                 {"Thứ 6", 140, 160, "-20"},
-                {"Thứ 7", 90,  80,  "+10"},
+                {"Thứ 7", 90, 80, "+10"},
                 {"Chủ nhật", 30, 20, "+10"},
                 {"Thứ 2", 110, 100, "+10"},
         };
@@ -305,7 +348,7 @@ public class TrangTongQuan extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
         header.add(title, BorderLayout.NORTH);
-        header.add(sep,   BorderLayout.SOUTH);
+        header.add(sep, BorderLayout.SOUTH);
 
         panel.add(header, BorderLayout.NORTH);
         return panel;
@@ -313,7 +356,10 @@ public class TrangTongQuan extends JPanel {
 
     private JTable taoTable(Object[][] data, String[] cols) {
         DefaultTableModel model = new DefaultTableModel(data, cols) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
 
         JTable table = new JTable(model);
@@ -340,11 +386,13 @@ public class TrangTongQuan extends JPanel {
 
         // Striped rows
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override public Component getTableCellRendererComponent(
+            @Override
+            public Component getTableCellRendererComponent(
                     JTable t, Object val, boolean sel, boolean foc, int row, int col) {
                 Component c = super.getTableCellRendererComponent(t, val, sel, foc, row, col);
                 setHorizontalAlignment(CENTER);
-                if (!sel) c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(247, 251, 255));
+                if (!sel)
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(247, 251, 255));
                 return c;
             }
         });
