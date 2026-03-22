@@ -205,16 +205,43 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
         JPanel pnlThoiGian = new JPanel(new GridLayout(2, 2, 5, 5));
         pnlThoiGian.setOpaque(false);
         pnlThoiGian.add(new JLabel("Từ ngày:"));
-        txtTuNgay = new JTextField(8);
-        txtTuNgay.setToolTipText("Nhập yyyy-MM-dd rồi nhấn Enter");
-        txtTuNgay.addActionListener(e -> loadBaoCao());
+        txtTuNgay = new JTextField(" yyyy-MM-dd",8);
+
+        txtTuNgay.setForeground(Color.GRAY);
         pnlThoiGian.add(txtTuNgay);
 
         pnlThoiGian.add(new JLabel("Đến ngày:"));
-        txtDenNgay = new JTextField(8);
-        txtDenNgay.setToolTipText("Nhập yyyy-MM-dd rồi nhấn Enter");
-        txtDenNgay.addActionListener(e -> loadBaoCao());
+        txtDenNgay = new JTextField(" yyyy-MM-dd",8);
+
+        txtDenNgay.setForeground(Color.GRAY);
         pnlThoiGian.add(txtDenNgay);
+
+        java.awt.event.FocusAdapter hintFocus = new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                JTextField txt = (JTextField) e.getSource();
+                if (txt.getText().equals(" yyyy-MM-dd")) {
+                    txt.setText("");
+                    txt.setForeground(Color.BLACK);
+                }
+            }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                JTextField txt = (JTextField) e.getSource();
+                if (txt.getText().trim().isEmpty()) {
+                    txt.setForeground(Color.GRAY);
+                    txt.setText(" yyyy-MM-dd");
+                } else {
+                    // Cứ mỗi khi gõ xong ngày và bấm ra ngoài thì tự động Load báo cáo
+                    loadBaoCao();
+                }
+            }
+        };
+        txtTuNgay.addFocusListener(hintFocus);
+        txtDenNgay.addFocusListener(hintFocus);
+
+        txtTuNgay.addActionListener(e -> loadBaoCao());
+        txtDenNgay.addActionListener(e -> loadBaoCao());
 
         pnlNorth.add(pnlSearch);
         pnlNorth.add(btnRefresh);
@@ -499,8 +526,8 @@ public class TrangBaoCao extends JPanel implements QuyenTrang {
             String strTuNgay = txtTuNgay.getText().trim();
             String strDenNgay = txtDenNgay.getText().trim();
 
-            if (strTuNgay.isEmpty()) strTuNgay = "1970-01-01";
-            if (strDenNgay.isEmpty()) strDenNgay = "2100-12-31";
+            if (strTuNgay.isEmpty() || strTuNgay.equals("yyyy-MM-dd")) strTuNgay = "1970-01-01";
+            if (strDenNgay.isEmpty() || strDenNgay.equals("yyyy-MM-dd")) strDenNgay = "2100-12-31";
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             Date tuNgay = sdf.parse(strTuNgay);
