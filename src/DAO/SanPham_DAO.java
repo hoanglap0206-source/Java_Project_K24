@@ -343,6 +343,21 @@ public class SanPham_DAO {
 //            return false;
 //        }
 //    }
+    public boolean update(SanPham sp) {
+        String sql = "UPDATE SAN_PHAM SET dvt=?, gia=? WHERE ma_sku=?";
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setString(1, sp.getDonViTinh());
+            ps.setFloat(2, sp.getGiaTien());
+            ps.setString(3, sp.getMaSP());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
     public boolean updateSP(Connection conn,int soLuong,String maKe,String maSP){
 //        Nếu muốn thay đổi mã kệ,cần kiểm tra số sức chứa còn lại của kệ xem có chứa đc số lượng sản phẩm mới này ko?
         String sql =

@@ -260,6 +260,10 @@ public class SanPham_BUS {
 //            refreshData();
 //            return "Cập nhật thành công!";
 //        }
+        if (spDAO.update(sp)) {
+            refreshData();
+            return "Cập nhật thành công!";
+        }
         return "Cập nhật thất bại!";
     }
 
