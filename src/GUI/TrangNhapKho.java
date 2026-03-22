@@ -151,7 +151,7 @@ public class TrangNhapKho extends JPanel {
         // Dòng số lượng
         JPanel SouthPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 10));
         SouthPanel.setBackground(Color.WHITE);
-        
+
         JLabel soLuong = new JLabel("Số lượng: ");
 
         txtSoLuong = new JTextField("3");
@@ -227,7 +227,7 @@ public class TrangNhapKho extends JPanel {
         String[] itemLoc = new String[nccBus.getListNCC().size()];
         itemLoc[0] = "Mã nhà Cung Cấp";
         for (int i = 1; i < nccBus.getListNCC().size(); i++) {
-           itemLoc[i] = nccBus.getListNCC().get(i-1).getMaNCC();
+            itemLoc[i] = nccBus.getListNCC().get(i-1).getMaNCC();
         }
         comboBoxLoc = new JComboBox<>(itemLoc);
         comboBoxLoc.setBackground(new Color(214, 238, 253));
