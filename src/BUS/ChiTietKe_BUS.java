@@ -23,13 +23,34 @@ public class ChiTietKe_BUS {
 
     private ArrayList<SanPham> listSP;
 
+    // Cache dữ liệu
+    private ArrayList<ChiTietKe> cacheAllCT;
+    private ArrayList<ChiTietKe> cacheByMaKe;
+    private String lastMaKeQuery = "";
+    private boolean isCacheValid = false;
+
     public ChiTietKe_BUS() {
         listSP = spDAO.getAllSanPham();
+        loadAllData();
     }
 
-    // Lấy vị trí của sản phẩm
+    private void loadAllData() {
+        cacheAllCT = ctDAO.getAll();
+        isCacheValid = true;
+        // Reset cache query
+        lastMaKeQuery = "";
+        cacheByMaKe = null;
+    }
+
+    public void refreshData() {
+        loadAllData();
+        if (keBus != null) {
+            keBus.refreshData();
+        }
+    }
+
     public String getViTriSanPham(String maSP) {
-        ArrayList<ChiTietKe> list = ctDAO.getByMaSP(maSP);
+        ArrayList<ChiTietKe> list = getByMaSP(maSP);
         StringBuilder sb = new StringBuilder();
 
         for (ChiTietKe ct : list) {
@@ -43,18 +64,6 @@ public class ChiTietKe_BUS {
         return sb.substring(0, sb.length() - 2);
     }
 
-    // Tính tổng số lượng sản phẩm trong kệ
-    private int tinhTongSoLuongTheoKe(String maKe) {
-        int tong = 0;
-        ArrayList<ChiTietKe> list = ctDAO.getByMaKe(maKe);
-
-        for (ChiTietKe ct : list) {
-            tong += ct.getSoLuong();
-        }
-        return tong;
-    }
-
-    // Lấy tên sản phẩm từ danh sách
     private String layTenSanPham(String maSP) {
         for (SanPham sp : listSP) {
             if (sp.getMaSP().equals(maSP)) {
@@ -64,13 +73,11 @@ public class ChiTietKe_BUS {
         return "";
     }
 
-    // Xuất Excel
     public boolean exportExcel(String filePath) {
         try {
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("DanhSachKeKho");
 
-            // Tạo header
             Row headerRow = sheet.createRow(0);
             String[] headers = {"STT", "Mã kệ", "Vị trí", "Sức chứa",
                     "Mã sản phẩm", "Tên sản phẩm", "Đơn vị tính", "Số lượng"};
@@ -93,15 +100,14 @@ public class ChiTietKe_BUS {
                 sheet.setColumnWidth(i, 4000);
             }
 
-            // Lấy dữ liệu
             ArrayList<KeKho> listKe = keBus.getListKK();
             int rowNum = 1;
             int stt = 1;
 
             for (KeKho ke : listKe) {
-                ArrayList<SanPham> listSPTrongKe = keBus.laySanPhamTheoKe(ke.getMaKe());
+                ArrayList<ChiTietKe> listCT = getByMaKe(ke.getMaKe());
 
-                if (listSPTrongKe.isEmpty()) {
+                if (listCT.isEmpty()) {
                     Row row = sheet.createRow(rowNum++);
                     row.createCell(0).setCellValue(stt++);
                     row.createCell(1).setCellValue(ke.getMaKe());
@@ -112,21 +118,28 @@ public class ChiTietKe_BUS {
                     row.createCell(6).setCellValue("");
                     row.createCell(7).setCellValue("");
                 } else {
-                    for (SanPham sp : listSPTrongKe) {
+                    for (ChiTietKe ct : listCT) {
+                        SanPham sp = null;
+                        for (SanPham s : listSP) {
+                            if (s.getMaSP().equals(ct.getMaSP())) {
+                                sp = s;
+                                break;
+                            }
+                        }
+
                         Row row = sheet.createRow(rowNum++);
                         row.createCell(0).setCellValue(stt++);
                         row.createCell(1).setCellValue(ke.getMaKe());
                         row.createCell(2).setCellValue(ke.getViTri());
                         row.createCell(3).setCellValue(ke.getSucChua());
-                        row.createCell(4).setCellValue(sp.getMaSP());
-                        row.createCell(5).setCellValue(sp.getTenSP());
-                        row.createCell(6).setCellValue(sp.getDonViTinh());
-                        row.createCell(7).setCellValue(sp.getSoLuong());
+                        row.createCell(4).setCellValue(ct.getMaSP());
+                        row.createCell(5).setCellValue(sp != null ? sp.getTenSP() : "");
+                        row.createCell(6).setCellValue(sp != null ? sp.getDonViTinh() : "");
+                        row.createCell(7).setCellValue(ct.getSoLuong());
                     }
                 }
             }
 
-            // Auto size columns
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
                 if (sheet.getColumnWidth(i) > 8000) {
@@ -147,7 +160,6 @@ public class ChiTietKe_BUS {
         }
     }
 
-    // Import Excel
     public String importExcel(File file) {
         try {
             FileInputStream fis = new FileInputStream(file);
@@ -161,7 +173,6 @@ public class ChiTietKe_BUS {
                 return "File không có dữ liệu";
             }
 
-            // Kiểm tra header
             if (headerRow.getCell(1) == null ||
                     !headerRow.getCell(1).getStringCellValue().contains("Mã kệ")) {
                 workbook.close();
@@ -183,7 +194,6 @@ public class ChiTietKe_BUS {
                 return "File không đúng định dạng. Thiếu cột 'Số lượng'";
             }
 
-            // Đọc dữ liệu
             ArrayList<ChiTietKe> listImport = new ArrayList<>();
             String currentMaKe = "";
 
@@ -265,23 +275,20 @@ public class ChiTietKe_BUS {
             ArrayList<ChiTietKe> validList = new ArrayList<>();
 
             for (ChiTietKe ct : listImport) {
-                // Kiểm tra sản phẩm tồn tại
                 SanPham sp = spDAO.getSanPhamByMa(ct.getMaSP());
                 if (sp == null) {
                     errors.add("Mã sản phẩm " + ct.getMaSP() + " không tồn tại");
                     continue;
                 }
 
-                // Kiểm tra kệ tồn tại
                 KeKho ke = keBus.getKeTheoMa(ct.getMaKe());
                 if (ke == null) {
                     errors.add("Mã kệ " + ct.getMaKe() + " không tồn tại");
                     continue;
                 }
 
-                // Kiểm tra sức chứa
-                int tongHienTai = tinhTongSoLuongTheoKe(ct.getMaKe());
-                ArrayList<ChiTietKe> listCT = ctDAO.getByMaKe(ct.getMaKe());
+                int tongHienTai = keBus.tinhTongSoLuongTheoKe(ct.getMaKe());
+                ArrayList<ChiTietKe> listCT = getByMaKe(ct.getMaKe());
                 int soLuongCu = 0;
                 for (ChiTietKe item : listCT) {
                     if (item.getMaSP().equals(ct.getMaSP())) {
@@ -304,7 +311,6 @@ public class ChiTietKe_BUS {
                 return "Lỗi dữ liệu:\n" + String.join("\n", errors);
             }
 
-            // Lưu dữ liệu
             int success = 0;
             for (ChiTietKe ct : validList) {
                 if (ctDAO.insertOrUpdate(ct)) {
@@ -312,6 +318,7 @@ public class ChiTietKe_BUS {
                 }
             }
 
+            refreshData();
             keBus.refreshData();
 
             return "Nhập thành công " + success + "/" + validList.size() + " bản ghi";
@@ -322,20 +329,54 @@ public class ChiTietKe_BUS {
         }
     }
 
-    // Các phương thức khác
+    public ArrayList<ChiTietKe> getAll() {
+        if (!isCacheValid) {
+            loadAllData();
+        }
+        return cacheAllCT;
+    }
+
     public ArrayList<ChiTietKe> getByMaKe(String maKe) {
-        return ctDAO.getByMaKe(maKe);
+        if (!isCacheValid) {
+            loadAllData();
+        }
+
+        if (lastMaKeQuery.equals(maKe) && cacheByMaKe != null) {
+            return cacheByMaKe;
+        }
+
+        ArrayList<ChiTietKe> result = new ArrayList<>();
+        for (ChiTietKe ct : cacheAllCT) {
+            if (ct.getMaKe().equals(maKe)) {
+                result.add(ct);
+            }
+        }
+
+        lastMaKeQuery = maKe;
+        cacheByMaKe = result;
+
+        return result;
     }
 
     public ArrayList<ChiTietKe> getByMaSP(String maSP) {
-        return ctDAO.getByMaSP(maSP);
+        if (!isCacheValid) {
+            loadAllData();
+        }
+
+        ArrayList<ChiTietKe> result = new ArrayList<>();
+        for (ChiTietKe ct : cacheAllCT) {
+            if (ct.getMaSP().equals(maSP)) {
+                result.add(ct);
+            }
+        }
+        return result;
     }
 
     public boolean updateSoLuong(String maKe, String maSP, int soLuong) {
         KeKho ke = keBus.getKeTheoMa(maKe);
         if (ke != null) {
-            int tongHienTai = tinhTongSoLuongTheoKe(maKe);
-            ArrayList<ChiTietKe> listCT = ctDAO.getByMaKe(maKe);
+            int tongHienTai = keBus.tinhTongSoLuongTheoKe(maKe);
+            ArrayList<ChiTietKe> listCT = getByMaKe(maKe);
             int soLuongCu = 0;
             for (ChiTietKe ct : listCT) {
                 if (ct.getMaSP().equals(maSP)) {
@@ -354,6 +395,7 @@ public class ChiTietKe_BUS {
         boolean result = ctDAO.insertOrUpdate(ct);
 
         if (result) {
+            refreshData();
             keBus.refreshData();
         }
 
@@ -363,16 +405,19 @@ public class ChiTietKe_BUS {
     public boolean delete(String maKe, String maSP) {
         boolean result = ctDAO.delete(maKe, maSP);
         if (result) {
+            refreshData();
             keBus.refreshData();
         }
         return result;
     }
 
     public int getTongSoLuongToanKho() {
+        if (!isCacheValid) {
+            loadAllData();
+        }
         int tong = 0;
-        ArrayList<KeKho> listKe = keBus.getListKK();
-        for (KeKho ke : listKe) {
-            tong += tinhTongSoLuongTheoKe(ke.getMaKe());
+        for (ChiTietKe ct : cacheAllCT) {
+            tong += ct.getSoLuong();
         }
         return tong;
     }

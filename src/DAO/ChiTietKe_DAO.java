@@ -10,7 +10,6 @@ import java.util.ArrayList;
 
 public class ChiTietKe_DAO {
     public boolean insertOrUpdate(ChiTietKe ct) {
-        // Sửa lại câu lệnh SQL đúng cú pháp MySQL
         String sql = "INSERT INTO CHITIET_KE (ma_ke, ma_sku, so_luong) " +
                 "VALUES (?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE so_luong = ?";
@@ -20,7 +19,7 @@ public class ChiTietKe_DAO {
             ps.setString(1, ct.getMaKe());
             ps.setString(2, ct.getMaSP());
             ps.setInt(3, ct.getSoLuong());
-            ps.setInt(4, ct.getSoLuong()); // giá trị cho UPDATE
+            ps.setInt(4, ct.getSoLuong());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -105,6 +104,7 @@ public class ChiTietKe_DAO {
             return false;
         }
     }
+
     public boolean delete(String maKe, String maSP) {
         String sql = "DELETE FROM CHITIET_KE WHERE ma_ke=? AND ma_sku=?";
         try (Connection conn = DBConnection.getConnection();
@@ -116,5 +116,23 @@ public class ChiTietKe_DAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    // Lấy tổng số lượng của sản phẩm (tổng từ tất cả các kệ)
+    public int getTongSoLuongByMaSP(String maSP) {
+        int tong = 0;
+        String sql = "SELECT SUM(so_luong) FROM CHITIET_KE WHERE ma_sku=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSP);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                tong = rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tong;
     }
 }

@@ -2,8 +2,10 @@ package GUI;
 
 import Model.KeKho;
 import Model.SanPham;
+import Model.ChiTietKe;
 import BUS.KeKho_BUS;
 import BUS.ChiTietKe_BUS;
+import BUS.SanPham_BUS;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -36,6 +38,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
     private JLabel lblKhoangTrong;
     private KeKho_BUS bus = new KeKho_BUS();
     private ChiTietKe_BUS chiTietKeBUS = new ChiTietKe_BUS();
+    private SanPham_BUS spBus;
 
     private JButton btnAdd;
     private JButton btnEdit;
@@ -50,6 +53,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
     private String selectedTenHienThi = null;
 
     public TrangKeKho() {
+        spBus = new SanPham_BUS();
         setLayout(new BorderLayout());
         setBackground(new Color(255,255,255));
 
@@ -394,8 +398,8 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         lblMaKe = new JLabel("Mã kệ: ");
         lblViTri = new JLabel("Vị trí: ");
         lblSucChua = new JLabel("Sức chứa tối đa: ");
-        lblHienTai = new JLabel("Hiện đang chứa: ");
-        lblKhoangTrong = new JLabel("Khoảng trống còn lại: ");
+        lblHienTai = new JLabel("Đang chứa: ");
+        lblKhoangTrong = new JLabel("Còn trống: ");
 
         lblMaKe.setFont(new Font("Segoe UI", Font.BOLD,13));
         lblViTri.setFont(new Font("Segoe UI", Font.BOLD,13));
@@ -422,15 +426,14 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        // Tiêu đề
-        JLabel title = new JLabel("DANH SÁCH SẢN PHẨM TRONG KỆ");
+        JLabel title = new JLabel("DANH SÁCH SẢN PHẨM TRONG KỆ" + selectedTenHienThi);
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel.add(title);
 
         panel.add(Box.createVerticalStrut(5));
 
-        JLabel subTitle = new JLabel("Kệ: " + maKe);
+        JLabel subTitle = new JLabel("Mã kệ: " + maKe);
         subTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         subTitle.setForeground(new Color(60, 90, 150));
         subTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -438,25 +441,29 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
         panel.add(Box.createVerticalStrut(20));
 
-        // Lấy thông tin kệ hiện tại
         KeKho ke = bus.getKeTheoMa(maKe);
-        ArrayList<SanPham> listSP = bus.laySanPhamTheoKe(maKe);
         int tongSoLuong = bus.tinhTongSoLuongTheoKe(maKe);
         int khoangTrong = ke.getSucChua() - tongSoLuong;
 
-        // Tạo bảng dữ liệu
+        // Lấy danh sách ChiTietKe
+        ArrayList<ChiTietKe> listCT = chiTietKeBUS.getByMaKe(maKe);
+        SanPham_BUS spBus = new SanPham_BUS();
+
         String[] cols = {"STT", "Mã sản phẩm", "Tên sản phẩm", "Đơn vị tính", "Số lượng"};
         DefaultTableModel printModel = new DefaultTableModel(cols, 0);
 
         int stt = 1;
-        for (SanPham sp : listSP) {
-            printModel.addRow(new Object[]{
-                    stt++,
-                    sp.getMaSP(),
-                    sp.getTenSP(),
-                    sp.getDonViTinh(),
-                    sp.getSoLuong()
-            });
+        for (ChiTietKe ct : listCT) {
+            SanPham sp = spBus.getSanPhamByMa(ct.getMaSP());
+            if (sp != null) {
+                printModel.addRow(new Object[]{
+                        stt++,
+                        ct.getMaSP(),
+                        sp.getTenSP(),
+                        sp.getDonViTinh(),
+                        ct.getSoLuong()
+                });
+            }
         }
 
         JTable tablePrint = new JTable(printModel);
@@ -467,14 +474,12 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         tablePrint.setShowGrid(true);
         tablePrint.setGridColor(new Color(220, 220, 220));
 
-        // Căn giữa các cột
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i < tablePrint.getColumnCount(); i++) {
             tablePrint.getColumnModel().getColumn(i).setCellRenderer(center);
         }
 
-        // Đặt độ rộng cột
         tablePrint.getColumnModel().getColumn(0).setMaxWidth(60);
         tablePrint.getColumnModel().getColumn(0).setPreferredWidth(60);
         tablePrint.getColumnModel().getColumn(1).setPreferredWidth(120);
@@ -488,7 +493,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
         panel.add(Box.createVerticalStrut(20));
 
-        // Thông tin kệ
         JPanel infoPanel = new JPanel(new GridLayout(5, 1, 5, 8));
         infoPanel.setBackground(Color.WHITE);
         infoPanel.setBorder(new CompoundBorder(
@@ -506,10 +510,10 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         JLabel lblSucChua = new JLabel("Sức chứa tối đa: " + ke.getSucChua() + " sản phẩm");
         lblSucChua.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
-        JLabel lblHienTai = new JLabel("Hiện đang chứa: " + tongSoLuong + " sản phẩm");
+        JLabel lblHienTai = new JLabel("Đang chứa: " + tongSoLuong + " sản phẩm");
         lblHienTai.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
-        JLabel lblKhoangTrong = new JLabel("Khoảng trống còn lại: " + khoangTrong + " sản phẩm");
+        JLabel lblKhoangTrong = new JLabel("Còn trống: " + khoangTrong + " sản phẩm");
         lblKhoangTrong.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
         int percent = (int) ((double) tongSoLuong / ke.getSucChua() * 100);
@@ -526,7 +530,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
         panel.add(infoPanel);
 
-        // Footer
         panel.add(Box.createVerticalStrut(20));
         JLabel footer = new JLabel("--- Hệ thống quản lý kho ---");
         footer.setFont(new Font("Segoe UI", Font.ITALIC, 10));
@@ -653,7 +656,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         Object[] msg = {
                 "Mã kệ:", lblMaAuto,
                 "Sức chứa:", txtSucChua,
-                "Vị trí (khu):", dayPanel
+                "Vị trí:", dayPanel
         };
 
         int option = JOptionPane.showConfirmDialog(
@@ -672,19 +675,18 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
             }
 
             String day = cbDay.getSelectedItem().toString();
+            if (!day.matches("[A-Z]")) {
+                JOptionPane.showMessageDialog(null, "Vị trí phải là A-Z!");
+                return;
+            }
 
-            // SINH MÃ NGAY TRƯỚC KHI LƯU - tránh trùng
-            String maMoi = bus.sinhMaKeTuDong();
-            KeKho ke = new KeKho(maMoi, sc, day);
+            KeKho ke = new KeKho(null, sc, day);
 
             String result = bus.addKK(ke);
             JOptionPane.showMessageDialog(null, result);
 
             if (result.contains("thành công")) {
                 loadSoDo();
-                // Tự động chọn kệ vừa thêm
-                selectedMaKe = maMoi;
-                capNhatBang(maMoi);
             }
 
         } catch (NumberFormatException e) {
@@ -784,8 +786,8 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 lblMaKe.setText("Mã kệ: " );
                 lblViTri.setText("Vị trí: ");
                 lblSucChua.setText("Sức chứa tối đa: ");
-                lblHienTai.setText("Hiện đang chứa: ");
-                lblKhoangTrong.setText("Khoảng trống còn lại: ");
+                lblHienTai.setText("Đang chứa: ");
+                lblKhoangTrong.setText("Còn trống: ");
             }
         }
     }
@@ -931,19 +933,75 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         });
     }
 
+//    private void veSoDoKe(ArrayList<KeKho> danhSachKe) {
+//        soDoKe.removeAll();
+//
+//        String currentDay = "";
+//        JPanel currentRow = null;
+//
+//        int count = 0;
+//        int stt = 0;
+//
+//        for (KeKho ke : danhSachKe) {
+//            String day = ke.getViTri();
+//
+//            // reset STT khi sang dãy mới
+//            if (!day.equals(currentDay)) {
+//                currentDay = day;
+//                stt = 0;
+//                count = 0;
+//
+//                JLabel lblDay = new JLabel("Dãy " + day + ":");
+//                lblDay.setFont(new Font("Segoe UI", Font.BOLD, 14));
+//                lblDay.setBorder(new EmptyBorder(10, 5, 5, 5));
+//                lblDay.setAlignmentX(Component.LEFT_ALIGNMENT);
+//
+//                soDoKe.add(lblDay);
+//
+//                currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+//                currentRow.setBackground(new Color(231,242,245));
+//                currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+//
+//                soDoKe.add(currentRow);
+//            }
+//
+//            // tạo dòng mới nếu đủ 5 kệ
+//            if (count == 5) {
+//                currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+//                currentRow.setBackground(new Color(231,242,245));
+//                currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+//
+//                soDoKe.add(currentRow);
+//                count = 0;
+//            }
+//
+//            stt++;
+//            String tenHienThi = taoTenHienThi(day, stt);
+//
+//            int percent = bus.tinhPhanTramTheoKe(ke);
+//            JPanel card = taoTheKe(tenHienThi, ke.getMaKe(), percent);
+//
+//            currentRow.add(card);
+//            count++;
+//        }
+//
+//        soDoKe.revalidate();
+//        soDoKe.repaint();
+//    }
+
     private void veSoDoKe(ArrayList<KeKho> danhSachKe) {
         soDoKe.removeAll();
+        soDoKe.setLayout(new BoxLayout(soDoKe, BoxLayout.Y_AXIS));
 
         String currentDay = "";
         JPanel currentRow = null;
-
         int count = 0;
         int stt = 0;
 
+        // Lấy cache từ BUS để không tính lại nhiều lần
         for (KeKho ke : danhSachKe) {
             String day = ke.getViTri();
 
-            // reset STT khi sang dãy mới
             if (!day.equals(currentDay)) {
                 currentDay = day;
                 stt = 0;
@@ -953,22 +1011,18 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 lblDay.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 lblDay.setBorder(new EmptyBorder(10, 5, 5, 5));
                 lblDay.setAlignmentX(Component.LEFT_ALIGNMENT);
-
                 soDoKe.add(lblDay);
 
                 currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-                currentRow.setBackground(new Color(231,242,245));
+                currentRow.setBackground(new Color(231, 242, 245));
                 currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-
                 soDoKe.add(currentRow);
             }
 
-            // tạo dòng mới nếu đủ 5 kệ
             if (count == 5) {
                 currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-                currentRow.setBackground(new Color(231,242,245));
+                currentRow.setBackground(new Color(231, 242, 245));
                 currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-
                 soDoKe.add(currentRow);
                 count = 0;
             }
@@ -976,6 +1030,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
             stt++;
             String tenHienThi = taoTenHienThi(day, stt);
 
+            // Lấy percent từ BUS (đã được cache)
             int percent = bus.tinhPhanTramTheoKe(ke);
             JPanel card = taoTheKe(tenHienThi, ke.getMaKe(), percent);
 
@@ -989,30 +1044,36 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
     private void capNhatBang(String maKe) {
         lblTenKe.setText("Kệ " + selectedTenHienThi);
-        model.setRowCount(0); // Xóa dữ liệu cũ
+        model.setRowCount(0);
 
-        ArrayList<SanPham> listSP = bus.laySanPhamTheoKe(maKe);
+        // Lấy danh sách ChiTietKe từ cache
+        ArrayList<ChiTietKe> listCT = chiTietKeBUS.getByMaKe(maKe);
 
         int stt = 1;
-        for (SanPham sp : listSP) {
-            model.addRow(new Object[]{
-                    stt++,
-                    sp.getMaSP(),
-                    sp.getTenSP(),
-                    sp.getDonViTinh(),
-                    sp.getSoLuong()
-            });
+        for (ChiTietKe ct : listCT) {
+            // Lấy thông tin sản phẩm từ cache của bus
+            SanPham sp = spBus.getSanPhamByMa(ct.getMaSP());
+            if (sp != null) {
+                model.addRow(new Object[]{
+                        stt++,
+                        ct.getMaSP(),
+                        sp.getTenSP(),
+                        sp.getDonViTinh(),
+                        ct.getSoLuong()
+                });
+            }
         }
 
         KeKho ke = bus.getKeTheoMa(maKe);
         if (ke != null) {
+            // Lấy từ cache thay vì tính lại
             int tong = bus.tinhTongSoLuongTheoKe(maKe);
             int khoangTrong = ke.getSucChua() - tong;
-            lblTenKe.setText("Mã kệ: " + maKe);
+            lblMaKe.setText("Mã kệ: " + maKe);
             lblViTri.setText("Vị trí: " + ke.getViTri());
             lblSucChua.setText("Sức chứa tối đa: " + ke.getSucChua());
-            lblHienTai.setText("Hiện đang chứa: " + tong);
-            lblKhoangTrong.setText("Khoảng trống còn lại: "+ khoangTrong);
+            lblHienTai.setText("Đang chứa: " + tong);
+            lblKhoangTrong.setText("Còn trống: "+ khoangTrong);
         }
     }
 

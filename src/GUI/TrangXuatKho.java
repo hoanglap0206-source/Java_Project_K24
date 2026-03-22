@@ -3,7 +3,10 @@ package GUI;
 import BUS.KhachHang_BUS;
 import BUS.PhieuXuat_BUS;
 import BUS.SanPham_BUS;
-import Model.*;
+import Model.KhachHang;
+import Model.NhanVien;
+import Model.PhieuXuat;
+import Model.SanPham;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -135,7 +138,7 @@ public class TrangXuatKho extends JPanel {
             txtSearch.setText("Tìm kiếm");
         });
         btnLamMoi.addActionListener(e -> {
-            spBus.refeshdataDTO();
+            spBus.refreshData();
             loadTableData();
             txtSearch.setText("Tìm kiếm");
         });
@@ -413,11 +416,12 @@ public class TrangXuatKho extends JPanel {
                 xuatExcel();
             }
             TaoPX(maPX,dateTime);
-            spBus.refeshdataDTO();
+            spBus.refreshData();
         });
         return panel;
     }
 
+    // Mới sửa
     private void handleAddProduct() {
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -436,57 +440,117 @@ public class TrangXuatKho extends JPanel {
             txtSoLuong.selectAll();
             return;
         }
-        int quantity = Integer.parseInt(
-                tableModel.getValueAt(row,2).toString()
-        );
+
         String maSP = tableModel.getValueAt(row, 0).toString();
-        String tenSP = tableModel.getValueAt(row, 1).toString();
-        double donGia = Double.parseDouble(
-                tableModel.getValueAt(row, 3).toString()
-        );
-        if(soLuong>quantity){
-            JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+        int quantity = spBus.getSoLuongTon(maSP); // Lấy số lượng tồn từ ChiTietKe
+
+        if (soLuong > quantity) {
+            JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp! (Còn: " + quantity + ")");
             txtSoLuong.requestFocus();
             txtSoLuong.selectAll();
             return;
         }
+
+        String tenSP = tableModel.getValueAt(row, 1).toString();
+        double donGia = Double.parseDouble(tableModel.getValueAt(row, 3).toString());
+
+        // Kiểm tra nếu sản phẩm đã có trong phiếu xuất
         for (int i = 0; i < tableModelRight.getRowCount(); i++) {
             Object val = tableModelRight.getValueAt(i, 1);
             if (val != null && val.toString().equals(maSP)) {
                 int slCu = (int) tableModelRight.getValueAt(i, 3);
-                if((slCu+soLuong)>quantity){
-                    JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+                if ((slCu + soLuong) > quantity) {
+                    JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp! (Tồn: " + quantity + ", đã chọn: " + slCu + ")");
                     txtSoLuong.requestFocus();
                     txtSoLuong.selectAll();
                     return;
                 }
                 tableModelRight.setValueAt(slCu + soLuong, i, 3);
-                tongTien += (long)(soLuong * donGia + 0.1f *soLuong*donGia);
+                tongTien += (long) (soLuong * donGia + 0.1f * soLuong * donGia);
                 txtTongTien.setText(String.valueOf(tongTien));
                 txtSoLuong.setText("");
                 return;
             }
         }
 
-        String ngayNhap = LocalDate.now().format(DATE_FORMAT);
+        // Thêm mới
         int stt = tableModelRight.getRowCount() + 1;
-
-        tableModelRight.addRow(new Object[]{
-                stt, maSP, tenSP, soLuong, donGia
-        });
-        tongTien += (long)(soLuong * donGia + 0.1f *soLuong*donGia);
-        String txtTien = String.valueOf(tongTien);
-        txtTongTien.setText(txtTien);
-        txtSoLuong.setText("0");
+        tableModelRight.addRow(new Object[]{stt, maSP, tenSP, soLuong, donGia});
+        tongTien += (long) (soLuong * donGia + 0.1f * soLuong * donGia);
+        txtTongTien.setText(String.valueOf(tongTien));
+        txtSoLuong.setText("");
     }
+    // handleAddProduct Cũ
+//    private void handleAddProduct() {
+//        int row = table.getSelectedRow();
+//        if (row == -1) {
+//            JOptionPane.showMessageDialog(this, "Chưa chọn sản phẩm");
+//            return;
+//        }
+//
+//        int soLuong;
+//        long tongTien = Long.parseLong(txtTongTien.getText());
+//        try {
+//            soLuong = Integer.parseInt(txtSoLuong.getText());
+//            if (soLuong <= 0) throw new Exception();
+//        } catch (Exception e) {
+//            JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+//            txtSoLuong.requestFocus();
+//            txtSoLuong.selectAll();
+//            return;
+//        }
+//        int quantity = Integer.parseInt(
+//                tableModel.getValueAt(row,2).toString()
+//        );
+//        String maSP = tableModel.getValueAt(row, 0).toString();
+//        String tenSP = tableModel.getValueAt(row, 1).toString();
+//        double donGia = Double.parseDouble(
+//                tableModel.getValueAt(row, 3).toString()
+//        );
+//        if(soLuong>quantity){
+//            JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+//            txtSoLuong.requestFocus();
+//            txtSoLuong.selectAll();
+//            return;
+//        }
+//        for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+//            Object val = tableModelRight.getValueAt(i, 1);
+//            if (val != null && val.toString().equals(maSP)) {
+//                int slCu = (int) tableModelRight.getValueAt(i, 3);
+//                if((slCu+soLuong)>quantity){
+//                    JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+//                    txtSoLuong.requestFocus();
+//                    txtSoLuong.selectAll();
+//                    return;
+//                }
+//                tableModelRight.setValueAt(slCu + soLuong, i, 3);
+//                tongTien += (long)(soLuong * donGia + 0.1f *soLuong*donGia);
+//                txtTongTien.setText(String.valueOf(tongTien));
+//                txtSoLuong.setText("");
+//                return;
+//            }
+//        }
+//
+//        String ngayNhap = LocalDate.now().format(DATE_FORMAT);
+//        int stt = tableModelRight.getRowCount() + 1;
+//
+//        tableModelRight.addRow(new Object[]{
+//                stt, maSP, tenSP, soLuong, donGia
+//        });
+//        tongTien += (long)(soLuong * donGia + 0.1f *soLuong*donGia);
+//        String txtTien = String.valueOf(tongTien);
+//        txtTongTien.setText(txtTien);
+//        txtSoLuong.setText("0");
+//    }
 
     public void loadTableData() {
         tableModel.setRowCount(0); // xóa dữ liệu cũ
-        for( SanPhamDTO sp : spBus.getListspDTO()){
+        for( SanPham sp : spBus.getListSP()){
+            int soLuong = spBus.getSoLuongTon(sp.getMaSP()); // Lấy từ ChiTietKe
             tableModel.addRow(new Object[]{
-                    sp.getMa_sku(),
+                    sp.getMaSP(),
                     sp.getTenSP(),
-                    sp.getSl(),
+                    soLuong,
                     sp.getGiaTien()
             });
         }
@@ -494,11 +558,12 @@ public class TrangXuatKho extends JPanel {
 
     public void loadDataFromKey(){
         tableModel.setRowCount(0); // xóa dữ liệu cũ
-        for( SanPhamDTO sp : spBus.gettSPByKeyWord(txtSearch.getText())){
+        for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText())){
+            int soLuong = spBus.getSoLuongTon(sp.getMaSP()); // Lấy từ ChiTietKe
             tableModel.addRow(new Object[]{
-                    sp.getMa_sku(),
+                    sp.getMaSP(),
                     sp.getTenSP(),
-                    sp.getSl(),
+                    soLuong,
                     sp.getGiaTien()
             });
         }
@@ -578,64 +643,118 @@ public class TrangXuatKho extends JPanel {
         txtTongTien.setText(String.valueOf(sumMoney));
     }
 
-    public void UpdateSP(){
+    // Mới sửa
+    public void UpdateSP() {
         tableRight.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-
                 int row = tableRight.getSelectedRow();
                 if (row == -1) return;
-                // UX: cho con trỏ nhảy sang ô nhập số lượng
                 txtSoLuongRight.requestFocus();
                 txtSoLuongRight.selectAll();
             }
         });
 
-        btnSua.addActionListener(e->{
+        btnSua.addActionListener(e -> {
             int row = tableRight.getSelectedRow();
-            String maSP = String.valueOf(tableModelRight.getValueAt(row,1));
             if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Sản phẩm không tồn tại,vui lòng chọn lại");
+                JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần sửa");
                 return;
             }
-            int soLuong;
+
+            String maSP = String.valueOf(tableModelRight.getValueAt(row, 1));
+            int soLuongMoi;
             try {
-                soLuong = Integer.parseInt(txtSoLuongRight.getText());
-                if (soLuong <= 0) throw new Exception();
+                soLuongMoi = Integer.parseInt(txtSoLuongRight.getText());
+                if (soLuongMoi <= 0) throw new Exception();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
                 txtSoLuongRight.requestFocus();
                 txtSoLuongRight.selectAll();
                 return;
             }
-            for(int i=0;i<tableModel.getRowCount();i++){
-                Object val = tableModel.getValueAt(i,0);
-                if(val!=null && val.toString().equals(maSP)){
-                    int soLuongLeft = Integer.parseInt(tableModel.getValueAt(i,2).toString());
-                    if (soLuongLeft<soLuong){
-                        JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
-                        txtSoLuongRight.requestFocus();
-                        txtSoLuongRight.selectAll();
-                        return;
-                    }
-                }
-            }
-            tableModelRight.setValueAt(soLuong,row,3);
-            long sumMoney = 0;
-            txtSoLuongRight.setText("0");
-            for (int i = 0; i < tableModelRight.getRowCount(); i++) {
-                int quantity = Integer.parseInt(
-                        tableModelRight.getValueAt(i, 3).toString()
-                );
 
-                double money = Double.parseDouble(
-                        tableModelRight.getValueAt(i, 4).toString()
-                );
-                sumMoney += (quantity * money + 0.1f *quantity*money);
+            // Kiểm tra số lượng tồn
+            int soLuongTon = spBus.getSoLuongTon(maSP);
+            if (soLuongMoi > soLuongTon) {
+                JOptionPane.showMessageDialog(this, "Số lượng không đủ! (Còn: " + soLuongTon + ")");
+                txtSoLuongRight.requestFocus();
+                txtSoLuongRight.selectAll();
+                return;
+            }
+
+            tableModelRight.setValueAt(soLuongMoi, row, 3);
+            txtSoLuongRight.setText("0");
+
+            // Tính lại tổng tiền
+            long sumMoney = 0;
+            for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+                int quantity = Integer.parseInt(tableModelRight.getValueAt(i, 3).toString());
+                double money = Double.parseDouble(tableModelRight.getValueAt(i, 4).toString());
+                sumMoney += (long) (quantity * money + 0.1f * quantity * money);
             }
             txtTongTien.setText(String.valueOf(sumMoney));
         });
     }
+    // UpdateSP cũ
+//    public void UpdateSP(){
+//        tableRight.addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//
+//                int row = tableRight.getSelectedRow();
+//                if (row == -1) return;
+//                // UX: cho con trỏ nhảy sang ô nhập số lượng
+//                txtSoLuongRight.requestFocus();
+//                txtSoLuongRight.selectAll();
+//            }
+//        });
+//
+//        btnSua.addActionListener(e->{
+//            int row = tableRight.getSelectedRow();
+//            String maSP = String.valueOf(tableModelRight.getValueAt(row,1));
+//            if (row == -1) {
+//                JOptionPane.showMessageDialog(this, "Sản phẩm không tồn tại,vui lòng chọn lại");
+//                return;
+//            }
+//            int soLuong;
+//            try {
+//                soLuong = Integer.parseInt(txtSoLuongRight.getText());
+//                if (soLuong <= 0) throw new Exception();
+//            } catch (Exception ex) {
+//                JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+//                txtSoLuongRight.requestFocus();
+//                txtSoLuongRight.selectAll();
+//                return;
+//            }
+//            for(int i=0;i<tableModel.getRowCount();i++){
+//                Object val = tableModel.getValueAt(i,0);
+//                if(val!=null && val.toString().equals(maSP)){
+//                    int soLuongLeft = Integer.parseInt(tableModel.getValueAt(i,2).toString());
+//                    if (soLuongLeft<soLuong){
+//                        JOptionPane.showMessageDialog(this, "Số lượng không đủ để cung cấp!");
+//                        txtSoLuongRight.requestFocus();
+//                        txtSoLuongRight.selectAll();
+//                        return;
+//                    }
+//                }
+//            }
+//            tableModelRight.setValueAt(soLuong,row,3);
+//            long sumMoney = 0;
+//            txtSoLuongRight.setText("0");
+//            for (int i = 0; i < tableModelRight.getRowCount(); i++) {
+//                int quantity = Integer.parseInt(
+//                        tableModelRight.getValueAt(i, 3).toString()
+//                );
+//
+//                double money = Double.parseDouble(
+//                        tableModelRight.getValueAt(i, 4).toString()
+//                );
+//                sumMoney += (quantity * money + 0.1f *quantity*money);
+//            }
+//            txtTongTien.setText(String.valueOf(sumMoney));
+//        });
+//    }
 
     public void bTnRightEvent(){
         btnXoa.addActionListener(e -> deleteSP());

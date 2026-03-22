@@ -3,13 +3,15 @@ package DAO;
 import DataBase.DBConnection;
 import Model.KhachHang;
 
+import javax.swing.*;
+import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class KhachHangDAO {
+public class KhachHangDAO extends Component {
     public ArrayList<KhachHang> getAllKhachHang(){
         ArrayList<KhachHang> list = new ArrayList<>();
         String sql = "SELECT ma_kh, ten_kh, dia_chi, sdt, chi_tieu FROM KHACH_HANG ORDER BY ma_kh ASC";
@@ -51,7 +53,7 @@ public class KhachHangDAO {
              PreparedStatement ps = conn.prepareStatement(sqlUpdate)) {
             int rows = ps.executeUpdate();
             if (rows > 0) {
-                System.out.println("==> He thong da tu dong cap nhat chi tieu cho " + rows + " khach hang.");
+                JOptionPane.showMessageDialog(this," He thong da tu dong cap nhat chi tieu cho " + rows + " khach hang.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -122,24 +124,8 @@ public class KhachHangDAO {
         }catch(Exception e){
             e.printStackTrace();
         }
-        return "KH001";
+        return "KH1";
     }
 
-//    public long getTongChiTieuByMaKH(String maKH) {
-//        String sql = "SELECT COALESCE(SUM(ct.thanh_tien), 0) AS tong " +
-//                "FROM PHIEU_XUAT px " +
-//                "JOIN CHITIET_PHIEU_XUAT ct ON px.ma_px = ct.ma_px " +
-//                "WHERE px.ma_kh = ?";
-//        try (
-//                Connection conn = DBConnection.getConnection();
-//                PreparedStatement ps = conn.prepareStatement(sql)
-//        ) {
-//            ps.setString(1, maKH);
-//            ResultSet rs = ps.executeQuery();
-//            if (rs.next()) return rs.getLong("tong");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return 0;
-//    }
+
 }

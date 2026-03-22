@@ -5,12 +5,10 @@ import Model.KeKho;
 import Model.SanPham;
 import Model.ChiTietKe;
 import DAO.ChiTietKe_DAO;
-import Model.SanPhamDTO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class SanPham_DAO {
@@ -70,102 +68,79 @@ public class SanPham_DAO {
 
     public ArrayList<SanPham> getAllSanPham(){
         ArrayList<SanPham> list = new ArrayList<>();
+        String sql = "SELECT ma_sku, ten_sp, dvt, gia FROM SAN_PHAM";
 
-        String sql = """
-        SELECT sp.ma_sku, sp.ten_sp, sp.dvt, sp.sl, sp.gia,
-               ck.ma_ke
-        FROM SAN_PHAM sp
-        LEFT JOIN CHITIET_KE ck ON sp.ma_sku = ck.ma_sku
-    """;
-
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery();
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while(rs.next()){
                 SanPham sp = new SanPham();
-
                 sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
                 sp.setGiaTien(rs.getFloat("gia"));
-
-                KeKho kk = new KeKho();
-                kk.setMaKe(rs.getString("ma_ke"));
-                sp.setKeKho(kk);
-
                 list.add(sp);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return list;
     }
 
-    public ArrayList<SanPhamDTO> getListDTO(){
-        ArrayList<SanPhamDTO> listsp = new ArrayList<>();
-        String sql = """
-                SELECT sp.ma_sku, sp.ten_sp, sp.trang_thai, sp.gia, sp.dvt
-                , COALESCE(SUM(kksp.soluong), 0) AS tongSL
-                FROM san_pham sp 
-                JOIN kekho_sanpham kksp ON sp.ma_sp = kksp.ma_sp
-                GROUP BY sp.ma_sp
-                """;
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery();
-        ){
-            while(rs.next()){
-                SanPhamDTO sp = new SanPhamDTO();
-                sp.setMa_sku(rs.getString("ma_sku"));
-                sp.setTenSP(rs.getString("ten_sp"));
-                sp.setSl(rs.getInt("tongSL"));
-                sp.setTrangthai(rs.getInt("trang_thai"));
-                sp.setGiaTien(rs.getFloat("gia"));
-                sp.setDonViTinh(rs.getString("dvt"));
-                listsp.add(sp);
-            }
-
+    public boolean insert(SanPham sp){
+        String sql = "INSERT INTO SAN_PHAM(ma_sku, ten_sp, dvt, gia) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sp.getMaSP());
+            ps.setString(2, sp.getTenSP());
+            ps.setString(3, sp.getDonViTinh());
+            ps.setFloat(4, sp.getGiaTien());
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
-        return listsp;
     }
 
-    public ArrayList<SanPhamDTO> getSpByKey(String input){
-        ArrayList<SanPhamDTO> list = new ArrayList<>();
+    public boolean update(SanPham sp){
+        String sql = "UPDATE SAN_PHAM SET ten_sp=?, dvt=?, gia=? WHERE ma_sku=?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sp.getTenSP());
+            ps.setString(2, sp.getDonViTinh());
+            ps.setFloat(3, sp.getGiaTien());
+            ps.setString(4, sp.getMaSP());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public ArrayList<SanPham> getSpByKey(String input){
+        ArrayList<SanPham> list = new ArrayList<>();
         String sql = """
-        SELECT sp.*, COALESCE(SUM(kksp.soluong), 0) AS tongSL
-        FROM san_pham sp
-        JOIN kekho_sanpham kksp ON sp.ma_sp = kksp.ma_sp
-        WHERE LOWER(sp.ma_sku) = LOWER(?)
-        OR LOWER(sp.ma_sku) LIKE LOWER(CONCAT('%', ?, '%'))
-        OR LOWER(sp.ten_sp) LIKE LOWER(CONCAT('%', ?, '%'))
-        GROUP BY sp.ma_sp
-        ORDER BY (LOWER(sp.ma_sku) = LOWER(?)) DESC;
+        SELECT ma_sku, ten_sp, dvt, gia
+        FROM san_pham
+        WHERE LOWER(ma_sku) = LOWER(?)
+           OR LOWER(ma_sku) LIKE LOWER(CONCAT('%', ?, '%'))
+           OR LOWER(ten_sp) LIKE LOWER(CONCAT('%', ?, '%'))
+        ORDER BY (LOWER(ma_sku) = LOWER(?)) DESC
     """;
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             String keyword = "%" + input + "%";
             ps.setString(1, input);
             ps.setString(2, keyword);
             ps.setString(3, keyword);
-            ps.setString(4,input);
+            ps.setString(4, input);
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
-                SanPhamDTO sp = new SanPhamDTO();
-                sp.setMa_sku(rs.getString("ma_sku"));
+                SanPham sp = new SanPham();
+                sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSl(rs.getInt("tongSL"));
                 sp.setGiaTien(rs.getFloat("gia"));
-                sp.setTrangthai(rs.getInt("trang_thai"));
                 list.add(sp);
             }
         } catch (Exception e) {
@@ -206,29 +181,8 @@ public class SanPham_DAO {
 //        }
 //    }
 
-    public boolean insert(SanPham sp){
-        String sql ="INSERT INTO SAN_PHAM(ma_sku,ten_sp,dvt,sl,gia) VALUES (?, ?, ?, ?, ?)";
-
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setString(1, sp.getMaSP());
-            ps.setString(2, sp.getTenSP());
-            ps.setString(3, sp.getDonViTinh());
-            ps.setInt(4, sp.getSoLuong());
-            ps.setFloat(5, sp.getGiaTien());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
 //    public boolean update(SanPham sp){
-////        Nếu muốn thay đổi mã kệ,cần kiểm tra số sức chứa còn lại của kệ xem có chứa đc số lượng sản phẩm mới này ko?
+    ////        Nếu muốn thay đổi mã kệ,cần kiểm tra số sức chứa còn lại của kệ xem có chứa đc số lượng sản phẩm mới này ko?
 //        String sql =
 //                "UPDATE SAN_PHAM SET ten_sp=?,dvt=?,sl=?,gia=?,ma_ke=? WHERE ma_sku=?";
 //        try (
@@ -260,27 +214,27 @@ public class SanPham_DAO {
 //        }
 //    }
 
-    public boolean update(SanPham sp){
-        String sql =
-                "UPDATE SAN_PHAM SET ten_sp=?, dvt=?, sl=?, gia=? WHERE ma_sku=?";
-
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setString(1, sp.getTenSP());
-            ps.setString(2, sp.getDonViTinh());
-            ps.setInt(3, sp.getSoLuong());
-            ps.setFloat(4, sp.getGiaTien());
-            ps.setString(5, sp.getMaSP());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+//    public boolean update(SanPham sp){
+//        String sql =
+//                "UPDATE SAN_PHAM SET ten_sp=?, dvt=?, sl=?, gia=? WHERE ma_sku=?";
+//
+//        try (
+//                Connection conn = DBConnection.getConnection();
+//                PreparedStatement ps = conn.prepareStatement(sql)
+//        ) {
+//            ps.setString(1, sp.getTenSP());
+//            ps.setString(2, sp.getDonViTinh());
+//            ps.setInt(3, sp.getSoLuong());
+//            ps.setFloat(4, sp.getGiaTien());
+//            ps.setString(5, sp.getMaSP());
+//
+//            return ps.executeUpdate() > 0;
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
     public boolean updateSP(Connection conn,int soLuong,String maKe,String maSP){
 //        Nếu muốn thay đổi mã kệ,cần kiểm tra số sức chứa còn lại của kệ xem có chứa đc số lượng sản phẩm mới này ko?
         String sql =
@@ -297,28 +251,6 @@ public class SanPham_DAO {
             e.printStackTrace();
             return false;
         }
-    }
-    public ArrayList<String> getAllMaKe(Connection conn,String maSP){
-        String sql = """
-                SELECT kksp.ma_ke
-                FROM chitiet_ke kksp
-                WHERE kksp.ma_sku = ?;
-                """;
-        ArrayList<String> list = new ArrayList<>();
-        try(
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ){
-            ps.setString(1, maSP);
-            ResultSet rs = ps.executeQuery();
-
-            while(rs.next()){
-                String maKe = rs.getString("ma_ke");
-                list.add(maKe);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
     }
 
 //    public int SumSLbyMaKe(Connection conn,String maKe){
@@ -395,7 +327,7 @@ public class SanPham_DAO {
     public int SumSLbyMaKe(Connection conn, String maKe){
         int tong = 0;
 
-        String sql = "SELECT SUM(so_luong) FROM CHITIET_KE WHERE ma_ke = ? GROUP BY ma_ke";
+        String sql = "SELECT SUM(so_luong) FROM CHITIET_KE WHERE ma_ke = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maKe);
@@ -411,25 +343,7 @@ public class SanPham_DAO {
         return tong;
     }
 
-    public boolean updateSL(Connection conn,String maSP,String maKe,int soLuong){
-        String sql = """
-                UPDATE CHITIET_KE SET sl= sl + ? WHERE ma_sku=? AND ma_ke =?
-                """;
-        try(
-               PreparedStatement ps = conn.prepareStatement(sql);)
-        {
-            ps.setInt(1,soLuong);
-            ps.setString(2,maSP);
-            ps.setString(3,maKe);
-            int rows = ps.executeUpdate();
-            return rows > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    //    public boolean delete(String maSP) {
+//    public boolean delete(String maSP) {
 //        Connection conn = null;
 //
 //        try {
@@ -602,41 +516,35 @@ public class SanPham_DAO {
     public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
         ArrayList<SanPham> list = new ArrayList<>();
 
-        String sql =
-                "SELECT sp.* " +
-                        "FROM san_pham sp " +
-                        "JOIN chitiet_ke ck ON sp.ma_sku = ck.ma_sku " +
-                        "WHERE ck.ma_ke = ?";
+        String sql = """
+        SELECT sp.ma_sku, sp.ten_sp, sp.dvt, sp.gia
+        FROM san_pham sp
+        JOIN chitiet_ke ck ON sp.ma_sku = ck.ma_sku
+        WHERE ck.ma_ke = ?
+    """;
 
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maKe);
             ResultSet rs = ps.executeQuery();
 
             while(rs.next()){
                 SanPham sp = new SanPham();
-
                 sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
                 sp.setGiaTien(rs.getFloat("gia"));
-
                 list.add(sp);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return list;
     }
 
     // Lấy sản phẩm theo mã (mới)
     public SanPham getSanPhamByMa(String maSP) {
-        String sql = "SELECT ma_sku, ten_sp, dvt, sl, gia FROM SAN_PHAM WHERE ma_sku = ?";
+        String sql = "SELECT ma_sku, ten_sp, dvt, gia FROM SAN_PHAM WHERE ma_sku = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -649,7 +557,6 @@ public class SanPham_DAO {
                 sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
                 sp.setGiaTien(rs.getFloat("gia"));
                 return sp;
             }
@@ -663,7 +570,7 @@ public class SanPham_DAO {
 
     // Lấy sản phẩm theo mã (mới, có truyền Connection)
     public SanPham getSanPhamByMa(String maSP, Connection conn) {
-        String sql = "SELECT ma_sku, ten_sp, dvt, sl, gia FROM SAN_PHAM WHERE ma_sku = ?";
+        String sql = "SELECT ma_sku, ten_sp, dvt, gia FROM SAN_PHAM WHERE ma_sku = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -675,7 +582,6 @@ public class SanPham_DAO {
                 sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
                 sp.setGiaTien(rs.getFloat("gia"));
                 return sp;
             }
@@ -685,5 +591,40 @@ public class SanPham_DAO {
         }
 
         return null;
+    }
+
+    public ArrayList<Object[]> getAllSanPhamWithDetails() {
+        ArrayList<Object[]> list = new ArrayList<>();
+        String sql =
+                "SELECT sp.ma_sku, sp.ten_sp, sp.dvt, sp.gia, " +
+                        "       COALESCE(SUM(ct.so_luong), 0) as tong_sl, " +
+                        "       GROUP_CONCAT(DISTINCT ct.ma_ke ORDER BY ct.ma_ke SEPARATOR ', ') as cac_ke " +
+                        "FROM SAN_PHAM sp " +
+                        "LEFT JOIN CHITIET_KE ct ON sp.ma_sku = ct.ma_sku " +
+                        "GROUP BY sp.ma_sku, sp.ten_sp, sp.dvt, sp.gia " +
+                        "ORDER BY sp.ma_sku";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while(rs.next()){
+                Object[] row = new Object[7]; // [ma, ten, dvt, gia, soLuong, maKe, trangThai]
+                row[0] = rs.getString("ma_sku");
+                row[1] = rs.getString("ten_sp");
+                row[2] = rs.getString("dvt");
+                row[3] = rs.getFloat("gia");
+                row[4] = rs.getInt("tong_sl");
+                row[5] = rs.getString("cac_ke");
+                if (row[5] == null || row[5].toString().isEmpty()) {
+                    row[5] = "Chưa có kệ";
+                }
+                row[6] = ((int)row[4] > 0) ? "Còn hàng" : "Hết hàng";
+                list.add(row);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
