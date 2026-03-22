@@ -618,33 +618,13 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         veSoDoKe(listKeTim);
     }
 
-    // Hàm hỗ trợ: lấy số thứ tự của kệ trong dãy
-    private int getSttCuaKe(KeKho ke) {
-        ArrayList<KeKho> allKe = bus.getListKK();
-        String day = ke.getViTri();
-        int stt = 0;
-
-        for (KeKho k : allKe) {
-            if (k.getViTri().equals(day)) {
-                stt++;
-                if (k.getMaKe().equals(ke.getMaKe())) {
-                    return stt;
-                }
-            }
-        }
-        return stt;
-    }
-
     private void themKe() {
-        // Lấy danh sách dãy hiện có
         ArrayList<KeKho> listKK = bus.getListKK();
         ArrayList<String> dsDay = getAllDay(listKK);
 
-        // Tạo dialog nhập liệu
         JTextField txtSucChua = new JTextField();
         JComboBox<String> cbDay = new JComboBox<>(dsDay.toArray(new String[0]));
 
-        // Nút thêm dãy
         JButton btnAddDay = new JButton("+");
         JPanel dayPanel = new JPanel(new BorderLayout(5, 0));
         dayPanel.add(cbDay, BorderLayout.CENTER);
@@ -661,7 +641,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
             dsDay.add(nextDay);
         });
 
-        // Hiển thị thông báo mã sẽ tự động sinh
         JLabel lblMaAuto = new JLabel("(Mã sẽ tự động sinh khi lưu)");
         lblMaAuto.setForeground(Color.GRAY);
         lblMaAuto.setFont(new Font("Segoe UI", Font.ITALIC, 11));
@@ -672,39 +651,48 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 "Vị trí: Dãy ", dayPanel
         };
 
-        int option = JOptionPane.showConfirmDialog(
-                null, msg, "Thêm kệ",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
-        );
+        int option;
+        do {
+            option = JOptionPane.showConfirmDialog(null, msg, "Thêm kệ",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (option != JOptionPane.OK_OPTION) return;
+            if (option != JOptionPane.OK_OPTION) return;
 
-        try {
-            int sc = Integer.parseInt(txtSucChua.getText().trim());
-            if (sc <= 0) {
-                JOptionPane.showMessageDialog(null, "Sức chứa phải lớn hơn 0!");
-                return;
+            try {
+                int sc = Integer.parseInt(txtSucChua.getText().trim());
+                if (sc <= 0) {
+                    JOptionPane.showMessageDialog(null, "Sức chứa phải lớn hơn 0!");
+                    // Focus lại vào ô sức chứa
+                    SwingUtilities.invokeLater(() -> {
+                        txtSucChua.requestFocus();
+                        txtSucChua.selectAll();
+                    });
+                    continue;
+                }
+
+                String day = cbDay.getSelectedItem().toString();
+                if (!day.matches("[A-Z]")) {
+                    JOptionPane.showMessageDialog(null, "Vị trí phải là A-Z!");
+                    continue;
+                }
+
+                KeKho ke = new KeKho(null, sc, day);
+                String result = bus.addKK(ke);
+                JOptionPane.showMessageDialog(null, result);
+
+                if (result.contains("thành công")) {
+                    loadSoDo();
+                    return;
+                }
+
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Sức chứa phải là số nguyên!");
+                SwingUtilities.invokeLater(() -> {
+                    txtSucChua.requestFocus();
+                    txtSucChua.selectAll();
+                });
             }
-
-            String day = cbDay.getSelectedItem().toString();
-            if (!day.matches("[A-Z]")) {
-                JOptionPane.showMessageDialog(null, "Vị trí phải là A-Z!");
-                return;
-            }
-
-            KeKho ke = new KeKho(null, sc, day);
-
-            String result = bus.addKK(ke);
-            JOptionPane.showMessageDialog(null, result);
-
-            if (result.contains("thành công")) {
-                loadSoDo();
-            }
-
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Sức chứa phải là số nguyên!");
-        }
+        } while (true);
     }
 
     private void suaKe() {
@@ -731,44 +719,57 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 "Sức chứa:", txtSucChua
         };
 
-        int option = JOptionPane.showConfirmDialog(
-                null, msg, "Sửa kệ", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
-        );
+        int option;
+        do {
+            option = JOptionPane.showConfirmDialog(null, msg, "Sửa kệ",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (option != JOptionPane.OK_OPTION) return;
+            if (option != JOptionPane.OK_OPTION) return;
 
-        try {
-            String ma = txtMa.getText().trim();
-            int sc = Integer.parseInt(txtSucChua.getText().trim());
-            String vt = txtViTri.getText().trim();
+            try {
+                String ma = txtMa.getText().trim();
+                int sc = Integer.parseInt(txtSucChua.getText().trim());
+                String vt = txtViTri.getText().trim();
 
-            if (sc <= 0) {
-                JOptionPane.showMessageDialog(null, "Sức chứa phải lớn hơn 0!");
-                return;
+                if (sc <= 0) {
+                    JOptionPane.showMessageDialog(null, "Sức chứa phải lớn hơn 0!");
+                    SwingUtilities.invokeLater(() -> {
+                        txtSucChua.requestFocus();
+                        txtSucChua.selectAll();
+                    });
+                    continue;
+                }
+
+                int tongHienTai = bus.tinhTongSoLuongTheoKe(ma);
+                if (sc < tongHienTai) {
+                    JOptionPane.showMessageDialog(null,
+                            "Sức chứa mới (" + sc + ") nhỏ hơn số lượng hiện tại (" + tongHienTai + ")!");
+                    SwingUtilities.invokeLater(() -> {
+                        txtSucChua.requestFocus();
+                        txtSucChua.selectAll();
+                    });
+                    continue;
+                }
+
+                KeKho newKe = new KeKho(ma, sc, vt);
+                String result = bus.updateKK(newKe);
+                JOptionPane.showMessageDialog(null, result);
+
+                if (result.contains("thành công")) {
+                    loadSoDo();
+                    capNhatBang(ma);
+                    selectedMaKe = ma;
+                    return;
+                }
+
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Sức chứa phải là số nguyên!");
+                SwingUtilities.invokeLater(() -> {
+                    txtSucChua.requestFocus();
+                    txtSucChua.selectAll();
+                });
             }
-
-            // Kiểm tra nếu sức chứa mới nhỏ hơn số lượng hiện tại
-            int tongHienTai = bus.tinhTongSoLuongTheoKe(ma);
-            if (sc < tongHienTai) {
-                JOptionPane.showMessageDialog(null,
-                        "Sức chứa mới (" + sc + ") nhỏ hơn số lượng hiện tại (" + tongHienTai + ")!");
-                return;
-            }
-
-            KeKho newKe = new KeKho(ma, sc, vt);
-            String result = bus.updateKK(newKe);
-            JOptionPane.showMessageDialog(null, result);
-
-            if (result.contains("thành công")) {
-                loadSoDo();
-                // Giữ lại kệ đang chọn
-                capNhatBang(ma);
-                // Cập nhật lại selectedCard
-                selectedMaKe = ma;
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Sức chứa phải là số nguyên!");
-        }
+        } while (true);
     }
 
     private void xoaKe() {
@@ -1046,7 +1047,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         lblTongSpTrongKho.setText("Tổng số sản phẩm trong kho: " + tong);
     }
 
-    // Lấy danh sách dãy không trùng
     private ArrayList<String> getAllDay(ArrayList<KeKho> list){
         ArrayList<String> dsDay = new ArrayList<>();
 
@@ -1063,7 +1063,22 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         return dsDay;
     }
 
-    // Sinh dãy tiếp theo
+    private int getSttCuaKe(KeKho ke) {
+        ArrayList<KeKho> allKe = bus.getListKK();
+        String day = ke.getViTri();
+        int stt = 0;
+
+        for (KeKho k : allKe) {
+            if (k.getViTri().equals(day)) {
+                stt++;
+                if (k.getMaKe().equals(ke.getMaKe())) {
+                    return stt;
+                }
+            }
+        }
+        return stt;
+    }
+
     private String dayTiepTheo(ArrayList<String> dsDay){
         if(dsDay.isEmpty()) return "A";
 
@@ -1081,28 +1096,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         if(max >= 'Z') return null;
 
         return String.valueOf((char)(max + 1));
-    }
-
-    private void inPanel(JPanel panel){
-        PrinterJob job = PrinterJob.getPrinterJob();
-
-        job.setPrintable((graphics, pageFormat, pageIndex) -> {
-            if(pageIndex > 0) return Printable.NO_SUCH_PAGE;
-
-            Graphics2D g2d = (Graphics2D) graphics;
-            g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
-
-            panel.printAll(g2d);
-            return Printable.PAGE_EXISTS;
-        });
-
-        try{
-            if(job.printDialog()){
-                job.print();
-            }
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(null,"Lỗi khi in!");
-        }
     }
 
 //    private void importExcel() {
