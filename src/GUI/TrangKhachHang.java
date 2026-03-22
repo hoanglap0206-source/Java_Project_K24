@@ -103,7 +103,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
         txtChiTieu.setEditable(false);
         txtChiTieu.setBackground(new Color(230, 230, 230));
 
-        // Thêm các nhóm input (Bỏ đoạn add trùng lặp lblFormTitle ở đây)
+
         pnl.add(taoNhomInput("Mã khách hàng:", txtMaKH));
         pnl.add(Box.createVerticalStrut(10));
         pnl.add(taoNhomInput("Họ và tên:", txtTenKH));
@@ -184,26 +184,26 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
         // 1. Kiểm tra Tên khách hàng
         if (ten.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Tên khách hàng không được để trống!", "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
-            txtTenKH.requestFocus(); // Focus vào ô tên
+            txtTenKH.requestFocusInWindow(); // Focus vào ô tên
             return;
         }
 
         // 2. Kiểm tra Số điện thoại (Phải là 10 số)
         if (sdt.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Số điện thoại không được để trống!", "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
-            txtSdt.requestFocus();
+            txtSdt.requestFocusInWindow();
             return;
         }
         if (!sdt.matches("\\d{10}")) {
             JOptionPane.showMessageDialog(this, "Số điện thoại phải có đúng 10 chữ số!", "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
-            txtSdt.requestFocus();
+            txtSdt.requestFocusInWindow();
             return;
         }
 
         // 3. Kiểm tra Địa chỉ
         if (dc.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Địa chỉ không được để trống!", "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
-            txtDiaChi.requestFocus();
+            txtDiaChi.requestFocusInWindow();
             return;
         }
 
@@ -267,7 +267,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
         panel.setBorder(new EmptyBorder(4,10,4,10));
 
         // Thanh tìm kiếm
-        String place ="Tìm kiếm (VD:KH01)";
+        String place ="Tìm kiếm (VD:KH1)";
         JTextField txtSearch = new JTextField(place);
 
         txtSearch.setColumns(15);
@@ -391,12 +391,6 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
                         break;
                     case 3: // Tên Z-A
                         sortKeys.add(new RowSorter.SortKey(2, SortOrder.DESCENDING));
-                        break;
-                    case 4: // Chi tiêu Tăng dần (Cột index 5)
-                        sortKeys.add(new RowSorter.SortKey(5, SortOrder.ASCENDING));
-                        break;
-                    case 5: // Chi tiêu Giảm dần (Cột index 5)
-                        sortKeys.add(new RowSorter.SortKey(5, SortOrder.DESCENDING));
                         break;
                     default: // Mặc định STT tăng dần (Cột index 0)
                         sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
@@ -575,21 +569,7 @@ public class TrangKhachHang extends JPanel implements QuyenTrang {
 
         rowSorter= new TableRowSorter<>(model);
         table.setRowSorter(rowSorter);
-//        // Tùy chỉnh bộ so sánh cho cột Mã KH (Cột index 1)
-//        rowSorter.setComparator(1, new java.util.Comparator<String>() {
-//            @Override
-//            public int compare(String s1, String s2) {
-//                try {
-//                    // Tách phần số sau chữ "KH"
-//                    int n1 = Integer.parseInt(s1.substring(2));
-//                    int n2 = Integer.parseInt(s2.substring(2));
-//                    return Integer.compare(n1, n2);
-//                } catch (Exception e) {
-//                    // Nếu không phải định dạng KH + số, quay về so sánh chuỗi mặc định
-//                    return s1.compareTo(s2);
-//                }
-//            }
-//        });
+
         // Căn giữa toàn bộ
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
