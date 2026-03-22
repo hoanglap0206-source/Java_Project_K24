@@ -182,7 +182,7 @@ public class SanPham_DAO {
 //    }
 
 //    public boolean update(SanPham sp){
-////        Nếu muốn thay đổi mã kệ,cần kiểm tra số sức chứa còn lại của kệ xem có chứa đc số lượng sản phẩm mới này ko?
+    ////        Nếu muốn thay đổi mã kệ,cần kiểm tra số sức chứa còn lại của kệ xem có chứa đc số lượng sản phẩm mới này ko?
 //        String sql =
 //                "UPDATE SAN_PHAM SET ten_sp=?,dvt=?,sl=?,gia=?,ma_ke=? WHERE ma_sku=?";
 //        try (
