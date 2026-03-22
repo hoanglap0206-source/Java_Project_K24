@@ -1,6 +1,7 @@
 package GUI;
 
 import BUS.NhomQuyen_BUS;
+import BUS.NV_BUS;
 import BUS.PhanQuyen_BUS;
 import Model.ChucNang;
 import Model.NhomQuyen;
@@ -22,6 +23,7 @@ public class TrangPhanQuyen extends JPanel {
 
     private final PhanQuyen_BUS pqBUS   = new PhanQuyen_BUS();
     private final NhomQuyen_BUS nhomBUS = new NhomQuyen_BUS();
+    private final NV_BUS        nvBUS   = new NV_BUS();
 
     private String currentMode = MODE_NV;
     private String currentMaNhom = "";
@@ -40,8 +42,10 @@ public class TrangPhanQuyen extends JPanel {
     private CardLayout cardLayout;
     private JPanel     cardPanel;
 
-    //NV mode
-    private JTextField txtMaNV;
+    // NV mode – searchable combo
+    private JComboBox<String> cboNV;
+    private ArrayList<String> allNVItems = new ArrayList<>();   // "NV01 | Tên"
+    private boolean isUpdatingCombo = false;
 
     // Nhóm quyền mode
     private JComboBox<NhomQuyen> cboNhomQuyen;
@@ -118,7 +122,7 @@ public class TrangPhanQuyen extends JPanel {
         boolean isNV = MODE_NV.equals(mode);
         if (isNV) {
             currentMaNhom = "";
-            loadDataNV(txtMaNV.getText().trim());
+            loadDataNV(getSelectedMaNV());
         } else {
             NhomQuyen sel = (NhomQuyen) cboNhomQuyen.getSelectedItem();
             if (sel != null) {
@@ -182,7 +186,10 @@ public class TrangPhanQuyen extends JPanel {
         btnLamMoi.addActionListener(e -> {
             txtSearch.setText(" Tìm tên chức năng... ");
             txtSearch.setForeground(Color.GRAY);
-            if (MODE_NV.equals(currentMode)) loadDataNV(txtMaNV.getText().trim());
+            if (MODE_NV.equals(currentMode)) {
+                refreshNVCombo();
+                loadDataNV(getSelectedMaNV());
+            }
             else if (!currentMaNhom.isEmpty())  loadDataNhom(currentMaNhom);
         });
 
@@ -191,7 +198,7 @@ public class TrangPhanQuyen extends JPanel {
 
         btnCapTat.addActionListener(e -> {
             if (MODE_NV.equals(currentMode)) {
-                String maNV = txtMaNV.getText().trim();
+                String maNV = getSelectedMaNV();
                 if (maNV.isEmpty()) { warn("Vui lòng nhập Mã nhân viên trước!"); return; }
                 if (confirm("Cấp toàn bộ quyền cho nhân viên này?"))
                     setAllPermissionsNV(maNV, true);
@@ -205,7 +212,7 @@ public class TrangPhanQuyen extends JPanel {
         });
         btnThuHoi.addActionListener(e -> {
             if (MODE_NV.equals(currentMode)) {
-                String maNV = txtMaNV.getText().trim();
+                String maNV = getSelectedMaNV();
                 if (maNV.isEmpty()) { warn("Vui lòng nhập Mã nhân viên trước!"); return; }
                 if (confirm("Thu hồi toàn bộ quyền của nhân viên này?"))
                     setAllPermissionsNV(maNV, false);
@@ -309,36 +316,121 @@ public class TrangPhanQuyen extends JPanel {
         return panel;
     }
 
-    // PANEL INPUT MÃ NHÂN VIÊN
+    // PANEL INPUT MÃ NHÂN VIÊN – searchable combo
     private JPanel taoNVInputPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         panel.setBackground(Color.WHITE);
 
-        JLabel lbl = new JLabel("Mã nhân viên:");
+        JLabel lbl = new JLabel("Nhân viên:");
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-        txtMaNV = new JTextField();
-        txtMaNV.setPreferredSize(new Dimension(200, 30));
-        txtMaNV.setBackground(Color.WHITE);
-        txtMaNV.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtMaNV.setBorder(new CompoundBorder(
-                new LineBorder(new Color(198, 226, 255), 2, true),
-                new EmptyBorder(0, 8, 0, 8)));
-        txtMaNV.addKeyListener(new KeyAdapter() {
-            @Override public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER)
-                    loadDataNV(txtMaNV.getText().trim());
+        // Hiện danh sách các nhân viên theo kiểu "NV01 | Nguyễn Văn A"
+        allNVItems.clear();
+        for (NhanVien nv : nvBUS.getAll())
+            allNVItems.add(nv.getMaNV() + " | " + nv.getHoTen());
+
+        cboNV = new JComboBox<>();
+        cboNV.setEditable(true);
+        cboNV.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        cboNV.setPreferredSize(new Dimension(270, 32));
+        cboNV.setBackground(Color.WHITE);
+
+        // Add vào combobox các chuỗi vừa tạo ở danh sách allNVItems
+        for (String item : allNVItems) cboNV.addItem(item);
+        cboNV.setSelectedItem(null);
+
+        //Định dạng kiểu cho các text sẽ hiện lên
+        JTextField editor = (JTextField) cboNV.getEditor().getEditorComponent();
+        editor.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        editor.setBorder(new EmptyBorder(0, 6, 0, 6));
+
+        // Gợi ý
+        editor.setForeground(Color.GRAY);
+        editor.setText("Tìm mã hoặc tên nhân viên...");
+        editor.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) {
+                if (editor.getForeground().equals(Color.GRAY)) {
+                    editor.setForeground(Color.BLACK);
+                    editor.setText("");
+                }
+            }
+            @Override public void focusLost(FocusEvent e) {
+                if (editor.getText().trim().isEmpty()) {
+                    editor.setForeground(Color.GRAY);
+                    editor.setText("Tìm mã hoặc tên nhân viên...");
+                }
             }
         });
 
-        JButton btnXem = makeBtn("Xem quyền", new Color(214, 238, 253), new Color(170, 210, 245));
-        btnXem.addActionListener(e -> loadDataNV(txtMaNV.getText().trim()));
+        // dùng Timer để debounce
+        javax.swing.Timer debounce[] = { null };
+        editor.getDocument().addDocumentListener(new DocumentListener() {
+            private void doFilter() {
+                if (isUpdatingCombo) return;
+                if (editor.getForeground().equals(Color.GRAY)) return;
+                if (debounce[0] != null) debounce[0].stop();
+                debounce[0] = new javax.swing.Timer(120, ev -> {
+                    filterNVCombo(editor.getText(), editor);
+                });
+                debounce[0].setRepeats(false);
+                debounce[0].start();
+            }
+            @Override public void insertUpdate(DocumentEvent e)  { doFilter(); }
+            @Override public void removeUpdate(DocumentEvent e)  { doFilter(); }
+            @Override public void changedUpdate(DocumentEvent e) { doFilter(); }
+        });
 
-        panel.add(lbl); panel.add(txtMaNV); panel.add(btnXem);
+        // Khi nguoời dùng chọn 1 nhân viên từ combobox
+        cboNV.addActionListener(e -> {
+            if (isUpdatingCombo) return;
+            Object sel = cboNV.getSelectedItem();
+            if (sel == null) return;
+            String selectedItem = sel.toString();
+            if (!selectedItem.contains("|")) return; // đang gõ tự do
+            String maNV = selectedItem.split("\\|")[0].trim();
+            if (maNV.isEmpty()) return;
+
+            isUpdatingCombo = true;
+            // Reset model về full list
+            DefaultComboBoxModel<String> full = new DefaultComboBoxModel<>();
+            for (String s : allNVItems) full.addElement(s);
+            cboNV.setModel(full);
+            // setModel reset editor → phải set lại text sau, dùng invokeLater
+            // để chắc chắn EDT đã render xong model mới
+            SwingUtilities.invokeLater(() -> {
+                JTextField ed = (JTextField) cboNV.getEditor().getEditorComponent();
+                ed.setText(selectedItem);
+                ed.setForeground(Color.BLACK);
+                ed.setCaretPosition(selectedItem.length());
+                isUpdatingCombo = false;
+            });
+
+            loadDataNV(maNV);
+        });
+
+        JPanel cboWrap = new JPanel(new BorderLayout());
+        cboWrap.setBackground(Color.WHITE);
+        cboWrap.setPreferredSize(new Dimension(270, 32));
+        cboWrap.setBorder(new CompoundBorder(
+                new LineBorder(new Color(198, 226, 255), 2, true),
+                new EmptyBorder(0, 0, 0, 0)));
+        cboWrap.add(cboNV, BorderLayout.CENTER);
+
+        JButton btnXem = makeBtn("Xem quyền", new Color(214, 238, 253), new Color(170, 210, 245));
+        btnXem.addActionListener(e -> {
+            String maNV = getSelectedMaNV();
+            if (maNV.isEmpty()) { warn("Vui lòng chọn nhân viên!"); return; }
+            loadDataNV(maNV);
+        });
+
+        panel.add(lbl);
+        panel.add(cboWrap);
+        panel.add(btnXem);
+
         return panel;
     }
 
-    // 5. PANEL INPUT NHÓM QUYỀN
+    // PANEL INPUT NHÓM QUYỀN
     private JPanel taoNhomInputPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         panel.setBackground(Color.WHITE);
@@ -590,10 +682,10 @@ public class TrangPhanQuyen extends JPanel {
             boolean xoa = (boolean) tableModel.getValueAt(row, 5);
 
             if (MODE_NV.equals(currentMode)) {
-                String maNV = txtMaNV.getText().trim();
+                String maNV = getSelectedMaNV();
                 if (maNV.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Vui lòng nhập Mã nhân viên trước khi phân quyền!");
-                    txtMaNV.requestFocusInWindow();
+                    cboNV.requestFocusInWindow();
                     loadDataNV(""); return;
                 }
                 NhanVien nv = new NhanVien(); nv.setMaNV(maNV);
@@ -612,7 +704,7 @@ public class TrangPhanQuyen extends JPanel {
         });
     }
 
-    // LOAD DATA
+    //Lấy dữ liệu phân quyền của nhân viên
     private void loadDataNV(String maNV) {
         isUpdatingTable = true;
         tableModel.setRowCount(0);
@@ -625,6 +717,7 @@ public class TrangPhanQuyen extends JPanel {
         isUpdatingTable = false;
     }
 
+    //Lấy dữ liệu phân quyền của nhóm quyền
     private void loadDataNhom(String maNhom) {
         currentMaNhom = maNhom;
         isUpdatingTable = true;
@@ -790,4 +883,67 @@ public class TrangPhanQuyen extends JPanel {
         return JOptionPane.showConfirmDialog(this, msg, "Xác nhận",
                 JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
     }
+
+    private void refreshNVCombo() {
+        if (cboNV == null) return;
+        nvBUS.refesh();
+        allNVItems.clear();
+        for (NhanVien nv : nvBUS.getAll())
+            allNVItems.add(nv.getMaNV() + " | " + nv.getHoTen());
+
+        JTextField ed = (JTextField) cboNV.getEditor().getEditorComponent();
+        String current = ed.getForeground().equals(Color.GRAY) ? "" : ed.getText();
+
+        isUpdatingCombo = true;
+        DefaultComboBoxModel<String> full = new DefaultComboBoxModel<>();
+        for (String s : allNVItems) full.addElement(s);
+        cboNV.setModel(full);
+        SwingUtilities.invokeLater(() -> {
+            if (current.isEmpty()) {
+                ed.setForeground(Color.GRAY);
+                ed.setText("Tìm mã hoặc tên nhân viên...");
+            } else {
+                ed.setText(current);
+                ed.setForeground(Color.BLACK);
+            }
+            isUpdatingCombo = false;
+        });
+    }
+
+     //Lấy mã NV từ comboBox, bảng tìm kiếm có dạng "NV01 | Tên"
+     //chỉ mã NV cũng lấy đc
+    private String getSelectedMaNV() {
+        if (cboNV == null) return "";
+        JTextField editor = (JTextField) cboNV.getEditor().getEditorComponent();
+        String text = editor.getText().trim();
+        if (text.isEmpty() || editor.getForeground().equals(Color.GRAY)) return "";
+        if (text.contains("|")) return text.split("\\|")[0].trim();
+        return text;
+    }
+
+
+    //Lọc danh sách NV trong combo theo từ khóa
+    private void filterNVCombo(String typed, JTextField editor) {
+        // Nếu text khớp chính xác 1 item trong allNVItems (đã chọn rồi)
+        boolean exactMatch = allNVItems.stream().anyMatch(s -> s.equalsIgnoreCase(typed));
+        if (exactMatch) return;
+
+        isUpdatingCombo = true;
+        String lower = typed.toLowerCase();
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+        for (String item : allNVItems) {
+            if (lower.isEmpty() || item.toLowerCase().contains(lower))
+                model.addElement(item);
+        }
+        cboNV.setModel(model);
+        editor.setText(typed);
+        editor.setCaretPosition(typed.length());
+        isUpdatingCombo = false;
+        if (model.getSize() > 0 && editor.isFocusOwner()) {
+            cboNV.showPopup();
+        } else {
+            cboNV.hidePopup();
+        }
+    }
+
 }
