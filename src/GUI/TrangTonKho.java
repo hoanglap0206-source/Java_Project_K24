@@ -246,6 +246,28 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
             public void changedUpdate(javax.swing.event.DocumentEvent e) { s(); }
             private void s() { String t = txtSearch.getText(); rowSorter.setRowFilter(t.trim().isEmpty() || t.equals("Tìm kiếm") ? null : RowFilter.regexFilter("(?i)" + t)); }
         });
+        // hàm tìm kiếm classic
+        /*
+        ActionListener searchAction = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String t = txtSearch.getText().trim();
+
+
+                if (t.isEmpty() || t.equals("Tìm kiếm")) {
+                    loadDataToTable();
+                } else {
+
+                    timKiemTheoMa(t);
+                }
+            }
+        };
+
+
+        txtSearch.addActionListener(searchAction);
+        btnSearchIcon.addActionListener(searchAction);
+        // ----------------------------------------
+*/
         String[] itemLoc = {"Lọc", "1-N", "A-Z", "Z-A"};
         JComboBox<String> cbLoc = new JComboBox<>(itemLoc);
         cbLoc.setBackground(new Color(214, 238, 253));
@@ -699,6 +721,36 @@ public class TrangTonKho extends JPanel implements QuyenTrang {
 
 
 
+//
+ /*
+ //
+    // --- HÀM TÌM KIẾM ĐÃ ĐƯỢC TỐI ƯU BẰNG CÁCH GỌI BUS ---
+    private void timKiemTheoMa(String tuKhoa) {
+        // 1. Nhờ BUS đi tìm giùm danh sách kết quả
+        java.util.List<BaoCaoTonKho> ketQua = bus.findBySku(tuKhoa);
+
+        // 2. Nếu danh sách rỗng -> Báo lỗi và load lại bảng gốc
+        if (ketQua.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Không tìm thấy sản phẩm nào có mã chứa: " + tuKhoa, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            loadDataToTable();
+            return;
+        }
+
+        // 3. Nếu có kết quả -> Xóa bảng cũ và đổ kết quả mới lên
+        model.setRowCount(0);
+        for (BaoCaoTonKho tk : ketQua) {
+            model.addRow(new Object[]{
+                tk.getSanPham().getMaSP(),
+                tk.getSanPham().getTenSP(),
+                tk.getSanPham().getDonViTinh(),
+                tk.getsLTon(),
+                String.format("%,.0f", tk.getSanPham().getGiaTien()),
+                tk.getCanhBaoHH(),
+                tk.getSanPham().getMaKe()
+            });
+        }
+    }
+  */
 
 
 

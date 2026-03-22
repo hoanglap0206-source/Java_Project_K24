@@ -63,10 +63,10 @@ public class TonKho_DAO {
     // 2. HÀM THÊM MỚI (INSERT)
     public boolean insert(BaoCaoTonKho bc) {
         boolean ketQua = false;
-// 1. Ghi vào bảng báo cáo (Chỉ lấy cảnh báo)
+
         String sqlBC = "INSERT INTO bao_cao_ton_kho (ma_bc, canh_bao_hh, ma_sku) VALUES (?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE canh_bao_hh = ?";
-        // 2. Ghi Số lượng và Mã kệ vào bảng trung gian (Dùng UPSERT để lỡ Kệ đó có hàng rồi thì cộng dồn hoặc ghi đè)
+
         String sqlCTK = "INSERT INTO chitiet_ke (ma_ke, ma_sku, so_luong) VALUES (?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE so_luong = ?";
 
@@ -94,7 +94,7 @@ public class TonKho_DAO {
                 psCTK.setString(1, bc.getSanPham().getMaKe());
                 psCTK.setString(2, bc.getSanPham().getMaSP());
                 psCTK.setInt(3, bc.getsLTon());
-                psCTK.setInt(4, bc.getsLTon()); // Cho phần ON DUPLICATE
+                psCTK.setInt(4, bc.getsLTon());
                 psCTK.executeUpdate();
             }
 
@@ -174,7 +174,7 @@ public class TonKho_DAO {
     public boolean delete(String maSP) {
         boolean ketQua = false;
 
-        // --- ĐÃ SỬA: Chuyển sang lệnh UPDATE để ẩn sản phẩm ---
+
         String sql = "UPDATE san_pham SET trang_thai = 0 WHERE ma_sku = ?";
         // -----------------------------------------------------
 

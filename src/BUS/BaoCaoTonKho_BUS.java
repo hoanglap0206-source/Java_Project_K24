@@ -29,6 +29,15 @@ public class BaoCaoTonKho_BUS {
                 .filter(bc -> bc.getSanPham().getMaSP().equalsIgnoreCase(maSKU))
                 .collect(Collectors.toList());
     }
+    public List<BaoCaoTonKho> findbySku2 (String maSKU){
+        List<BaoCaoTonKho> ketqua=new ArrayList<>();
+        for (BaoCaoTonKho bc:listBaoCao){
+            if (bc.getSanPham().getMaSP().equalsIgnoreCase(maSKU)){
+                ketqua.add(bc);
+            }
+        }
+        return ketqua;
+    }
 
     public List<BaoCaoTonKho> getCanhBaoHangSapHet() {
         return listBaoCao.stream()
@@ -92,6 +101,17 @@ public class BaoCaoTonKho_BUS {
 
 
             return "Xóa thành công (Sản phẩm đã được ẩn khỏi danh sách)!";
+        }
+        return "Xóa thất bại!";
+    }
+
+    public String deleteBaoCao2 (String maBC){
+        for (int i = 0; i < listBaoCao.size(); i++) {
+            if (listBaoCao.get(i).getSanPham().getMaSP().equalsIgnoreCase(maBC)) {
+                listBaoCao.remove(i);
+
+                return "Xóa thành công (Sản phẩm đã được ẩn khỏi danh sách)!";
+            }
         }
         return "Xóa thất bại!";
     }
