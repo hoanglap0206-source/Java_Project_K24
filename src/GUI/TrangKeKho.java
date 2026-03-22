@@ -932,19 +932,74 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         });
     }
 
+//    private void veSoDoKe(ArrayList<KeKho> danhSachKe) {
+//        soDoKe.removeAll();
+//
+//        String currentDay = "";
+//        JPanel currentRow = null;
+//
+//        int count = 0;
+//        int stt = 0;
+//
+//        for (KeKho ke : danhSachKe) {
+//            String day = ke.getViTri();
+//
+//            // reset STT khi sang dãy mới
+//            if (!day.equals(currentDay)) {
+//                currentDay = day;
+//                stt = 0;
+//                count = 0;
+//
+//                JLabel lblDay = new JLabel("Dãy " + day + ":");
+//                lblDay.setFont(new Font("Segoe UI", Font.BOLD, 14));
+//                lblDay.setBorder(new EmptyBorder(10, 5, 5, 5));
+//                lblDay.setAlignmentX(Component.LEFT_ALIGNMENT);
+//
+//                soDoKe.add(lblDay);
+//
+//                currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+//                currentRow.setBackground(new Color(231,242,245));
+//                currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+//
+//                soDoKe.add(currentRow);
+//            }
+//
+//            // tạo dòng mới nếu đủ 5 kệ
+//            if (count == 5) {
+//                currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+//                currentRow.setBackground(new Color(231,242,245));
+//                currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+//
+//                soDoKe.add(currentRow);
+//                count = 0;
+//            }
+//
+//            stt++;
+//            String tenHienThi = taoTenHienThi(day, stt);
+//
+//            int percent = bus.tinhPhanTramTheoKe(ke);
+//            JPanel card = taoTheKe(tenHienThi, ke.getMaKe(), percent);
+//
+//            currentRow.add(card);
+//            count++;
+//        }
+//
+//        soDoKe.revalidate();
+//        soDoKe.repaint();
+//    }
+
     private void veSoDoKe(ArrayList<KeKho> danhSachKe) {
         soDoKe.removeAll();
+        soDoKe.setLayout(new BoxLayout(soDoKe, BoxLayout.Y_AXIS));
 
         String currentDay = "";
         JPanel currentRow = null;
-
         int count = 0;
         int stt = 0;
 
         for (KeKho ke : danhSachKe) {
             String day = ke.getViTri();
 
-            // reset STT khi sang dãy mới
             if (!day.equals(currentDay)) {
                 currentDay = day;
                 stt = 0;
@@ -954,22 +1009,18 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 lblDay.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 lblDay.setBorder(new EmptyBorder(10, 5, 5, 5));
                 lblDay.setAlignmentX(Component.LEFT_ALIGNMENT);
-
                 soDoKe.add(lblDay);
 
                 currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-                currentRow.setBackground(new Color(231,242,245));
+                currentRow.setBackground(new Color(231, 242, 245));
                 currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-
                 soDoKe.add(currentRow);
             }
 
-            // tạo dòng mới nếu đủ 5 kệ
             if (count == 5) {
                 currentRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-                currentRow.setBackground(new Color(231,242,245));
+                currentRow.setBackground(new Color(231, 242, 245));
                 currentRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-
                 soDoKe.add(currentRow);
                 count = 0;
             }
@@ -977,9 +1028,11 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
             stt++;
             String tenHienThi = taoTenHienThi(day, stt);
 
-            int percent = bus.tinhPhanTramTheoKe(ke);
-            JPanel card = taoTheKe(tenHienThi, ke.getMaKe(), percent);
+            // Tính phần trăm trực tiếp, không gọi thêm phương thức
+            int tongSoLuong = bus.tinhTongSoLuongTheoKe(ke.getMaKe());
+            int percent = ke.getSucChua() > 0 ? (int) ((double) tongSoLuong / ke.getSucChua() * 100) : 0;
 
+            JPanel card = taoTheKe(tenHienThi, ke.getMaKe(), percent);
             currentRow.add(card);
             count++;
         }

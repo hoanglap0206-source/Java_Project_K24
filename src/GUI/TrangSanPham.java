@@ -2,8 +2,10 @@ package GUI;
 
 import BUS.SanPham_BUS;
 import BUS.KeKho_BUS;
+import BUS.ChiTietKe_BUS;
 import Model.SanPham;
 import Model.KeKho;
+import Model.ChiTietKe;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -38,6 +40,7 @@ public class TrangSanPham extends JPanel {
 
     private SanPham_BUS spBus = new SanPham_BUS();
     private KeKho_BUS kkBus = new KeKho_BUS();
+    private ChiTietKe_BUS chiTietKeBUS = new ChiTietKe_BUS();
 
     // Search
     private JTextField txtSearch;
@@ -386,10 +389,24 @@ public class TrangSanPham extends JPanel {
         java.text.DecimalFormat df = new java.text.DecimalFormat("#,###đ");
 
         for (SanPham sp : spBus.getAll()) {
-            int soLuong = spBus.getSoLuongTon(sp.getMaSP()); // Lấy từ ChiTietKe
+            // Lấy số lượng từ ChiTietKe
+            int soLuong = spBus.getSoLuongTon(sp.getMaSP());
             String trangThai = (soLuong > 0) ? "Còn hàng" : "Hết hàng";
-            String maKe = (sp.getKeKho() != null && sp.getKeKho().getMaKe() != null)
-                    ? sp.getKeKho().getMaKe() : "Chưa có";
+
+            // Lấy mã kệ từ ChiTietKe (có thể 1 sản phẩm ở nhiều kệ)
+            ArrayList<ChiTietKe> listCT = chiTietKeBUS.getByMaSP(sp.getMaSP());
+            String maKe = "";
+            if (!listCT.isEmpty()) {
+                // Nếu sản phẩm ở nhiều kệ, hiển thị tất cả
+                StringBuilder sb = new StringBuilder();
+                for (ChiTietKe ct : listCT) {
+                    sb.append(ct.getMaKe()).append("(").append(ct.getSoLuong()).append(") ");
+                }
+                maKe = sb.toString().trim();
+            } else {
+                maKe = "Chưa có kệ";
+            }
+
             Object[] row = { stt++, sp.getMaSP(), sp.getTenSP(), sp.getDonViTinh(),
                     soLuong, df.format(sp.getGiaTien()), maKe, trangThai };
             allRows.add(row);

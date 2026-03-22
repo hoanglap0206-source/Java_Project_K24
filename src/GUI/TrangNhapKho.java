@@ -4,12 +4,15 @@ import BUS.NCC_BUS;
 import BUS.PhieuNhap_BUS;
 import BUS.SanPham_BUS;
 import BUS.KeKho_BUS;
+import BUS.ChiTietKe_BUS;
 import Model.NhaCungCap;
 import Model.NhanVien;
 import Model.PhieuNhap;
 import Model.SanPham;
 import Model.KeKho;
+import Model.ChiTietKe;
 
+import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.DocumentEvent;
@@ -47,6 +50,7 @@ public class TrangNhapKho extends JPanel {
     private JComboBox<String> comboBoxLoc;
     private String ma_PN,maNCC;
     private KeKho_BUS kkBus = new KeKho_BUS();
+    private ChiTietKe_BUS chiTietKeBUS = new ChiTietKe_BUS();
 
     public TrangNhapKho() {
         setLayout(new BorderLayout());
@@ -607,17 +611,27 @@ public class TrangNhapKho extends JPanel {
         txtSoLuong.setText("");
     }
 
-    public void loadTableData() {
+    private void loadTableData() {
         tableModel.setRowCount(0);
         for (SanPham sp : spBus.getListSP()) {
             int soLuong = spBus.getSoLuongTon(sp.getMaSP());
-            String maKe = sp.getMaKe(); // Lấy kệ hiện tại
+
+            // Lấy mã kệ từ ChiTietKe
+            ArrayList<ChiTietKe> listCT = chiTietKeBUS.getByMaSP(sp.getMaSP());
+            String maKe = "";
+            if (!listCT.isEmpty()) {
+                // Lấy kệ đầu tiên (hoặc có thể hiển thị nhiều)
+                maKe = listCT.get(0).getMaKe();
+            } else {
+                maKe = "Chưa có kệ";
+            }
+
             tableModel.addRow(new Object[]{
                     sp.getMaSP(),
                     sp.getTenSP(),
                     soLuong,
                     sp.getGiaTien(),
-                    maKe != null && !maKe.isEmpty() ? maKe : "Chưa có kệ"
+                    maKe
             });
         }
     }
