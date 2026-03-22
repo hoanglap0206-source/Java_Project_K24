@@ -12,17 +12,17 @@ import java.util.ArrayList;
 
 public class KeKho_BUS {
     private ArrayList<KeKho> listKK;
-    private ArrayList<SanPham> listAllSP; // Cache tất cả sản phẩm
+    private ArrayList<SanPham> listAllSP;
     private ArrayList<ChiTietKe> listAllCT;
     private KeKho_DAO kkDAO;
     private SanPham_DAO spDAO;
-    private ChiTietKe_DAO ctDAO = new ChiTietKe_DAO();
+    private ChiTietKe_DAO ctDAO;
 
     public KeKho_BUS(){
         kkDAO = new KeKho_DAO();
         spDAO = new SanPham_DAO();
         ctDAO = new ChiTietKe_DAO();
-        loadAllData(); // Load 1 lần khi khởi tạo
+        loadAllData();
     }
 
     private void loadAllData() {
@@ -40,7 +40,7 @@ public class KeKho_BUS {
     }
 
     public ArrayList<KeKho> getListKK(){
-        return listKK; // Trả về cache, không query lại
+        return listKK;
     }
 
     public ArrayList<SanPham> getAllSanPham() {
@@ -50,17 +50,15 @@ public class KeKho_BUS {
     public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
         ArrayList<SanPham> result = new ArrayList<>();
 
-        // Dùng cache listAllCT, không query database
         for (ChiTietKe ct : listAllCT) {
             if (ct.getMaKe().equals(maKe)) {
                 for (SanPham sp : listAllSP) {
                     if (sp.getMaSP().equals(ct.getMaSP())) {
-                        // Clone để tránh ảnh hưởng cache
                         SanPham spCopy = new SanPham();
                         spCopy.setMaSP(sp.getMaSP());
                         spCopy.setTenSP(sp.getTenSP());
                         spCopy.setDonViTinh(sp.getDonViTinh());
-                        spCopy.setSoLuong(ct.getSoLuong());
+                        spCopy.setGiaTien(sp.getGiaTien());
                         result.add(spCopy);
                         break;
                     }
@@ -80,11 +78,11 @@ public class KeKho_BUS {
     }
 
     public int tinhTongSPTrongKho() {
-            int tong = 0;
-            for (ChiTietKe ct : listAllCT) {
-                tong += ct.getSoLuong();
-            }
-            return tong;
+        int tong = 0;
+        for (ChiTietKe ct : listAllCT) {
+            tong += ct.getSoLuong();
+        }
+        return tong;
     }
 
     public int tinhTongSoLuongTheoKe(String maKe) {
@@ -100,8 +98,7 @@ public class KeKho_BUS {
     public int tinhPhanTramTheoKe(KeKho ke) {
         int tong = tinhTongSoLuongTheoKe(ke.getMaKe());
         int sucChua = ke.getSucChua();
-        if (sucChua == 0)
-            return 0;
+        if (sucChua == 0) return 0;
         double phanTram = (double) tong / sucChua * 100;
         return (int) Math.round(phanTram);
     }
@@ -147,7 +144,6 @@ public class KeKho_BUS {
 
         ArrayList<ChiTietKe> dsSanPham = ctDAO.getByMaKe(maKe);
         if(!dsSanPham.isEmpty()) {
-            // Chỉ thông báo đơn giản, không liệt kê sản phẩm
             return "Không thể xóa kệ " + maKe + ". Kệ vẫn đang chứa sản phẩm!";
         }
 
@@ -184,5 +180,35 @@ public class KeKho_BUS {
         }
 
         return String.format("K%04d", max + 1);
+    }
+
+    // Kiểm tra kệ đã đầy chưa
+    public boolean isKeFull(String maKe) {
+        KeKho ke = getKeTheoMa(maKe);
+        if (ke == null) return true;
+
+        int tongHienTai = tinhTongSoLuongTheoKe(maKe);
+        return tongHienTai >= ke.getSucChua();
+    }
+
+    // Kiểm tra kệ còn bao nhiêu chỗ trống
+    public int getKhoangTrong(String maKe) {
+        KeKho ke = getKeTheoMa(maKe);
+        if (ke == null) return 0;
+
+        int tongHienTai = tinhTongSoLuongTheoKe(maKe);
+        return ke.getSucChua() - tongHienTai;
+    }
+
+    // Lấy danh sách kệ còn chỗ trống
+    public ArrayList<KeKho> getListKeConTrong() {
+        ArrayList<KeKho> listConTrong = new ArrayList<>();
+        for (KeKho ke : listKK) {
+            int tongHienTai = tinhTongSoLuongTheoKe(ke.getMaKe());
+            if (tongHienTai < ke.getSucChua()) {
+                listConTrong.add(ke);
+            }
+        }
+        return listConTrong;
     }
 }

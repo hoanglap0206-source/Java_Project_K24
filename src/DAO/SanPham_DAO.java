@@ -68,39 +68,53 @@ public class SanPham_DAO {
 
     public ArrayList<SanPham> getAllSanPham(){
         ArrayList<SanPham> list = new ArrayList<>();
+        String sql = "SELECT ma_sku, ten_sp, dvt, gia FROM SAN_PHAM";
 
-        String sql = """
-        SELECT sp.ma_sku, sp.ten_sp, sp.dvt, sp.sl, sp.gia,
-               ck.ma_ke
-        FROM SAN_PHAM sp
-        LEFT JOIN CHITIET_KE ck ON sp.ma_sku = ck.ma_sku
-    """;
-
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery();
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while(rs.next()){
                 SanPham sp = new SanPham();
-
                 sp.setMaSP(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
                 sp.setGiaTien(rs.getFloat("gia"));
-
-                KeKho kk = new KeKho();
-                kk.setMaKe(rs.getString("ma_ke"));
-                sp.setKeKho(kk);
-
                 list.add(sp);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return list;
+    }
+
+    public boolean insert(SanPham sp){
+        String sql = "INSERT INTO SAN_PHAM(ma_sku, ten_sp, dvt, gia) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sp.getMaSP());
+            ps.setString(2, sp.getTenSP());
+            ps.setString(3, sp.getDonViTinh());
+            ps.setFloat(4, sp.getGiaTien());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean update(SanPham sp){
+        String sql = "UPDATE SAN_PHAM SET ten_sp=?, dvt=?, gia=? WHERE ma_sku=?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sp.getTenSP());
+            ps.setString(2, sp.getDonViTinh());
+            ps.setFloat(3, sp.getGiaTien());
+            ps.setString(4, sp.getMaSP());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public ArrayList<SanPham> getSpByKey(String input){
@@ -173,27 +187,6 @@ public class SanPham_DAO {
 //        }
 //    }
 
-    public boolean insert(SanPham sp){
-        String sql ="INSERT INTO SAN_PHAM(ma_sku,ten_sp,dvt,sl,gia) VALUES (?, ?, ?, ?, ?)";
-
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setString(1, sp.getMaSP());
-            ps.setString(2, sp.getTenSP());
-            ps.setString(3, sp.getDonViTinh());
-            ps.setInt(4, sp.getSoLuong());
-            ps.setFloat(5, sp.getGiaTien());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
 //    public boolean update(SanPham sp){
 ////        Nếu muốn thay đổi mã kệ,cần kiểm tra số sức chứa còn lại của kệ xem có chứa đc số lượng sản phẩm mới này ko?
 //        String sql =
@@ -227,27 +220,27 @@ public class SanPham_DAO {
 //        }
 //    }
 
-    public boolean update(SanPham sp){
-        String sql =
-                "UPDATE SAN_PHAM SET ten_sp=?, dvt=?, sl=?, gia=? WHERE ma_sku=?";
-
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setString(1, sp.getTenSP());
-            ps.setString(2, sp.getDonViTinh());
-            ps.setInt(3, sp.getSoLuong());
-            ps.setFloat(4, sp.getGiaTien());
-            ps.setString(5, sp.getMaSP());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+//    public boolean update(SanPham sp){
+//        String sql =
+//                "UPDATE SAN_PHAM SET ten_sp=?, dvt=?, sl=?, gia=? WHERE ma_sku=?";
+//
+//        try (
+//                Connection conn = DBConnection.getConnection();
+//                PreparedStatement ps = conn.prepareStatement(sql)
+//        ) {
+//            ps.setString(1, sp.getTenSP());
+//            ps.setString(2, sp.getDonViTinh());
+//            ps.setInt(3, sp.getSoLuong());
+//            ps.setFloat(4, sp.getGiaTien());
+//            ps.setString(5, sp.getMaSP());
+//
+//            return ps.executeUpdate() > 0;
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+//    }
     public boolean updateSP(Connection conn,int soLuong,String maKe,String maSP){
 //        Nếu muốn thay đổi mã kệ,cần kiểm tra số sức chứa còn lại của kệ xem có chứa đc số lượng sản phẩm mới này ko?
         String sql =

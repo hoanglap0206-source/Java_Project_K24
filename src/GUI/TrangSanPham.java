@@ -377,7 +377,6 @@ public class TrangSanPham extends JPanel {
         return scrollPane;
     }
 
-
     private void loadTableData() {
         if (model == null) return;
         model.setRowCount(0);
@@ -385,9 +384,8 @@ public class TrangSanPham extends JPanel {
         int stt = 1;
         java.text.DecimalFormat df = new java.text.DecimalFormat("#,###đ");
 
-        // Gộp các kệ của cùng 1 sản phẩm thành 1 dòng
-        // Dùng LinkedHashMap để giữ thứ tự
-        java.util.LinkedHashMap<String, Object[]> mapSP = new java.util.LinkedHashMap<>();
+        // Dùng LinkedHashMap để nhóm sản phẩm và kệ
+        java.util.LinkedHashMap<String, SanPham> mapSP = new java.util.LinkedHashMap<>();
         java.util.LinkedHashMap<String, java.util.List<String>> mapKe = new java.util.LinkedHashMap<>();
 
         for (SanPham sp : spBus.getAll()) {
@@ -396,22 +394,32 @@ public class TrangSanPham extends JPanel {
                     ? sp.getKeKho().getMaKe() : "Chưa có";
 
             if (!mapSP.containsKey(maSP)) {
-                String trangThai = (sp.getSoLuong() > 0) ? "Còn hàng" : "Hết hàng";
-                // Lưu tạm STT = 0, sẽ đánh lại sau
-                mapSP.put(maSP, new Object[]{ 0, maSP, sp.getTenSP(), sp.getDonViTinh(),
-                        sp.getSoLuong(), df.format(sp.getGiaTien()), "", trangThai });
+                mapSP.put(maSP, sp);
                 mapKe.put(maSP, new java.util.ArrayList<>());
             }
-            // Thêm kệ vào danh sách kệ của SP này (tránh trùng)
-            if (!mapKe.get(maSP).contains(maKe))
+
+            if (!mapKe.get(maSP).contains(maKe)) {
                 mapKe.get(maSP).add(maKe);
+            }
         }
 
-        // Gán danh sách kệ vào cột 6 và đánh STT
+        // Đổ dữ liệu vào bảng
         for (String maSP : mapSP.keySet()) {
-            Object[] row = mapSP.get(maSP);
-            row[0] = stt++;
-            row[6] = String.join(", ", mapKe.get(maSP)); // "A1, B2, C3"
+            SanPham sp = mapSP.get(maSP);
+            int soLuong = spBus.getSoLuongTon(maSP); // Lấy số lượng từ ChiTietKe
+            String trangThai = (soLuong > 0) ? "Còn hàng" : "Hết hàng";
+
+            Object[] row = new Object[]{
+                    stt++,                          // STT
+                    sp.getMaSP(),                   // Mã SP
+                    sp.getTenSP(),                  // Tên SP
+                    sp.getDonViTinh(),              // Đơn vị tính
+                    soLuong,                        // Số lượng (lấy từ ChiTietKe)
+                    df.format(sp.getGiaTien()),     // Giá nhập
+                    String.join(", ", mapKe.get(maSP)), // Mã kệ
+                    trangThai                       // Trạng thái
+            };
+
             allRows.add(row);
             model.addRow(row);
         }
@@ -464,14 +472,21 @@ public class TrangSanPham extends JPanel {
         btnRefresh.addActionListener(e -> handleRefresh());
     }
     private void handleAdd() {
-        // Reload danh sách kệ mới nhất từ DB
         kkBus.refreshData();
         cboKeKho.removeAllItems();
-        for (KeKho kk : kkBus.getListKK()) cboKeKho.addItem(kk.getMaKe());
+
+        // Chỉ hiển thị kệ còn chỗ trống
+        for (KeKho kk : kkBus.getListKeConTrong()) {
+            cboKeKho.addItem(kk.getMaKe());
+        }
+
+        if (cboKeKho.getItemCount() == 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Tất cả kệ đã đầy! Vui lòng thêm kệ mới trước khi nhập hàng.",
+                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+        }
 
         clearForm();
-
-        // Tự động sinh mã SP mới = mã cao nhất + 1
         txtMaSP.setText(taoMaSPMoi());
         txtMaSP.setEditable(false);
         txtMaSP.setBackground(new Color(245, 247, 250));
@@ -497,7 +512,11 @@ public class TrangSanPham extends JPanel {
     }
     private void handleEdit() {
         int row = table.getSelectedRow();
-        if (row == -1) { JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần sửa"); return; }
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần sửa");
+            return;
+        }
+
         lblFormTitle.setText("SỬA SẢN PHẨM");
         txtMaSP.setText(model.getValueAt(row, 1).toString());
         txtTenSP.setText(model.getValueAt(row, 2).toString());
@@ -505,8 +524,25 @@ public class TrangSanPham extends JPanel {
         txtSoLuong.setText(model.getValueAt(row, 4).toString());
         String gia = model.getValueAt(row, 5).toString().replace("đ","").replace(",","");
         txtGia.setText(gia);
-        cboKeKho.setSelectedItem(model.getValueAt(row, 6).toString());
-        cboKeKho.setEnabled(false);
+
+        // Khi sửa, chỉ hiển thị kệ còn chỗ trống + kệ hiện tại của sản phẩm
+        String maKeHienTai = model.getValueAt(row, 6).toString();
+        cboKeKho.removeAllItems();
+
+        // Thêm kệ hiện tại trước (nếu nó đã đầy vẫn cho chọn)
+        if (maKeHienTai != null && !maKeHienTai.equals("Chưa có")) {
+            cboKeKho.addItem(maKeHienTai);
+        }
+
+        // Thêm các kệ còn trống
+        for (KeKho kk : kkBus.getListKeConTrong()) {
+            if (!kk.getMaKe().equals(maKeHienTai)) {
+                cboKeKho.addItem(kk.getMaKe());
+            }
+        }
+
+        cboKeKho.setSelectedItem(maKeHienTai);
+        cboKeKho.setEnabled(true);
         txtMaSP.setEditable(false);
         txtMaSP.setBackground(new Color(245, 247, 250));
         txtMaSP.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
@@ -550,31 +586,62 @@ public class TrangSanPham extends JPanel {
         String ma  = txtMaSP.getText().trim();
         String ten = txtTenSP.getText().trim();
         String dvt = cboDVT.getSelectedItem() != null ? cboDVT.getSelectedItem().toString() : "Chai";
-        String maKe = cboKeKho.getSelectedItem() != null ? cboKeKho.getSelectedItem().toString() : "A1";
+        String maKe = cboKeKho.getSelectedItem() != null ? cboKeKho.getSelectedItem().toString() : "";
 
         if (ten.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Tên sản phẩm không được để trống!"); return;
+            JOptionPane.showMessageDialog(this, "Tên sản phẩm không được để trống!");
+            return;
         }
 
-        int sl; float gia;
+        if (maKe.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn kệ kho!");
+            return;
+        }
+
+        int sl;
+        float gia;
         try {
             sl = Integer.parseInt(txtSoLuong.getText().trim());
+            if (sl < 0) {
+                JOptionPane.showMessageDialog(this, "Số lượng không thể âm!");
+                return;
+            }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ"); return;
+            JOptionPane.showMessageDialog(this, "Số lượng không hợp lệ");
+            return;
         }
         try {
             gia = Float.parseFloat(txtGia.getText().trim());
+            if (gia < 0) {
+                JOptionPane.showMessageDialog(this, "Giá nhập không thể âm!");
+                return;
+            }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Giá nhập không hợp lệ"); return;
+            JOptionPane.showMessageDialog(this, "Giá nhập không hợp lệ");
+            return;
         }
-        SanPham sp = new SanPham();
-        sp.setMaSP(ma); sp.setTenSP(ten); sp.setDonViTinh(dvt); sp.setSoLuong(sl); sp.setGiaTien(gia);
-        KeKho kk = new KeKho(); kk.setMaKe(maKe); sp.setKeKho(kk);
 
-        String msg = lblFormTitle.getText().equals("THÊM SẢN PHẨM") ? spBus.addSanPham(sp) : spBus.updateSanPham(sp);
+        SanPham sp = new SanPham();
+        sp.setMaSP(ma);
+        sp.setTenSP(ten);
+        sp.setDonViTinh(dvt);
+        sp.setGiaTien(gia);
+        sp.setMaKe(maKe);
+
+        String msg;
+        if (lblFormTitle.getText().equals("THÊM SẢN PHẨM")) {
+            msg = spBus.addSanPham(sp, sl);
+        } else {
+            msg = spBus.updateSanPham(sp, sl);
+        }
+
         JOptionPane.showMessageDialog(this, msg);
+
         if (msg.toLowerCase().contains("thành công")) {
-            loadTableData(); clearForm(); hideFormPanel();
+            loadTableData();
+            clearForm();
+            hideFormPanel();
+            kkBus.refreshData();
         }
     }
 
