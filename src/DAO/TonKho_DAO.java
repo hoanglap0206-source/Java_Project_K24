@@ -150,6 +150,8 @@ public class TonKho_DAO {
                psCTK.setString(3,bc.getSanPham().getMaKe());
                psCTK.executeUpdate();
            }
+           conn.commit();
+           ketQua=true;
 
         } catch (SQLException e) {
             try {
