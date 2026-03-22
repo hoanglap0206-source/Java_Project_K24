@@ -400,7 +400,7 @@ public class TrangSanPham extends JPanel {
                 // Nếu sản phẩm ở nhiều kệ, hiển thị tất cả
                 StringBuilder sb = new StringBuilder();
                 for (ChiTietKe ct : listCT) {
-                    sb.append(ct.getMaKe()).append("(").append(ct.getSoLuong()).append(") ");
+                    sb.append(ct.getMaKe());
                 }
                 maKe = sb.toString().trim();
             } else {

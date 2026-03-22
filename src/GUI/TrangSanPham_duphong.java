@@ -472,14 +472,21 @@
 //        btnRefresh.addActionListener(e -> handleRefresh());
 //    }
 //    private void handleAdd() {
-//        // Reload danh sách kệ mới nhất từ DB
 //        kkBus.refreshData();
 //        cboKeKho.removeAllItems();
-//        for (KeKho kk : kkBus.getListKK()) cboKeKho.addItem(kk.getMaKe());
+//
+//        // Chỉ hiển thị kệ còn chỗ trống
+//        for (KeKho kk : kkBus.getListKeConTrong()) {
+//            cboKeKho.addItem(kk.getMaKe());
+//        }
+//
+//        if (cboKeKho.getItemCount() == 0) {
+//            JOptionPane.showMessageDialog(this,
+//                    "Tất cả kệ đã đầy! Vui lòng thêm kệ mới trước khi nhập hàng.",
+//                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+//        }
 //
 //        clearForm();
-//
-//        // Tự động sinh mã SP mới = mã cao nhất + 1
 //        txtMaSP.setText(taoMaSPMoi());
 //        txtMaSP.setEditable(false);
 //        txtMaSP.setBackground(new Color(245, 247, 250));
@@ -505,7 +512,11 @@
 //    }
 //    private void handleEdit() {
 //        int row = table.getSelectedRow();
-//        if (row == -1) { JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần sửa"); return; }
+//        if (row == -1) {
+//            JOptionPane.showMessageDialog(this, "Chọn sản phẩm cần sửa");
+//            return;
+//        }
+//
 //        lblFormTitle.setText("SỬA SẢN PHẨM");
 //        txtMaSP.setText(model.getValueAt(row, 1).toString());
 //        txtTenSP.setText(model.getValueAt(row, 2).toString());
@@ -513,8 +524,25 @@
 //        txtSoLuong.setText(model.getValueAt(row, 4).toString());
 //        String gia = model.getValueAt(row, 5).toString().replace("đ","").replace(",","");
 //        txtGia.setText(gia);
-//        cboKeKho.setSelectedItem(model.getValueAt(row, 6).toString());
-//        cboKeKho.setEnabled(false);
+//
+//        // Khi sửa, chỉ hiển thị kệ còn chỗ trống + kệ hiện tại của sản phẩm
+//        String maKeHienTai = model.getValueAt(row, 6).toString();
+//        cboKeKho.removeAllItems();
+//
+//        // Thêm kệ hiện tại trước (nếu nó đã đầy vẫn cho chọn)
+//        if (maKeHienTai != null && !maKeHienTai.equals("Chưa có")) {
+//            cboKeKho.addItem(maKeHienTai);
+//        }
+//
+//        // Thêm các kệ còn trống
+//        for (KeKho kk : kkBus.getListKeConTrong()) {
+//            if (!kk.getMaKe().equals(maKeHienTai)) {
+//                cboKeKho.addItem(kk.getMaKe());
+//            }
+//        }
+//
+//        cboKeKho.setSelectedItem(maKeHienTai);
+//        cboKeKho.setEnabled(true);
 //        txtMaSP.setEditable(false);
 //        txtMaSP.setBackground(new Color(245, 247, 250));
 //        txtMaSP.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
