@@ -3,10 +3,7 @@ package GUI;
 import BUS.KhachHang_BUS;
 import BUS.PhieuXuat_BUS;
 import BUS.SanPham_BUS;
-import Model.KhachHang;
-import Model.NhanVien;
-import Model.PhieuXuat;
-import Model.SanPham;
+import Model.*;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -138,7 +135,7 @@ public class TrangXuatKho extends JPanel {
             txtSearch.setText("Tìm kiếm");
         });
         btnLamMoi.addActionListener(e -> {
-            spBus.refeshdata();
+            spBus.refeshdataDTO();
             loadTableData();
             txtSearch.setText("Tìm kiếm");
         });
@@ -416,7 +413,7 @@ public class TrangXuatKho extends JPanel {
                 xuatExcel();
             }
             TaoPX(maPX,dateTime);
-            spBus.refeshdata();
+            spBus.refeshdataDTO();
         });
         return panel;
     }
@@ -485,11 +482,11 @@ public class TrangXuatKho extends JPanel {
 
     public void loadTableData() {
         tableModel.setRowCount(0); // xóa dữ liệu cũ
-        for( SanPham sp : spBus.getListSP()){
+        for( SanPhamDTO sp : spBus.getListspDTO()){
             tableModel.addRow(new Object[]{
-                    sp.getMaSP(),
+                    sp.getMa_sku(),
                     sp.getTenSP(),
-                    sp.getSoLuong(),
+                    sp.getSl(),
                     sp.getGiaTien()
             });
         }
@@ -497,11 +494,11 @@ public class TrangXuatKho extends JPanel {
 
     public void loadDataFromKey(){
         tableModel.setRowCount(0); // xóa dữ liệu cũ
-        for( SanPham sp : spBus.gettSPByKeyWord(txtSearch.getText())){
+        for( SanPhamDTO sp : spBus.gettSPByKeyWord(txtSearch.getText())){
             tableModel.addRow(new Object[]{
-                    sp.getMaSP(),
+                    sp.getMa_sku(),
                     sp.getTenSP(),
-                    sp.getSoLuong(),
+                    sp.getSl(),
                     sp.getGiaTien()
             });
         }

@@ -24,7 +24,9 @@ public class KeKho_BUS {
         ctDAO = new ChiTietKe_DAO();
         loadAllData(); // Load 1 lần khi khởi tạo
     }
-
+    public int getSucChua(Connection conn,String maKe){
+        return kkDAO.getSucChua(conn,maKe);
+    }
     private void loadAllData() {
         listKK = kkDAO.getAllKeKho();
         listAllSP = spDAO.getAllSanPham();

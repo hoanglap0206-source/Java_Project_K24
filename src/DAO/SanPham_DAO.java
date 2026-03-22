@@ -5,10 +5,12 @@ import Model.KeKho;
 import Model.SanPham;
 import Model.ChiTietKe;
 import DAO.ChiTietKe_DAO;
+import Model.SanPhamDTO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class SanPham_DAO {
@@ -103,15 +105,48 @@ public class SanPham_DAO {
         return list;
     }
 
-    public ArrayList<SanPham> getSpByKey(String input){
-        ArrayList<SanPham> list = new ArrayList<>();
+    public ArrayList<SanPhamDTO> getListDTO(){
+        ArrayList<SanPhamDTO> listsp = new ArrayList<>();
         String sql = """
-        SELECT *
-        FROM san_pham
-        WHERE LOWER(ma_sku) = LOWER(?)
-           OR LOWER(ma_sku) LIKE LOWER(CONCAT('%', ?, '%'))
-           OR LOWER(ten_sp) LIKE LOWER(CONCAT('%', ?, '%'))
-        ORDER BY (LOWER(ma_sku) = LOWER(?)) DESC
+                SELECT sp.ma_sku, sp.ten_sp, sp.trang_thai, sp.gia, sp.dvt
+                , COALESCE(SUM(kksp.soluong), 0) AS tongSL
+                FROM san_pham sp 
+                JOIN kekho_sanpham kksp ON sp.ma_sp = kksp.ma_sp
+                GROUP BY sp.ma_sp
+                """;
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+        ){
+            while(rs.next()){
+                SanPhamDTO sp = new SanPhamDTO();
+                sp.setMa_sku(rs.getString("ma_sku"));
+                sp.setTenSP(rs.getString("ten_sp"));
+                sp.setSl(rs.getInt("tongSL"));
+                sp.setTrangthai(rs.getInt("trang_thai"));
+                sp.setGiaTien(rs.getFloat("gia"));
+                sp.setDonViTinh(rs.getString("dvt"));
+                listsp.add(sp);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return listsp;
+    }
+
+    public ArrayList<SanPhamDTO> getSpByKey(String input){
+        ArrayList<SanPhamDTO> list = new ArrayList<>();
+        String sql = """
+        SELECT sp.*, COALESCE(SUM(kksp.soluong), 0) AS tongSL
+        FROM san_pham sp
+        JOIN kekho_sanpham kksp ON sp.ma_sp = kksp.ma_sp
+        WHERE LOWER(sp.ma_sku) = LOWER(?)
+        OR LOWER(sp.ma_sku) LIKE LOWER(CONCAT('%', ?, '%'))
+        OR LOWER(sp.ten_sp) LIKE LOWER(CONCAT('%', ?, '%'))
+        GROUP BY sp.ma_sp
+        ORDER BY (LOWER(sp.ma_sku) = LOWER(?)) DESC;
     """;
         try (
                 Connection conn = DBConnection.getConnection();
@@ -124,15 +159,13 @@ public class SanPham_DAO {
             ps.setString(4,input);
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
-                SanPham sp = new SanPham();
-                KeKho kk = new KeKho();
-                sp.setMaSP(rs.getString("ma_sku"));
+                SanPhamDTO sp = new SanPhamDTO();
+                sp.setMa_sku(rs.getString("ma_sku"));
                 sp.setTenSP(rs.getString("ten_sp"));
                 sp.setDonViTinh(rs.getString("dvt"));
-                sp.setSoLuong(rs.getInt("sl"));
+                sp.setSl(rs.getInt("tongSL"));
                 sp.setGiaTien(rs.getFloat("gia"));
-                kk.setMaKe(rs.getString("ma_ke"));
-                sp.setKeKho(kk);
+                sp.setTrangthai(rs.getInt("trang_thai"));
                 list.add(sp);
             }
         } catch (Exception e) {
@@ -265,6 +298,28 @@ public class SanPham_DAO {
             return false;
         }
     }
+    public ArrayList<String> getAllMaKe(Connection conn,String maSP){
+        String sql = """
+                SELECT kksp.ma_ke
+                FROM chitiet_ke kksp
+                WHERE kksp.ma_sku = ?;
+                """;
+        ArrayList<String> list = new ArrayList<>();
+        try(
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ){
+            ps.setString(1, maSP);
+            ResultSet rs = ps.executeQuery();
+
+            while(rs.next()){
+                String maKe = rs.getString("ma_ke");
+                list.add(maKe);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
 //    public int SumSLbyMaKe(Connection conn,String maKe){
 //        int tong = 0;
@@ -340,7 +395,7 @@ public class SanPham_DAO {
     public int SumSLbyMaKe(Connection conn, String maKe){
         int tong = 0;
 
-        String sql = "SELECT SUM(so_luong) FROM CHITIET_KE WHERE ma_ke = ?";
+        String sql = "SELECT SUM(so_luong) FROM CHITIET_KE WHERE ma_ke = ? GROUP BY ma_ke";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, maKe);
@@ -356,7 +411,25 @@ public class SanPham_DAO {
         return tong;
     }
 
-//    public boolean delete(String maSP) {
+    public boolean updateSL(Connection conn,String maSP,String maKe,int soLuong){
+        String sql = """
+                UPDATE CHITIET_KE SET sl= sl + ? WHERE ma_sku=? AND ma_ke =?
+                """;
+        try(
+               PreparedStatement ps = conn.prepareStatement(sql);)
+        {
+            ps.setInt(1,soLuong);
+            ps.setString(2,maSP);
+            ps.setString(3,maKe);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    //    public boolean delete(String maSP) {
 //        Connection conn = null;
 //
 //        try {

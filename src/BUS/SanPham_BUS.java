@@ -7,6 +7,8 @@ import DataBase.DBConnection;
 import Model.ChiTietKe;
 import Model.KeKho;
 import Model.SanPham;
+import Model.SanPhamDTO;
+
 import java.sql.Connection;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -16,22 +18,28 @@ public class SanPham_BUS {
     private ArrayList<SanPham> listSP;
     private SanPham_DAO spDAO;
     private KeKho_BUS kkBUS;
+    private ArrayList<SanPhamDTO> ListspDTO;
 
     public ArrayList<SanPham> getListSP() {
         return listSP;
+    }
+
+    public ArrayList<SanPhamDTO> getListspDTO() {
+        return ListspDTO;
     }
 
     public SanPham_BUS() {
         spDAO = new SanPham_DAO();
         kkBUS = new KeKho_BUS();
         listSP = spDAO.getAllSanPham();
+        ListspDTO = spDAO.getListDTO();
     }
 
     public ArrayList<SanPham> getAll() {
         return spDAO.getAllSanPham();
     }
 
-    public ArrayList<SanPham> gettSPByKeyWord(String input){
+    public ArrayList<SanPhamDTO> gettSPByKeyWord(String input){
         return spDAO.getSpByKey(input);
     }
 
@@ -111,15 +119,28 @@ public class SanPham_BUS {
     public boolean updateSP(Connection conn, DefaultTableModel model) {
 
         for (int i = 0; i < model.getRowCount(); i++) {
-
+            boolean daUpdate = false;
             String maSP = model.getValueAt(i, 1).toString();
             int sL = Integer.parseInt(model.getValueAt(i, 3).toString());
+//            TH1: kệ chứa sản phẩm còn chỗ
+            ArrayList<String> keKho = spDAO.getAllMaKe(conn,maSP);
+            for (String maKe : keKho){
+                int soLuong = spDAO.SumSLbyMaKe(conn,maKe);
+                int sucChua = kkBUS.getSucChua(conn,maKe);
+                int khoangTrong = sucChua - soLuong;
+                if (khoangTrong>=sL){
+                    if (!spDAO.updateSL(conn,maSP,maKe,sL))
+                        return false;
+                    else{
+                        daUpdate = true;
+                        break;
+                    }
+                }
+            }
+//            TH2: dời qua kệ mới
+            if (!daUpdate){
 
-            int soLuongMoi = tinhSLuong(maSP, sL);
-
-            // BUS không quyết định kệ nữa
-            if (!spDAO.updateSP(conn, soLuongMoi, null, maSP))
-                return false;
+            }
         }
 
         listSP = spDAO.getAllSanPham();
@@ -270,7 +291,7 @@ public class SanPham_BUS {
         return "Xóa thất bại !";
     }
     public  void refeshdata(){listSP=spDAO.getAllSanPham();}
-
+    public  void refeshdataDTO(){ListspDTO = spDAO.getListDTO();}
     public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
         return spDAO.laySanPhamTheoKe(maKe);
     }
