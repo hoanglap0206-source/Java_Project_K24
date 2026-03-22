@@ -138,7 +138,7 @@ public class TrangNhapKho extends JPanel {
             txtSearch.setText("Tìm kiếm");
         });
         btnLamMoi.addActionListener(e -> {
-            spBus.refeshdata();
+            spBus.refreshData();
             loadTableData();
             txtSearch.setText("Tìm kiếm");
         });
@@ -393,7 +393,7 @@ public class TrangNhapKho extends JPanel {
                 xuatExcel();
             }
             taoPN(maPN,dateTime);
-            spBus.refeshdata();
+            spBus.refreshData();
         });
 
         panel.add(leftWrapper, BorderLayout.WEST);
@@ -783,7 +783,7 @@ public class TrangNhapKho extends JPanel {
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE);
             resetForm();
-            spBus.refeshdata();
+            spBus.refreshData();
             loadTableData(); // Làm mới bảng trái
         } else {
             JOptionPane.showMessageDialog(this,

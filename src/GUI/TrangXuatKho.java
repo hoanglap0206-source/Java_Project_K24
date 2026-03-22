@@ -138,7 +138,7 @@ public class TrangXuatKho extends JPanel {
             txtSearch.setText("Tìm kiếm");
         });
         btnLamMoi.addActionListener(e -> {
-            spBus.refeshdata();
+            spBus.refreshData();
             loadTableData();
             txtSearch.setText("Tìm kiếm");
         });
@@ -416,7 +416,7 @@ public class TrangXuatKho extends JPanel {
                 xuatExcel();
             }
             TaoPX(maPX,dateTime);
-            spBus.refeshdata();
+            spBus.refreshData();
         });
         return panel;
     }

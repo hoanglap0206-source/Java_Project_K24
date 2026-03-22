@@ -592,4 +592,39 @@ public class SanPham_DAO {
 
         return null;
     }
+
+    public ArrayList<Object[]> getAllSanPhamWithDetails() {
+        ArrayList<Object[]> list = new ArrayList<>();
+        String sql =
+                "SELECT sp.ma_sku, sp.ten_sp, sp.dvt, sp.gia, " +
+                        "       COALESCE(SUM(ct.so_luong), 0) as tong_sl, " +
+                        "       GROUP_CONCAT(DISTINCT ct.ma_ke ORDER BY ct.ma_ke SEPARATOR ', ') as cac_ke " +
+                        "FROM SAN_PHAM sp " +
+                        "LEFT JOIN CHITIET_KE ct ON sp.ma_sku = ct.ma_sku " +
+                        "GROUP BY sp.ma_sku, sp.ten_sp, sp.dvt, sp.gia " +
+                        "ORDER BY sp.ma_sku";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while(rs.next()){
+                Object[] row = new Object[7]; // [ma, ten, dvt, gia, soLuong, maKe, trangThai]
+                row[0] = rs.getString("ma_sku");
+                row[1] = rs.getString("ten_sp");
+                row[2] = rs.getString("dvt");
+                row[3] = rs.getFloat("gia");
+                row[4] = rs.getInt("tong_sl");
+                row[5] = rs.getString("cac_ke");
+                if (row[5] == null || row[5].toString().isEmpty()) {
+                    row[5] = "Chưa có kệ";
+                }
+                row[6] = ((int)row[4] > 0) ? "Còn hàng" : "Hết hàng";
+                list.add(row);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

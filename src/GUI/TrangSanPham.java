@@ -381,36 +381,65 @@ public class TrangSanPham extends JPanel {
 
 
     // Có sửa
+//    private void loadTableData() {
+//        if (model == null) return;
+//        model.setRowCount(0);
+//        allRows.clear();
+//        int stt = 1;
+//        java.text.DecimalFormat df = new java.text.DecimalFormat("#,###đ");
+//
+//        // Lấy dữ liệu từ cache
+//        ArrayList<SanPham> listSP = spBus.getAll();
+//
+//        for (SanPham sp : listSP) {
+//            // Lấy số lượng từ cache (đã được tối ưu)
+//            int soLuong = spBus.getSoLuongTon(sp.getMaSP());
+//            String trangThai = (soLuong > 0) ? "Còn hàng" : "Hết hàng";
+//
+//            // Lấy mã kệ từ cache
+//            ArrayList<ChiTietKe> listCT = chiTietKeBUS.getByMaSP(sp.getMaSP());
+//            String maKe = "";
+//            if (!listCT.isEmpty()) {
+//                StringBuilder sb = new StringBuilder();
+//                for (ChiTietKe ct : listCT) {
+//                    sb.append(ct.getMaKe());
+//                }
+//                maKe = sb.toString().trim();
+//            } else {
+//                maKe = "Chưa có kệ";
+//            }
+//
+//            Object[] row = { stt++, sp.getMaSP(), sp.getTenSP(), sp.getDonViTinh(),
+//                    soLuong, df.format(sp.getGiaTien()), maKe, trangThai };
+//            allRows.add(row);
+//            model.addRow(row);
+//        }
+//    }
+
     private void loadTableData() {
         if (model == null) return;
         model.setRowCount(0);
         allRows.clear();
-        int stt = 1;
+
         java.text.DecimalFormat df = new java.text.DecimalFormat("#,###đ");
 
-        for (SanPham sp : spBus.getAll()) {
-            // Lấy số lượng từ ChiTietKe
-            int soLuong = spBus.getSoLuongTon(sp.getMaSP());
-            String trangThai = (soLuong > 0) ? "Còn hàng" : "Hết hàng";
+        // CHỈ 1 QUERY DUY NHẤT - Lấy tất cả dữ liệu đã được xử lý sẵn
+        ArrayList<Object[]> data = spBus.getTableData();
 
-            // Lấy mã kệ từ ChiTietKe (có thể 1 sản phẩm ở nhiều kệ)
-            ArrayList<ChiTietKe> listCT = chiTietKeBUS.getByMaSP(sp.getMaSP());
-            String maKe = "";
-            if (!listCT.isEmpty()) {
-                // Nếu sản phẩm ở nhiều kệ, hiển thị tất cả
-                StringBuilder sb = new StringBuilder();
-                for (ChiTietKe ct : listCT) {
-                    sb.append(ct.getMaKe());
-                }
-                maKe = sb.toString().trim();
-            } else {
-                maKe = "Chưa có kệ";
-            }
+        int stt = 1;
+        for (Object[] row : data) {
+            Object[] displayRow = new Object[8];
+            displayRow[0] = stt++;
+            displayRow[1] = row[0];  // mã SP
+            displayRow[2] = row[1];  // tên SP
+            displayRow[3] = row[2];  // đơn vị tính
+            displayRow[4] = row[4];  // số lượng
+            displayRow[5] = df.format(row[3]); // giá
+            displayRow[6] = row[5];  // mã kệ
+            displayRow[7] = row[6];  // trạng thái
 
-            Object[] row = { stt++, sp.getMaSP(), sp.getTenSP(), sp.getDonViTinh(),
-                    soLuong, df.format(sp.getGiaTien()), maKe, trangThai };
-            allRows.add(row);
-            model.addRow(row);
+            allRows.add(displayRow);
+            model.addRow(displayRow);
         }
     }
 
@@ -463,11 +492,13 @@ public class TrangSanPham extends JPanel {
 
     // Có sửa
     private void handleAdd() {
+        // Refresh cache kệ
         kkBus.refreshData();
         cboKeKho.removeAllItems();
 
-        // Chỉ hiển thị kệ còn chỗ trống
-        for (KeKho kk : kkBus.getListKeConTrong()) {
+        // Lấy danh sách kệ còn trống từ cache
+        ArrayList<KeKho> listKeConTrong = kkBus.getListKeConTrong();
+        for (KeKho kk : listKeConTrong) {
             cboKeKho.addItem(kk.getMaKe());
         }
 
@@ -515,7 +546,7 @@ public class TrangSanPham extends JPanel {
         String gia = model.getValueAt(row, 5).toString().replace("đ","").replace(",","");
         txtGia.setText(gia);
 
-        // Khi sửa, chỉ hiển thị kệ còn chỗ + kệ hiện tại
+        // Lấy cache kệ còn trống
         String maKeHienTai = model.getValueAt(row, 6).toString();
         cboKeKho.removeAllItems();
 
@@ -523,7 +554,8 @@ public class TrangSanPham extends JPanel {
             cboKeKho.addItem(maKeHienTai);
         }
 
-        for (KeKho kk : kkBus.getListKeConTrong()) {
+        ArrayList<KeKho> listKeConTrong = kkBus.getListKeConTrong();
+        for (KeKho kk : listKeConTrong) {
             if (!kk.getMaKe().equals(maKeHienTai)) {
                 cboKeKho.addItem(kk.getMaKe());
             }
@@ -538,6 +570,7 @@ public class TrangSanPham extends JPanel {
         txtSoLuong.setEditable(false);
         showFormPanel();
     }
+
     private void handleDelete() {
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -558,17 +591,27 @@ public class TrangSanPham extends JPanel {
 
         String msg = spBus.deleteSanPham(maSP);
         JOptionPane.showMessageDialog(this, msg);
+
+        // Refresh cache và load lại
+        spBus.refreshData();
+        kkBus.refreshData();
+        chiTietKeBUS.refreshData();
         loadTableData();
     }
+
     private void handleRefresh() {
+        // Refresh cache trong các BUS
+        spBus.refreshData();
+        kkBus.refreshData();
+        chiTietKeBUS.refreshData();
 
-        loadTableData();   // load lại bảng
+        // Load lại bảng
+        loadTableData();
 
-        clearForm();       // reset form
-
-        hideFormPanel();   // ẩn panel thêm/sửa
-
-        table.clearSelection(); // bỏ chọn dòng
+        // Reset form
+        clearForm();
+        hideFormPanel();
+        table.clearSelection();
     }
 
     // Có sửa
@@ -628,10 +671,14 @@ public class TrangSanPham extends JPanel {
         JOptionPane.showMessageDialog(this, msg);
 
         if (msg.toLowerCase().contains("thành công")) {
+            // Refresh tất cả cache
+            spBus.refreshData();
+            kkBus.refreshData();
+            chiTietKeBUS.refreshData();
+
             loadTableData();
             clearForm();
             hideFormPanel();
-            kkBus.refreshData();
         }
     }
 

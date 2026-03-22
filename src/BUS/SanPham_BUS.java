@@ -16,7 +16,14 @@ public class SanPham_BUS {
     private KeKho_BUS kkBUS;
     private ChiTietKe_DAO ctDAO;
 
+    // THÊM CACHE CHO DỮ LIỆU BẢNG
+    private ArrayList<Object[]> cachedTableData;
+    private boolean needRefresh = true;
+
     public ArrayList<SanPham> getListSP() {
+        if (needRefresh) {
+            refreshData();
+        }
         return listSP;
     }
 
@@ -24,11 +31,37 @@ public class SanPham_BUS {
         spDAO = new SanPham_DAO();
         kkBUS = new KeKho_BUS();
         ctDAO = new ChiTietKe_DAO();
+        cachedTableData = new ArrayList<>();
+        loadAllData();
+    }
+
+    private void loadAllData() {
         listSP = spDAO.getAllSanPham();
+        needRefresh = false;
+        // Không cần cache số lượng tồn riêng nữa
+    }
+
+    // PHƯƠNG THỨC MỚI - Lấy dữ liệu đã xử lý sẵn cho bảng
+    public ArrayList<Object[]> getTableData() {
+        if (needRefresh || cachedTableData.isEmpty()) {
+            refreshTableCache();
+        }
+        return cachedTableData;
+    }
+
+    // Refresh cache dữ liệu bảng
+    private void refreshTableCache() {
+        cachedTableData.clear();
+        ArrayList<Object[]> rawData = spDAO.getAllSanPhamWithDetails();
+        cachedTableData.addAll(rawData);
+        needRefresh = false;
     }
 
     public ArrayList<SanPham> getAll() {
-        return spDAO.getAllSanPham();
+        if (needRefresh) {
+            refreshData();
+        }
+        return listSP;
     }
 
     public ArrayList<SanPham> gettSPByKeyWord(String input){
@@ -36,7 +69,13 @@ public class SanPham_BUS {
     }
 
     public int getSoLuongTon(String maSP) {
-        return ctDAO.getTongSoLuongByMaSP(maSP);
+        // Lấy từ cache thay vì query
+        for (Object[] row : cachedTableData) {
+            if (row[0].toString().equals(maSP)) {
+                return (int) row[4];
+            }
+        }
+        return 0;
     }
 
     public boolean updateSP(Connection conn, DefaultTableModel model) {
@@ -50,7 +89,7 @@ public class SanPham_BUS {
                 return false;
         }
 
-        listSP = spDAO.getAllSanPham();
+        refreshData();
         return true;
     }
 
@@ -73,7 +112,7 @@ public class SanPham_BUS {
             System.out.println("    → Update SAN_PHAM thành công");
         }
         System.out.println("updateSPPX hoàn tất → load lại listSP");
-        listSP = spDAO.getAllSanPham();
+        refreshData();
         return true;
     }
 
@@ -108,7 +147,13 @@ public class SanPham_BUS {
         if (slMoi < 0) return false;
 
         ct.setSoLuong(slMoi);
-        return ctDAO.insertOrUpdate(ct);
+        boolean result = ctDAO.insertOrUpdate(ct);
+
+        if (result) {
+            refreshData();
+        }
+
+        return result;
     }
 
     public String addSanPham(SanPham sp, int soLuong) {
@@ -119,7 +164,6 @@ public class SanPham_BUS {
             if(item.getMaSP().equalsIgnoreCase(sp.getMaSP()))
                 return "Mã sản phẩm đã tồn tại";
 
-        // Kiểm tra sức chứa
         KeKho ke = kkBUS.getKeTheoMa(sp.getMaKe());
         if (ke != null) {
             int tongHienTai = kkBUS.tinhTongSoLuongTheoKe(ke.getMaKe());
@@ -136,19 +180,17 @@ public class SanPham_BUS {
                             soLuong
                     )
             );
-            listSP.add(sp);
+            refreshData();
             return "Thêm sản phẩm thành công";
         }
         return "Thêm sản phẩm thất bại";
     }
 
     public String updateSanPham(SanPham sp, int soLuongMoi) {
-        // Kiểm tra sức chứa
         KeKho ke = kkBUS.getKeTheoMa(sp.getMaKe());
         if (ke != null) {
             int tongHienTai = kkBUS.tinhTongSoLuongTheoKe(ke.getMaKe());
 
-            // Lấy số lượng cũ của sản phẩm từ ChiTietKe
             int soLuongCu = 0;
             ArrayList<ChiTietKe> listCT = ctDAO.getByMaSP(sp.getMaSP());
             for (ChiTietKe ct : listCT) {
@@ -173,13 +215,7 @@ public class SanPham_BUS {
                             soLuongMoi
                     )
             );
-
-            for (int i = 0; i < listSP.size(); i++) {
-                if (listSP.get(i).getMaSP().equals(sp.getMaSP())) {
-                    listSP.set(i, sp);
-                    break;
-                }
-            }
+            refreshData();
             return "Cập nhật thành công!";
         }
         return "Cập nhật thất bại!";
@@ -187,14 +223,19 @@ public class SanPham_BUS {
 
     public String deleteSanPham(String maSP) {
         if (spDAO.delete(maSP)) {
-            listSP.removeIf(sp -> sp.getMaSP().equals(maSP));
+            refreshData();
             return "Xóa sản phẩm thành công!";
         }
         return "Xóa thất bại !";
     }
 
-    public void refeshdata(){
-        listSP = spDAO.getAllSanPham();
+    public void refreshData() {
+        loadAllData();
+        needRefresh = true;  // Đánh dấu cần refresh cache bảng
+        refreshTableCache(); // Refresh luôn cache bảng
+        if (kkBUS != null) {
+            kkBUS.refreshData();
+        }
     }
 
     public ArrayList<SanPham> laySanPhamTheoKe(String maKe){
@@ -202,6 +243,10 @@ public class SanPham_BUS {
     }
 
     public SanPham getSanPhamByMa(String maSP) {
+        if (needRefresh) {
+            refreshData();
+        }
+
         for (SanPham sp : listSP) {
             if (sp.getMaSP().equals(maSP)) {
                 return sp;
