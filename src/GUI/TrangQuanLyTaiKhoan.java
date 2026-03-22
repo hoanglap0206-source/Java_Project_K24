@@ -463,18 +463,31 @@ public class TrangQuanLyTaiKhoan extends JPanel {
     }
 
     private void saveNhanVien() {
-        String maNV = txtMaNV.getText().trim(), hoTen = txtHoTen.getText().trim();
-        String sdt = txtSDT.getText().trim(), matKhau = new String(txtMatKhau.getPassword()).trim();
+        String maNV    = txtMaNV.getText().trim();
+        String hoTen   = txtHoTen.getText().trim();
+        String sdt     = txtSDT.getText().trim();
+        String matKhau = new String(txtMatKhau.getPassword()).trim();
+
+        // Kiểm tra bắt buộc
         if (maNV.isEmpty() || hoTen.isEmpty() || matKhau.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Mã NV, họ tên và mật khẩu không được để trống!"); return;
+            JOptionPane.showMessageDialog(this, "Mã NV, họ tên và mật khẩu không được để trống!",
+                    "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE); return;
         }
+
+        // Kiểm tra SĐT nếu có nhập
+        if (!sdt.isEmpty() && !sdt.matches("\\d{10}")) {
+            JOptionPane.showMessageDialog(this, "Số điện thoại phải có đúng 10 chữ số!",
+                    "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
+            txtSDT.requestFocusInWindow(); return;
+        }
+
         NhanVien nv = new NhanVien();
         nv.setMaNV(maNV); nv.setHoTen(hoTen); nv.setSDT(sdt); nv.setMatKhau(matKhau);
-        // Lấy maNhom từ item "NQ01 - TenNhom"
         String selectedNhom = cboChucVu.getSelectedItem() != null ? cboChucVu.getSelectedItem().toString() : "";
         String maNhom = selectedNhom.contains(" - ") ? selectedNhom.split(" - ", 2)[0].trim() : selectedNhom;
         nv.setMaNhom(maNhom);
         nv.setTrangThai(cboTrangThai.getSelectedItem().toString());
+
         String msg = lblFormTitle.getText().equals("THÊM TÀI KHOẢN") ? nvBUS.addNV(nv) : nvBUS.updateNV(nv);
         JOptionPane.showMessageDialog(this, msg);
         if (msg.toLowerCase().contains("thành công")) {
