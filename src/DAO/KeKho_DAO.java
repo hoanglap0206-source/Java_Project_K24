@@ -2,6 +2,7 @@ package DAO;
 
 import DataBase.DBConnection;
 import Model.KeKho;
+import Model.KeKhoDTO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -112,5 +113,30 @@ public class KeKho_DAO {
             e.printStackTrace();
         }
         return sucChua;
+    }
+    public ArrayList<KeKhoDTO> getDSKeKho_Nhap(Connection conn){
+        String sql = """
+                SELECT ma_ke, SUM(so_luong) AS tongSL
+                FROM CHITIET_KE
+                GROUP BY ma_ke
+                ORDER BY tongSL ASC
+                """;
+        ArrayList<KeKhoDTO> list = new ArrayList<>();
+        try(
+                PreparedStatement ps = conn.prepareStatement(sql);
+                )
+        {
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                KeKhoDTO kk = new KeKhoDTO();
+                kk.setMa_ke(rs.getString("ma_ke"));
+                kk.setTongSL(rs.getInt("tongSL"));
+                list.add(kk);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

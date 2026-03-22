@@ -1,15 +1,14 @@
 package DAO;
 
 import DataBase.DBConnection;
-import Model.KeKho;
-import Model.SanPham;
-import Model.ChiTietKe;
+import Model.*;
 import DAO.ChiTietKe_DAO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.List;
 
 public class SanPham_DAO {
     private ChiTietKe_DAO chiTietKeDAO = new ChiTietKe_DAO();
@@ -87,34 +86,35 @@ public class SanPham_DAO {
         return list;
     }
 
-    public boolean insert(SanPham sp){
-        String sql = "INSERT INTO SAN_PHAM(ma_sku, ten_sp, dvt, gia) VALUES (?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, sp.getMaSP());
-            ps.setString(2, sp.getTenSP());
-            ps.setString(3, sp.getDonViTinh());
-            ps.setFloat(4, sp.getGiaTien());
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+    public ArrayList<SanPhamDTO> getListDTO(){
+        ArrayList<SanPhamDTO> listsp = new ArrayList<>();
+        String sql = """
+                SELECT sp.ma_sku, sp.ten_sp, sp.trang_thai, sp.gia, sp.dvt
+                , COALESCE(SUM(kksp.so_luong), 0) AS tongSL
+                FROM san_pham sp 
+                JOIN chitiet_ke kksp ON sp.ma_sku = kksp.ma_sku
+                GROUP BY sp.ma_sku
+                """;
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+        ){
+            while(rs.next()){
+                SanPhamDTO sp = new SanPhamDTO();
+                sp.setMa_sku(rs.getString("ma_sku"));
+                sp.setTenSP(rs.getString("ten_sp"));
+                sp.setSl(rs.getInt("tongSL"));
+                sp.setTrangthai(rs.getInt("trang_thai"));
+                sp.setGiaTien(rs.getFloat("gia"));
+                sp.setDonViTinh(rs.getString("dvt"));
+                listsp.add(sp);
+            }
 
-    public boolean update(SanPham sp){
-        String sql = "UPDATE SAN_PHAM SET ten_sp=?, dvt=?, gia=? WHERE ma_sku=?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, sp.getTenSP());
-            ps.setString(2, sp.getDonViTinh());
-            ps.setFloat(3, sp.getGiaTien());
-            ps.setString(4, sp.getMaSP());
-            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
+        return listsp;
     }
 
     public ArrayList<SanPham> getSpByKey(String input){
@@ -148,7 +148,115 @@ public class SanPham_DAO {
         }
         return list;
     }
+    public boolean insert(SanPham sp){
+        String sql = "INSERT INTO SAN_PHAM(ma_sku, ten_sp, dvt, gia) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sp.getMaSP());
+            ps.setString(2, sp.getTenSP());
+            ps.setString(3, sp.getDonViTinh());
+            ps.setFloat(4, sp.getGiaTien());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
+    public ArrayList<String> getAllMaKe(Connection conn,String maSP){
+        String sql = """
+                SELECT kksp.ma_ke
+                FROM chitiet_ke kksp
+                WHERE kksp.ma_sku = ?;
+                """;
+        ArrayList<String> list = new ArrayList<>();
+        try(
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ){
+            ps.setString(1, maSP);
+            ResultSet rs = ps.executeQuery();
+
+            while(rs.next()){
+                String maKe = rs.getString("ma_ke");
+                list.add(maKe);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    public boolean updateSL(Connection conn, String maSP, String maKe, int soLuong) {
+
+        String updateSQL = """
+        UPDATE CHITIET_KE
+        SET so_luong = so_luong + ?
+        WHERE ma_sku = ? AND ma_ke = ?
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(updateSQL)) {
+            ps.setInt(1, soLuong);
+            ps.setString(2, maSP);
+            ps.setString(3, maKe);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0) return true;
+
+            String insertSQL = """
+            INSERT INTO CHITIET_KE(ma_sku, ma_ke, so_luong)
+            VALUES (?, ?, ?)
+        """;
+
+            try (PreparedStatement ps2 = conn.prepareStatement(insertSQL)) {
+                ps2.setString(1, maSP);
+                ps2.setString(2, maKe);
+                ps2.setInt(3, soLuong);
+
+                return ps2.executeUpdate() > 0;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public ArrayList<SanPhamDTO> getSpByKeyDTO(String input){
+        ArrayList<SanPhamDTO> list = new ArrayList<>();
+        String sql = """
+        SELECT sp.*, COALESCE(SUM(kksp.so_luong), 0) AS tongSL
+        FROM san_pham sp
+        JOIN chitiet_ke kksp ON sp.ma_sku = kksp.ma_sku
+        WHERE LOWER(sp.ma_sku) = LOWER(?)
+        OR LOWER(sp.ma_sku) LIKE LOWER(CONCAT('%', ?, '%'))
+        OR LOWER(sp.ten_sp) LIKE LOWER(CONCAT('%', ?, '%'))
+        GROUP BY sp.ma_sku
+        ORDER BY (LOWER(sp.ma_sku) = LOWER(?)) DESC;
+    """;
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+        ) {
+            String keyword = "%" + input + "%";
+            ps.setString(1, input);
+            ps.setString(2, keyword);
+            ps.setString(3, keyword);
+            ps.setString(4,input);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                SanPhamDTO sp = new SanPhamDTO();
+                sp.setMa_sku(rs.getString("ma_sku"));
+                sp.setTenSP(rs.getString("ten_sp"));
+                sp.setDonViTinh(rs.getString("dvt"));
+                sp.setSl(rs.getInt("tongSL"));
+                sp.setGiaTien(rs.getFloat("gia"));
+                sp.setTrangthai(rs.getInt("trang_thai"));
+                list.add(sp);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 //    public boolean insert(SanPham sp){
 ////        Trước khi thêm sản phẩm cần kiểm tra sức chứa ở kệ chứa sản phẩm nếu vượt mức sức chứa thì báo lỗi
 //        String sql ="INSERT INTO SAN_PHAM(ma_sku,ten_sp,dvt,sl,gia,ma_ke) VALUES (?, ?, ?,?,?,?)";
@@ -626,5 +734,63 @@ public class SanPham_DAO {
             e.printStackTrace();
         }
         return list;
+    }
+    public ArrayList<KeKhoDTO> getDanhSachKeXuat(String maSP,Connection conn) {
+        ArrayList<KeKhoDTO> list = new ArrayList<>();
+
+        String sql = """
+        SELECT ma_ke, so_luong
+        FROM CHITIET_KE
+        WHERE ma_sku = ?
+        ORDER BY so_luong DESC
+    """;
+
+        try (
+             PreparedStatement ps = conn.prepareStatement(sql);
+        ) {
+
+            ps.setString(1, maSP);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                KeKhoDTO ksp = new KeKhoDTO();
+                ksp.setMa_ke(rs.getString("ma_ke"));
+                ksp.setTongSL(rs.getInt("so_luong"));
+                list.add(ksp);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    public boolean updateSLXuat(Connection conn, String maSP, String maKe, int soLuongTru) {
+        String sql = """
+        UPDATE CHITIET_KE
+        SET so_luong = so_luong - ?
+        WHERE ma_sku = ? AND ma_ke = ?
+    """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, soLuongTru);
+            ps.setString(2, maSP);
+            ps.setString(3, maKe);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    public boolean deleteIfZero(Connection conn, String maSP, String maKe) {
+        String sql = """
+        DELETE FROM CHITIET_KE
+        WHERE ma_sku = ? AND ma_ke = ? AND so_luong = 0
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maSP);
+            ps.setString(2, maKe);
+            return ps.executeUpdate() >= 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

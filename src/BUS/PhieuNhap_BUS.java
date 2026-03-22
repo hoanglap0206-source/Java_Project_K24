@@ -79,26 +79,25 @@ public class PhieuNhap_BUS {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // KIỂM TRA SỨC CHỨA KỆ TRƯỚC KHI NHẬP
-            for (int i = 0; i < model.getRowCount(); i++) {
-                String maSP = model.getValueAt(i, 1).toString();
-                int soLuongNhap = Integer.parseInt(model.getValueAt(i, 3).toString());
-                String maKe = model.getValueAt(i, 6).toString(); // Giả sử cột 6 là mã kệ
-
-                KeKho ke = kkBUS.getKeTheoMa(maKe);
-                if (ke != null) {
-                    int tongHienTai = kkBUS.tinhTongSoLuongTheoKe(maKe);
-                    if (tongHienTai + soLuongNhap > ke.getSucChua()) {
-                        return false; // Trả về false, GUI sẽ hiển thị lỗi
-                    }
-                }
-            }
-
+//            // KIỂM TRA SỨC CHỨA KỆ TRƯỚC KHI NHẬP
+//            for (int i = 0; i < model.getRowCount(); i++) {
+//                String maSP = model.getValueAt(i, 1).toString();
+//                int soLuongNhap = Integer.parseInt(model.getValueAt(i, 3).toString());
+//                String maKe = model.getValueAt(i, 6).toString(); // Giả sử cột 6 là mã kệ
+//
+//                KeKho ke = kkBUS.getKeTheoMa(maKe);
+//                if (ke != null) {
+//                    int tongHienTai = kkBUS.tinhTongSoLuongTheoKe(maKe);
+//                    if (tongHienTai + soLuongNhap > ke.getSucChua()) {
+//                        return false; // Trả về false, GUI sẽ hiển thị lỗi
+//                    }
+//                }
+//            }
             if (!insertPN(conn, pn, model)) {
                 throw new SQLException("Thêm PN thất bại");
             }
 
-            if (!spBus.updateSP(conn, model)) {
+            if (!spBus.updateSPNhap(conn, model)) {
                 throw new SQLException("Lỗi cập nhật sản phẩm");
             }
 

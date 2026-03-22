@@ -44,21 +44,20 @@ public class ChiTietPX_BUS {
             System.out.println("→ SL <= 0 → từ chối");
             return false;
         }
-        int tonkho = spBUS.getSoLuongTon(ct.getSanPham().getMaSP());
-        if(ct.getSoLuong() > tonkho)
-            return false;
+//        int tonkho = spBUS.getSoLuongTon(ct.getSanPham().getMaSP());
+//        if(ct.getSoLuong() > tonkho)
+//            return false;
         // Kiểm tra trùng sản phẩm trong cùng 1 phiếu
-        for (ChiTiet_PhieuXuat item : listCTPX) {
-            if (item.getPhieuXuat().getMaPX().equals(ct.getPhieuXuat().getMaPX())
-                    && item.getSanPham().getMaSP().equals(ct.getSanPham().getMaSP())) {
-                System.out.println("→ Trùng sản phẩm trong cùng phiếu → từ chối");
-                return false;
-            }
-        }
+//        for (ChiTiet_PhieuXuat item : listCTPX) {
+//            if (item.getPhieuXuat().getMaPX().equals(ct.getPhieuXuat().getMaPX())
+//                    && item.getSanPham().getMaSP().equals(ct.getSanPham().getMaSP())) {
+//                System.out.println("→ Trùng sản phẩm trong cùng phiếu → từ chối");
+//                return false;
+//            }
+//        }
 
         // Tính toán trước khi lưu (ThanhTien = SL * DonGia + VAT)
         // Lưu ý: Tùy vào cách tính VAT (số tiền hay %) mà điều chỉnh công thức này
-
         if (ctDAO.inSert(conn,ct)) {
             System.out.println("→ Insert CHITIET_PHIEU_XUAT thành công");
             listCTPX.add(ct);

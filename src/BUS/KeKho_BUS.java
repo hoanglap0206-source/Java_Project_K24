@@ -4,9 +4,11 @@ import DAO.KeKho_DAO;
 import DAO.SanPham_DAO;
 import DAO.ChiTietKe_DAO;
 import Model.KeKho;
+import Model.KeKhoDTO;
 import Model.SanPham;
 import Model.ChiTietKe;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 
 public class KeKho_BUS {
@@ -16,7 +18,6 @@ public class KeKho_BUS {
     private KeKho_DAO kkDAO;
     private SanPham_DAO spDAO;
     private ChiTietKe_DAO ctDAO;
-
     // Cache các giá trị tính toán
     private ArrayList<Integer> cacheTongSoLuongTheoKe;
     private ArrayList<Integer> cachePhanTramTheoKe;
@@ -28,7 +29,12 @@ public class KeKho_BUS {
         ctDAO = new ChiTietKe_DAO();
         loadAllData();
     }
-
+    public ArrayList<KeKhoDTO> getDSKeKho_Nhap(Connection conn){
+        return kkDAO.getDSKeKho_Nhap(conn);
+    }
+    public int getSucChua(Connection conn,String MaKe){
+        return kkDAO.getSucChua(conn,MaKe);
+    }
     private void loadAllData() {
         listKK = kkDAO.getAllKeKho();
         listAllSP = spDAO.getAllSanPham();
