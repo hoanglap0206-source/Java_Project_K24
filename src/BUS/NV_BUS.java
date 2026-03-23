@@ -54,6 +54,11 @@ public class NV_BUS {
         for (NhanVien existing : listNV)
             if (existing.getMaNV().equalsIgnoreCase(nv.getMaNV()))
                 return "Mã nhân viên đã tồn tại!!";
+
+        // Kiểm tra trùng họ tên
+        for (NhanVien existing : listNV)
+            if (existing.getHoTen().equalsIgnoreCase(nv.getHoTen()))
+                return "Họ tên \"" + nv.getHoTen() + "\" đã tồn tại (thuộc " + existing.getMaNV() + ")!";
         if (nv.getHoTen().isEmpty() || nv.getMatKhau().isEmpty())
             return "Họ tên và mật khẩu không được để trống";
 
@@ -105,6 +110,12 @@ public class NV_BUS {
                         && !existing.getMaNV().equalsIgnoreCase(nv.getMaNV()))
                     return "Số điện thoại đã được dùng bởi nhân viên " + existing.getMaNV() + "!";
         }
+
+        // Kiểm tra trùng họ tên — bỏ qua chính mình
+        for (NhanVien existing : listNV)
+            if (existing.getHoTen().equalsIgnoreCase(nv.getHoTen())
+                    && !existing.getMaNV().equalsIgnoreCase(nv.getMaNV()))
+                return "Họ tên \"" + nv.getHoTen() + "\" đã tồn tại (thuộc " + existing.getMaNV() + ")!";
 
         if (nvDAO.update(nv)) {
             for (int i = 0; i < listNV.size(); i++) {
