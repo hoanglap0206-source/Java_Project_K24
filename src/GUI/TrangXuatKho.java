@@ -785,6 +785,7 @@ public class TrangXuatKho extends JPanel {
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE
             );
+            refreshTrangKeKho();
             resetForm();
         }else{
             JOptionPane.showMessageDialog(
@@ -795,6 +796,25 @@ public class TrangXuatKho extends JPanel {
             );
         }
 
+    }
+
+    private void refreshTrangKeKho() {
+        java.awt.Window window = SwingUtilities.getWindowAncestor(this);
+        if (window instanceof JFrame) {
+            JFrame frame = (JFrame) window;
+            for (Component comp : frame.getContentPane().getComponents()) {
+                if (comp instanceof JTabbedPane) {
+                    JTabbedPane tabPane = (JTabbedPane) comp;
+                    for (int i = 0; i < tabPane.getTabCount(); i++) {
+                        Component tab = tabPane.getComponentAt(i);
+                        if (tab instanceof TrangKeKho) {
+                            ((TrangKeKho) tab).refreshData();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void xuatExcel() {

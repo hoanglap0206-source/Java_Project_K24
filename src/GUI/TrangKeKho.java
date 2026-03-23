@@ -1170,6 +1170,22 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 //        }
 //    }
 
+    public void refreshData() {
+        // Refresh dữ liệu từ BUS
+        bus.refreshData();
+        chiTietKeBUS.refreshData();
+        spBus.refreshData();
+
+        // Cập nhật lại giao diện
+        loadSoDo();
+        capNhatTongSanPham();
+
+        // Nếu đang có kệ được chọn, cập nhật lại bảng
+        if (selectedMaKe != null) {
+            capNhatBang(selectedMaKe);
+        }
+    }
+
     @Override
     public void apDungQuyen(boolean coQuyen_Xem, boolean coQuyen_Them,
                             boolean coQuyen_Sua, boolean coQuyen_Xoa) {

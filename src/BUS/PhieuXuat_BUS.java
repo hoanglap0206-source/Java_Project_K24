@@ -6,6 +6,7 @@ import Model.ChiTiet_PhieuXuat;
 import Model.PhieuNhap;
 import Model.PhieuXuat;
 import Model.SanPham;
+import BUS.ChiTietKe_BUS;
 
 import javax.swing.table.DefaultTableModel;
 import java.sql.Connection;
