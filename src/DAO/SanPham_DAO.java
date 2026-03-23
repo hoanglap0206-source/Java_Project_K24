@@ -542,28 +542,39 @@ public class SanPham_DAO {
 
     public boolean delete(String maSP) {
         Connection conn = null;
-
         try {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. xóa chi tiết kệ
+            // 1. Xóa chitiet_ke
             PreparedStatement ps0 = conn.prepareStatement(
                     "DELETE FROM CHITIET_KE WHERE ma_sku = ?");
             ps0.setString(1, maSP);
             ps0.executeUpdate();
+            ps0.close();
 
-            // 2. xóa sản phẩm
+            // 2. Xóa chitiet_phieu_nhap
             PreparedStatement ps1 = conn.prepareStatement(
-                    "DELETE FROM SAN_PHAM WHERE ma_sku = ?");
+                    "DELETE FROM CHITIET_PHIEU_NHAP WHERE ma_sku = ?");
             ps1.setString(1, maSP);
+            ps1.executeUpdate();
+            ps1.close();
 
-            int rows = ps1.executeUpdate();
+            // 3. Xóa chitiet_phieu_xuat
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "DELETE FROM CHITIET_PHIEU_XUAT WHERE ma_sku = ?");
+            ps2.setString(1, maSP);
+            ps2.executeUpdate();
+            ps2.close();
 
-            if (rows == 0) {
-                conn.rollback();
-                return false;
-            }
+            // 4. Xóa sản phẩm
+            PreparedStatement ps3 = conn.prepareStatement(
+                    "DELETE FROM SAN_PHAM WHERE ma_sku = ?");
+            ps3.setString(1, maSP);
+            int rows = ps3.executeUpdate();
+            ps3.close();
+
+            if (rows == 0) { conn.rollback(); return false; }
 
             conn.commit();
             return true;
@@ -573,12 +584,8 @@ public class SanPham_DAO {
             e.printStackTrace();
             return false;
         } finally {
-            try {
-                if (conn != null) {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            } catch (Exception ignored) {}
+            try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } }
+            catch (Exception ignored) {}
         }
     }
 
