@@ -617,7 +617,9 @@ public class TrangNhapKho extends JPanel {
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE
             );
-            refreshTrangKeKho();
+            if (ManHinhChinh.trangKeKho != null) {
+                ManHinhChinh.trangKeKho.refreshData();
+            }
             resetForm();
         }else{
             JOptionPane.showMessageDialog(
@@ -626,27 +628,6 @@ public class TrangNhapKho extends JPanel {
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE
             );
-        }
-    }
-
-    // Thêm phương thức để lấy và refresh TrangKeKho
-    private void refreshTrangKeKho() {
-        // Tìm và refresh TrangKeKho nếu đang mở
-        java.awt.Window window = SwingUtilities.getWindowAncestor(this);
-        if (window instanceof JFrame) {
-            JFrame frame = (JFrame) window;
-            for (Component comp : frame.getContentPane().getComponents()) {
-                if (comp instanceof JTabbedPane) {
-                    JTabbedPane tabPane = (JTabbedPane) comp;
-                    for (int i = 0; i < tabPane.getTabCount(); i++) {
-                        Component tab = tabPane.getComponentAt(i);
-                        if (tab instanceof TrangKeKho) {
-                            ((TrangKeKho) tab).refreshData();
-                            break;
-                        }
-                    }
-                }
-            }
         }
     }
 

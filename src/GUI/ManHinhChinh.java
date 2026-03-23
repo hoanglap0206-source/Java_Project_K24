@@ -11,6 +11,7 @@ public class ManHinhChinh extends JFrame {
     public static String currentMaNV;
     private ThanhTieuDe thanhTieuDe;
     private ThanhBen thanhBen;
+    public static TrangKeKho trangKeKho;
 
     public ManHinhChinh(String maNV) {
         setUndecorated(true);
@@ -30,6 +31,9 @@ public class ManHinhChinh extends JFrame {
         // Tạo Content Panel với CardLayout
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
+
+        TrangKeKho keKho = new TrangKeKho();
+        trangKeKho = keKho;
 
         // Thêm các trang vào contentPanel
         contentPanel.add(new TrangTongQuan(), "Tổng quan");

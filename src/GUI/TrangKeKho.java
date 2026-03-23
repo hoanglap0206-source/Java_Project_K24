@@ -1176,7 +1176,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         chiTietKeBUS.refreshData();
         spBus.refreshData();
 
-        // Cập nhật lại giao diện
+        // Cập nhật giao diện
         loadSoDo();
         capNhatTongSanPham();
 
