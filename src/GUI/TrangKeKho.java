@@ -681,7 +681,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 JOptionPane.showMessageDialog(null, result);
 
                 if (result.contains("thành công")) {
-                    loadSoDo();
+                    refreshData();
                     return;
                 }
 
@@ -756,8 +756,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
                 JOptionPane.showMessageDialog(null, result);
 
                 if (result.contains("thành công")) {
-                    loadSoDo();
-                    capNhatBang(ma);
+                    refreshData();
                     selectedMaKe = ma;
                     return;
                 }
@@ -791,10 +790,7 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
             JOptionPane.showMessageDialog(null, result);
 
             if (result.contains("thành công")) {
-                loadSoDo();
-                // Clear selection
-                selectedMaKe = null;
-                selectedCard = null;
+                refreshData();
                 // Xóa bảng
                 model.setRowCount(0);
                 lblTenKe.setText("Kệ ");
@@ -899,9 +895,9 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         ArrayList<KeKho> listKe = bus.getListKK();
         sapXepKe(listKe);
         veSoDoKe(listKe);
-        selectedCard = null; // đảm bảo không còn tham chiếu đến card cũ
-        selectedMaKe = null; // tương tự, không tham chiếu đến mã kệ cũ
-        selectedTenHienThi = null;
+//        selectedCard = null; // đảm bảo không còn tham chiếu đến card cũ
+//        selectedMaKe = null; // tương tự, không tham chiếu đến mã kệ cũ
+//        selectedTenHienThi = null;
         capNhatTongSanPham();
     }
 
@@ -1002,7 +998,20 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
     }
 
     private void capNhatBang(String maKe) {
-        lblTenKe.setText("Kệ " + selectedTenHienThi);
+        // Kiểm tra selectedTenHienThi có null không
+        if (selectedTenHienThi != null) {
+            lblTenKe.setText("Kệ " + selectedTenHienThi);
+        } else {
+            // Nếu null thì lấy từ thông tin kệ
+            KeKho ke = bus.getKeTheoMa(maKe);
+            if (ke != null) {
+                int stt = getSttCuaKe(ke);
+                lblTenKe.setText("Kệ " + ke.getViTri() + stt);
+            } else {
+                lblTenKe.setText("Kệ " + maKe);
+            }
+        }
+
         model.setRowCount(0);
 
         // Lấy danh sách ChiTietKe từ cache
@@ -1025,7 +1034,6 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
 
         KeKho ke = bus.getKeTheoMa(maKe);
         if (ke != null) {
-            // Lấy từ cache thay vì tính lại
             int tong = bus.tinhTongSoLuongTheoKe(maKe);
             int khoangTrong = ke.getSucChua() - tong;
             lblMaKe.setText("Mã kệ: " + maKe);
@@ -1176,13 +1184,33 @@ public class TrangKeKho extends JPanel implements QuyenTrang {
         chiTietKeBUS.refreshData();
         spBus.refreshData();
 
-        // Cập nhật giao diện
-        loadSoDo();
+        // Cập nhật lại sơ đồ (vẫn giữ selectedMaKe)
+        ArrayList<KeKho> listKe = bus.getListKK();
+        sapXepKe(listKe);
+        veSoDoKe(listKe);
         capNhatTongSanPham();
 
         // Nếu đang có kệ được chọn, cập nhật lại bảng
         if (selectedMaKe != null) {
-            capNhatBang(selectedMaKe);
+            // Kiểm tra xem kệ vẫn còn tồn tại không
+            KeKho ke = bus.getKeTheoMa(selectedMaKe);
+            if (ke != null) {
+                // Cập nhật tên hiển thị (có thể thay đổi sau khi sửa kệ)
+                int stt = getSttCuaKe(ke);
+                selectedTenHienThi = ke.getViTri() + stt;
+                capNhatBang(selectedMaKe);
+            } else {
+                // Kệ đã bị xóa, reset selection
+                selectedMaKe = null;
+                selectedTenHienThi = null;
+                model.setRowCount(0);
+                lblTenKe.setText("Kệ ");
+                lblMaKe.setText("Mã kệ: ");
+                lblViTri.setText("Vị trí: Dãy  ");
+                lblSucChua.setText("Sức chứa tối đa: ");
+                lblHienTai.setText("Đang chứa: ");
+                lblKhoangTrong.setText("Còn trống: ");
+            }
         }
     }
 
