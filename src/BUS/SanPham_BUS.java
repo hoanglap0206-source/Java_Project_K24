@@ -206,6 +206,11 @@ public class SanPham_BUS {
             if(item.getMaSP().equalsIgnoreCase(sp.getMaSP()))
                 return "Mã sản phẩm đã tồn tại";
 
+        // Kiểm tra trùng tên SP
+        for(SanPham item : listSP)
+            if(item.getTenSP().equalsIgnoreCase(sp.getTenSP()))
+                return "Tên sản phẩm \"" + sp.getTenSP() + "\" đã tồn tại (mã " + item.getMaSP() + ")!";
+
         KeKho ke = kkBUS.getKeTheoMa(sp.getMaKe());
         if (ke != null) {
             int tongHienTai = kkBUS.tinhTongSoLuongTheoKe(ke.getMaKe());
@@ -296,8 +301,8 @@ public class SanPham_BUS {
         loadAllData();
         needRefresh = true;  // Đánh dấu cần refresh cache bảng
         refreshTableCache(); // Refresh luôn cache bảng
-//        if (kkBUS != null) {
-//            kkBUS.refreshData();
-//        }
+        if (kkBUS != null) {
+            kkBUS.refreshData();
+        }
     }
 }
