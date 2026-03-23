@@ -202,6 +202,7 @@ public class TrangSanPham extends JPanel {
         txtTenSP   = new JTextField();
         txtSoLuong = new JTextField("0");
         txtSoLuong.setEditable(false);
+        txtSoLuong.setFocusable(false);
         txtGia     = new JTextField();
 
         // ComboBox đơn vị tính
