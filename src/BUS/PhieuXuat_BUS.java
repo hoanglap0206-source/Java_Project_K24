@@ -46,7 +46,7 @@ public class PhieuXuat_BUS {
         return "Thêm thất bại!";
     }
 
-    public boolean insertPX(Connection conn, PhieuXuat px, DefaultTableModel model){
+    public boolean insertPX(Connection conn, PhieuXuat px, DefaultTableModel model,double thue){
         if(!pxDAO.inSert(conn,px)){
             System.out.println("→ Thất bại khi insert PhieuXuat chính (pxDAO.inSert)");
             return false;
@@ -65,12 +65,11 @@ public class PhieuXuat_BUS {
             double donGia = Double.parseDouble(model.getValueAt(i,4).toString());
 
             System.out.println("  Đang xử lý dòng " + (i + 1) + " | maSP: " + maSP + " | SL: " + soLuong + " | Đơn giá: " + donGia);
-            float thueVAT = 0.1f;
-
+            double thueVat = thue/100.0;
             long thanhTien =0;
-            thanhTien += (long) (soLuong * donGia + thueVAT * soLuong * donGia);
+            thanhTien += (long) (soLuong * donGia + thueVat * soLuong * donGia);
 
-            ChiTiet_PhieuXuat ctPX = new ChiTiet_PhieuXuat(pX,sp,soLuong,donGia,thanhTien,thueVAT);
+            ChiTiet_PhieuXuat ctPX = new ChiTiet_PhieuXuat(pX,sp,soLuong,donGia,thanhTien,thue);
             if (!ctpxBUS.addCTPX(conn,ctPX)){
                 System.out.println("  → Thất bại khi add CTPX cho maSP: " + maSP);
                 return false;
@@ -79,13 +78,13 @@ public class PhieuXuat_BUS {
         return true;
     }
 
-    public boolean taoPX(PhieuXuat px, DefaultTableModel model){
+    public boolean taoPX(PhieuXuat px, DefaultTableModel model,double thue){
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            if (!insertPX(conn,px,model)) {
+            if (!insertPX(conn,px,model,thue)) {
                 System.out.println("Lỗi insert PhieuXuat");
                 throw new SQLException("Thêm PX thất bại");
             }

@@ -40,7 +40,7 @@ public class TrangXuatKho extends JPanel {
     private JButton btnXuat, btnXoa, btnSua,btnXuatKho;
     private boolean isEditMode = false;
 
-    private JTextField txtID, txtNTP,txtKH;
+    private JTextField txtID, txtNTP,txtKH,txtThue;
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private String maNV = ManHinhChinh.currentMaNV;
@@ -313,8 +313,10 @@ public class TrangXuatKho extends JPanel {
         JPanel vatPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         vatPanel.setBackground(new Color(240,240,240));
         vatPanel.setBorder(new MatteBorder(1, 1, 1, 1, new Color(180,180,180)));
-        JLabel lblVAT = new JLabel("Thuế (VAT): 10%");
+        JLabel lblVAT = new JLabel("Thuế (VAT)%:");
+        txtThue = new JTextField("10");
         vatPanel.add(lblVAT);
+        vatPanel.add(txtThue);
 
         // Wrapper chứa bảng + thuế
         JPanel centerWrapper = new JPanel(new BorderLayout());
@@ -773,12 +775,22 @@ public class TrangXuatKho extends JPanel {
             comboBoxLoc.requestFocus();
             return;
         }
+        double thueVat;
+        try {
+            thueVat = Double.parseDouble(txtThue.getText());
+            if (thueVat <= 0) throw new Exception();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Thuế hợp lệ");
+            txtThue.requestFocus();
+            txtThue.selectAll();
+            return;
+        }
         KhachHang kh = new KhachHang();
         kh.setMaKH(MaKH);
         NhanVien nv = new NhanVien();
         nv.setMaNV(maNV);
         PhieuXuat px = new PhieuXuat(maPX,dateTime,kh,nv);
-        if (pxBUS.taoPX(px,tableModelRight)){
+        if (pxBUS.taoPX(px,tableModelRight,thueVat)){
             JOptionPane.showMessageDialog(
                     this,
                     "Thêm phiếu thành công",
