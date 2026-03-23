@@ -296,8 +296,8 @@ public class SanPham_BUS {
         loadAllData();
         needRefresh = true;  // Đánh dấu cần refresh cache bảng
         refreshTableCache(); // Refresh luôn cache bảng
-        if (kkBUS != null) {
-            kkBUS.refreshData();
-        }
+//        if (kkBUS != null) {
+//            kkBUS.refreshData();
+//        }
     }
 }

@@ -44,9 +44,6 @@ public class ChiTietKe_BUS {
 
     public void refreshData() {
         loadAllData();
-        if (keBus != null) {
-            keBus.refreshData();
-        }
     }
 
     public String getViTriSanPham(String maSP) {
