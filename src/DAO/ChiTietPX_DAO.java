@@ -48,7 +48,7 @@ public class ChiTietPX_DAO {
             ps.setInt(3,ct.getSoLuong());
             ps.setDouble(4,ct.getDonGia());
             ps.setLong(5,ct.getThanhTien());
-            ps.setFloat(6,ct.getThueVAT());
+            ps.setDouble(6,ct.getThueVAT());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
@@ -68,7 +68,7 @@ public class ChiTietPX_DAO {
             ps.setInt(3,ct.getSoLuong());
             ps.setDouble(4,ct.getDonGia());
             ps.setLong(5,ct.getThanhTien());
-            ps.setFloat(6,ct.getThueVAT());
+            ps.setDouble(6,ct.getThueVAT());
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (Exception e) {
@@ -87,7 +87,7 @@ public class ChiTietPX_DAO {
             ps.setInt(1,ct.getSoLuong());
             ps.setDouble(2,ct.getDonGia());
             ps.setLong(3,ct.getThanhTien());
-            ps.setFloat(4,ct.getThueVAT());
+            ps.setDouble(4,ct.getThueVAT());
             ps.setString(5,ct.getPhieuXuat().getMaPX());
             ps.setString(6,ct.getSanPham().getMaSP());
             int rows = ps.executeUpdate();

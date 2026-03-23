@@ -53,7 +53,7 @@ public class KhachHangDAO extends Component {
              PreparedStatement ps = conn.prepareStatement(sqlUpdate)) {
             int rows = ps.executeUpdate();
             if (rows > 0) {
-                JOptionPane.showMessageDialog(this," He thong da tu dong cap nhat chi tieu cho " + rows + " khach hang.");
+                JOptionPane.showMessageDialog(null," He thong da tu dong cap nhat chi tieu cho " + rows + " khach hang.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
